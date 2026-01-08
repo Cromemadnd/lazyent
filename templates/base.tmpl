@@ -42,10 +42,23 @@ type {{ .Name }}Base struct {
 {{- range $f := .Fields }}
 	{{ $f.StructField }} {{ if $f.IsEnum }}{{ $node.Name }}{{ $f.StructField }}{{ else }}{{ $f.Type }}{{ end }}
 {{- end }}
+
 {{- range $e := .Edges }}
-{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
+	{{- if isBizExclude $e }}{{ continue }}{{ end }}
+
+	{{/* Generate ID field */}}
+	{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
 	{{ edgeField $e }} {{ edgeIDType $e }}
-{{- end }}
+	{{- end }}
+
+	{{/* Generate Relationship Field based on strategy */}}
+	{{- if isBizPointer $e }}
+	{{ $e.StructField }} *{{ $e.Type.Name }} `json:"{{ $e.StructField | lower }},omitempty"`
+	{{- end }}
+	{{- if isBizValue $e }}
+	{{ $e.StructField }} {{ $e.Type.Name }} `json:"{{ $e.StructField | lower }}"`
+	{{- end }}
+	{{/* BizIDOnly does not generate the relationship field */}}
 {{- end }}
 }
 {{- end }}

@@ -25,6 +25,7 @@ type Extension struct {
 	bizEntityFileName  string
 	svcMapperFileName  string
 	dataMapperFileName string
+	protoFileName      string
 }
 
 type Option func(*Extension)
@@ -33,6 +34,13 @@ type Option func(*Extension)
 func WithSingleFile(enable bool) Option {
 	return func(e *Extension) {
 		e.singleFile = enable
+	}
+}
+
+// WithProtoFileName 设置 Proto 文件名 (SingleFile 模式下有效)
+func WithProtoFileName(name string) Option {
+	return func(e *Extension) {
+		e.protoFileName = name
 	}
 }
 

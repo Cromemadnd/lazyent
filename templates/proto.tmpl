@@ -14,11 +14,11 @@ import "validate/validate.proto";
 {{/* 生成枚举定义 */}}
 {{- range $f := .Fields }}
 {{- if $f.IsEnum }}
-enum {{ $f.StructField }} {
+enum {{ $node.Name }}{{ $f.StructField }} {
   {{/* Proto3 要求首个枚举值为 0 */}}
-  {{ $f.StructField }}_UNSPECIFIED = 0;
+  {{ $node.Name }}{{ $f.StructField }}_UNSPECIFIED = 0;
 {{- range $k, $v := getEnumValues $f }}
-  {{ $f.StructField }}_{{ $k }} = {{ $v }};
+  {{ $node.Name }}{{ $f.StructField }}_{{ $k }} = {{ $v }};
 {{- end }}
 }
 {{- end }}
@@ -28,15 +28,28 @@ message {{ .Name }} {
 {{- range $i, $f := .Fields }}
   {{ with $tag := getProtoTag $f $i }}
   {{/* 根据字段类型生成 Proto 字段定义，包括 validate 规则 */}}
-  {{ protoType $f }} {{ $f.Name }} = {{ $tag }} [(validate.rules).{{ protoType $f }} = {{ getValidateRules $f }}];
+  {{ protoType $f $node.Name }} {{ $f.Name }} = {{ $tag }} [(validate.rules).{{ protoType $f $node.Name }} = {{ getValidateRules $f }}];
   {{- end }}
-  {{- end }}
+{{- end }}
+
 {{- $count := len .Fields }}
 {{- range $e := .Edges }}
-{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
-  {{- $count = add $count 1 }}
+  {{- if isProtoExclude $e }}{{ continue }}{{ end }}
+  
+  {{- if isProtoMessage $e }}
+    {{- $count = add $count 1 }}
+    {{- if $e.Unique }}
+  {{ $e.Type.Name }} {{ $e.Name }} = {{ $count }};
+    {{- else }}
+  repeated {{ $e.Type.Name }} {{ $e.Name }} = {{ $count }};
+    {{- end }}
+  {{- else }}
+    {{/* ProtoID (Default) */}}
+    {{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
+      {{- $count = add $count 1 }}
   {{ edgeProtoType $e }} {{ $e.Name }}_id = {{ $count }};
-{{- end }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 }
 {{- end }}

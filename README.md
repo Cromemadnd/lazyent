@@ -1,6 +1,7 @@
 # lazyent
 
 一个 Ent 生成器插件，用于从 Ent Schema 生成 Domain Entity 与 DTO 定义 Protobuf Message。
+主要为 Clean Architecture (Kratos) 设计模式提供支持。
 
 ## 特点
 
@@ -15,10 +16,19 @@
 go install github.com/Cromemadnd/lazyent@latest
 ```
 
-在你的 `entc.go` 中集成 `lazyent`。
+然后，如果你的目录下的 `generate.go` 还是 ent 默认提供的，你需要更改它以使用 `entc.go`。
 
 ```go
-// entc.go
+/* generate.go */
+package ent
+
+//go:generate go run -mod=mod entc.go
+```
+
+然后在你的 `entc.go` 中集成 `lazyent`。
+
+```go
+/* entc.go */
 
 //go:build ignore
 

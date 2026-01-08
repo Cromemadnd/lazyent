@@ -108,45 +108,9 @@ func (e *Extension) generate(g *gen.Graph) error {
 			return err
 		}
 
-		// Proto files are usually per-service/message, but user asked for consolidation of Go files.
-		// Proto generation currently uses separate files. The user request example listing implied separate proto files?
-		// Actually user listing: "data\mappers_gen.go, biz\entities_base_gen.go..."
-		// It didn't mention proto consolidation.
-		// However, my current proto template is per-node.
-		// If I keep it per-node, I need to iterate.
-		// Let's create individual proto files even in singleFile mode for now, unless requested otherwise.
-		// BUT wait, if I change the template to Expect `.Nodes` list, then I must iterate and generate logic.
-		// Existing proto.tmpl generates `message Post {}`.
-		// If I wrap it in range, it generates multiple messages in one proto file.
-		// That is VALID proto.
-		// So I CAN consolidate proto files if I want.
-		// But let's look at the user request again.
-		// "Enable: separate files... Disable: single files..."
-		// It implies consistent behavior.
-		// However, consolidation of Proto files into one `api.proto` might conflict with imports if not careful.
-		// Let's stick to generating separate Proto files for now as it wasn't strictly asked to consolidate protos (only Go files listed).
-		// Wait, if I change templates to iterate `.Nodes`, then I CANNOT use the same template for single file generation AND multiple file generation unless I always pass a list.
-		// So if I am in singleFile mode, I pass all nodes.
-		// For Proto, if I want separate files, I must call render individually.
-
-		// Let's iterate for Proto files individually regardless of mode OR support separate proto files.
-		// Since user didn't explicitly ask for proto consolidation, I will generate separate proto files.
-		// To do this reuse the "allNodes" but render individually.
-		// BUT the template will be updated to expect `Nodes` (plural).
-		// So I pass `Nodes: [n]` (one element).
-
-		for _, nd := range allNodes {
-			pData := make(map[string]interface{})
-			for k, v := range commonData {
-				pData[k] = v
-			}
-			pData["Nodes"] = []interface{}{nd} // Single node list
-			// Name is needed for filename construction in loop
-			ndMap := nd.(map[string]interface{})
-			name := ndMap["Name"].(string)
-			if err := e.render(nil, "templates/proto.tmpl", filepath.Join(moduleRoot, e.protoOut, strings.ToLower(name)+".proto"), pData); err != nil {
-				return err
-			}
+		// 5. Proto Files
+		if err := e.render(nil, "templates/proto.tmpl", filepath.Join(moduleRoot, e.protoOut, e.protoFileName), data); err != nil {
+			return err
 		}
 
 	} else {
