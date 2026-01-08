@@ -1,0 +1,51 @@
+{{/* base.tmpl - 生成 internal/biz/_base_gen.go */}}
+package biz
+
+import (
+{{- if hasTimeNodes .Nodes }}
+	"time"
+{{- end }}
+{{- if hasUUIDNodes .Nodes }}
+	"github.com/google/uuid"
+{{- end }}
+)
+
+{{- range .Nodes }}
+{{- $node := . }}
+{{/* 遍历所有的 Enum 字段生成 Biz 层枚举类型 */}}
+{{- range $f := .Fields }}
+{{- if $f.IsEnum }}
+// {{ $f.StructField }} 枚举定义
+type {{ $node.Name }}{{ $f.StructField }} int32
+
+const (
+{{- range $k, $v := getEnumValues $f }}
+	{{ $node.Name }}{{ $f.StructField }}{{ $k }} {{ $node.Name }}{{ $f.StructField }} = {{ $v }}
+{{- end }}
+)
+
+func (e {{ $node.Name }}{{ $f.StructField }}) String() string {
+	switch e {
+{{- range $k, $v := getEnumValues $f }}
+	case {{ $v }}:
+		return "{{ $k }}"
+{{- end }}
+	default:
+		return "UNKNOWN"
+	}
+}
+{{- end }}
+{{- end }}
+
+// {{ .Name }}Base 是 {{ .Name }} 的基础结构体，包含自动生成的字段定义
+type {{ .Name }}Base struct {
+{{- range $f := .Fields }}
+	{{ $f.StructField }} {{ if $f.IsEnum }}{{ $node.Name }}{{ $f.StructField }}{{ else }}{{ $f.Type }}{{ end }}
+{{- end }}
+{{- range $e := .Edges }}
+{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
+	{{ edgeField $e }} {{ edgeIDType $e }}
+{{- end }}
+{{- end }}
+}
+{{- end }}

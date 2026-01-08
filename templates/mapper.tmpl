@@ -1,0 +1,51 @@
+package service
+
+import (
+	"{{ .BizPackage }}"
+	pb "{{ .ApiPackage }}"
+{{- if hasTimeNodes .Nodes }}
+	"google.golang.org/protobuf/types/known/timestamppb"
+{{- end }}
+{{- if hasUUIDNodes .Nodes }}
+	"github.com/google/uuid"
+{{- end }}
+)
+
+{{- range .Nodes }}
+{{- $node := . }}
+// ToProto 将 Biz 实体转换为 Proto Message
+func ToProto{{ .Name }}(b *biz.{{ .Name }}) *pb.{{ .Name }} {
+	if b == nil {
+		return nil
+	}
+	return &pb.{{ .Name }}{
+{{- range $f := .Fields }}
+		{{ $f.StructField }}: {{ convertToProto $f }},
+{{- end }}
+{{- range $e := .Edges }}
+{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
+		{{ $e.StructField }}Id: {{ edgeConvertToProto $e }},
+{{- end }}
+{{- end }}
+	}
+}
+
+// FromProto 将 Proto Message 转换为 Biz 实体
+func FromProto{{ .Name }}(p *pb.{{ .Name }}) *biz.{{ .Name }} {
+	if p == nil {
+		return nil
+	}
+	return &biz.{{ .Name }}{
+		{{ .Name }}Base: biz.{{ .Name }}Base{
+{{- range $f := .Fields }}
+			{{ $f.StructField }}: {{ convertFromProto $f }},
+{{- end }}
+{{- range $e := .Edges }}
+{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
+			{{ edgeField $e }}: {{ edgeConvertFromProto $e }},
+{{- end }}
+{{- end }}
+		},
+	}
+}
+{{- end }}
