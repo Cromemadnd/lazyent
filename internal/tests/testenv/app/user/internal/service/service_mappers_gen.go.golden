@@ -6,6 +6,7 @@ import (
 
 	pb "github.com/Cromemadnd/lazyent/internal/tests/testenv/api/v1"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -110,6 +111,7 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		IsVerified: b.IsVerified,
 		Tags:       b.Tags,
 		Status:     BizUserStatusToProto(b.Status),
+		Role:       string(b.Role),
 		PostIds:    postIds,
 		Groups:     groups,
 	}, nil
@@ -143,6 +145,7 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			IsVerified: p.IsVerified,
 			Tags:       p.Tags,
 			Status:     ProtoUserStatusToBiz(p.Status),
+			Role:       auth.UserRole(p.Role),
 			PostIDs:    postIds,
 			Groups:     groups,
 		},

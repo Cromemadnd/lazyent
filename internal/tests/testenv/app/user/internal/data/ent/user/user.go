@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"github.com/google/uuid"
 )
 
@@ -36,6 +37,8 @@ const (
 	FieldPassword = "password"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// EdgePosts holds the string denoting the posts edge name in mutations.
 	EdgePosts = "posts"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
@@ -73,6 +76,7 @@ var Columns = []string{
 	FieldTags,
 	FieldPassword,
 	FieldStatus,
+	FieldRole,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -146,6 +150,18 @@ func StatusValidator(s Status) error {
 	}
 }
 
+const DefaultRole auth.UserRole = "user"
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r auth.UserRole) error {
+	switch r {
+	case "public", "user", "tech", "dev", "leader", "manager":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for role field: %q", r)
+	}
+}
+
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
 
@@ -197,6 +213,11 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }
 
 // ByPostsCount orders the results by posts count.

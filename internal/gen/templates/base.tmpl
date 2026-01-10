@@ -6,13 +6,16 @@ import (
 {{- if $hasTime }}
 	"time"
 {{- end }}
+{{- range collectExternalImports .Nodes }}
+	"{{ . }}"
+{{- end }}
 )
 
 {{- range .Nodes }}
 {{- $node := . }}
 {{/* 遍历所有的 Enum 字段生成 Biz 层枚举类型 */}}
 {{- range $f := .Fields }}
-{{- if $f.IsEnum }}
+{{- if and $f.IsEnum (not (isExternalEnum $f)) }}
 // {{ $f.StructField }} 枚举定义
 type {{ $node.Name }}{{ $f.StructField }} int32
 
@@ -40,7 +43,7 @@ type {{ .Name }}Base struct {
 	UUID string
 {{- range $f := .Fields }}
 	{{- if not (isSensitive $f) }}
-	{{ bizFieldName $f }} {{ if $f.IsEnum }}{{ $node.Name }}{{ $f.StructField }}{{ else }}{{ bizFieldType $f }}{{ end }}
+	{{ bizFieldName $f }} {{ if $f.IsEnum }}{{ if isExternalEnum $f }}{{ getExternalEnumName $f }}{{ else }}{{ $node.Name }}{{ $f.StructField }}{{ end }}{{ else }}{{ bizFieldType $f }}{{ end }}
 	{{- end }}
 {{- end }}
 {{- range $e := .Edges }}

@@ -140,6 +140,7 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 			IsVerified: e.IsVerified,
 			Tags:       e.Tags,
 			Status:     EntUserStatusToBiz(e.Status),
+			Role:       e.Role,
 			PostIDs:    postIDs,
 			Groups:     groups,
 			Friends:    friends,
@@ -192,6 +193,7 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		IsVerified: b.IsVerified,
 		Tags:       b.Tags,
 		Status:     BizUserStatusToEnt(b.Status),
+		Role:       b.Role,
 		Edges: ent.UserEdges{
 			Posts:   posts,
 			Groups:  groups,

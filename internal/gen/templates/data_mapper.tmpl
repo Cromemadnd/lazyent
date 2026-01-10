@@ -123,11 +123,34 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 	if err != nil {
 		return nil, err
 	}
+{{- range $f := .Fields }}
+	{{- if and (not (isSensitive $f)) (eq $f.Type.String "uuid.UUID") }}
+	{{- if $f.Nillable }}
+	var {{ camel $f.StructField }} *uuid.UUID
+	if b.{{ bizFieldName $f }} != "" {
+		parsed, err := uuid.Parse(b.{{ bizFieldName $f }})
+		if err != nil {
+			return nil, err
+		}
+		{{ camel $f.StructField }} = &parsed
+	}
+	{{- else }}
+	{{ camel $f.StructField }}, err := uuid.Parse(b.{{ bizFieldName $f }})
+	if err != nil {
+		return nil, err
+	}
+	{{- end }}
+	{{- end }}
+{{- end }}
 	return &ent.{{ .Name }}{
 		ID:        id,
 {{- range $f := .Fields }}
 		{{- if not (isSensitive $f) }}
+		{{- if eq $f.Type.String "uuid.UUID" }}
+		{{ $f.StructField }}: {{ camel $f.StructField }},
+		{{- else }}
 		{{ $f.StructField }}: {{ convertBizToEnt $f $node.Name (printf "b.%s" (bizFieldName $f)) }},
+		{{- end }}
 		{{- end }}
 {{- end }}
 {{- if .Edges }}
@@ -141,8 +164,10 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 	}, nil
 }
 
-{{/* 生成 Enum Converters */}}
-{{- range $f := .Fields }}{{ if .IsEnum }}
+
+{{/* 生成 Enum Converters - 只为内部枚举生成，外部枚举类型不需要转换 */}}
+{{- range $f := .Fields }}{{ if and .IsEnum (not (isExternalEnum $f)) }}
+
 func Ent{{ $node.Name }}{{ $f.StructField }}ToBiz(v {{ $node.Name | lower }}.{{ $f.StructField }}) biz.{{ $node.Name }}{{ $f.StructField }} {
 	switch v {
 {{- range $pair := getEnumPairs $f }}

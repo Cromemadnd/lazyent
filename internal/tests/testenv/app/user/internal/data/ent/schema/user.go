@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	lazyent "github.com/Cromemadnd/lazyent/internal/types"
 )
 
@@ -39,6 +40,20 @@ func (User) Fields() []ent.Field {
 					"ACTIVE":   1,
 					"INACTIVE": 4,
 					"BANNED":   3,
+				},
+			}),
+		field.Enum("role").
+			GoType(auth.UserRole("")).
+			Default(string(auth.RoleUser)).
+			Comment("用户权限组").
+			Annotations(lazyent.Annotation{
+				EnumValues: map[string]int32{
+					"public":  1,
+					"user":    2,
+					"tech":    3,
+					"dev":     4,
+					"leader":  5,
+					"manager": 6,
 				},
 			}),
 	}
