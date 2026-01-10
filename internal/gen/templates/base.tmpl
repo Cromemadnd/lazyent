@@ -45,7 +45,7 @@ type {{ .Name }}Base struct {
 {{- end }}
 {{- range $e := .Edges }}
 	{{- if isBizExclude $e }}{{ continue }}{{ end }}
-	{{/* Generate ID field */}}
+	{{- /* Generate ID field */ -}}
 	{{- if isBizIDOnly $e }}
 	{{- if not $e.Unique }}
 	{{ bizEdgeName $e }} []string
@@ -53,7 +53,7 @@ type {{ .Name }}Base struct {
 	{{ bizEdgeName $e }} {{ edgeIDType $e }}
 	{{- end }}
 	{{- end }}
-	{{/* Generate Relationship Field based on strategy */}}
+	{{- /* Generate Relationship Field based on strategy */ -}}
 	{{- if isBizPointer $e }}
 	{{- if $e.Unique }}
 	{{ bizEdgeName $e }} *{{ $e.Type.Name }}

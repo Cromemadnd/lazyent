@@ -7,21 +7,23 @@ option go_package = "{{ .GoPackage }}";
 {{ range .Imports }}import "{{ . }}";
 {{ end }}
 
-{{- range .Elements }}
-{{- if .Enum }}
-enum {{ .Enum.Name }} {
-{{- range .Enum.Values }}
+{{- range $i, $e := .Elements }}
+{{- if $i }}
+{{ end -}}
+{{- if $e.Enum }}
+enum {{ $e.Enum.Name }} {
+{{- range $e.Enum.Values }}
   {{ .Name }} = {{ .Number }};
 {{- end }}
 }
-{{ else if .Message }}
-message {{ .Message.Name }} {
-{{- if .Message.Comment }}
-  // {{ .Message.Comment }}
+{{- else if $e.Message }}
+message {{ $e.Message.Name }} {
+{{- if $e.Message.Comment }}
+  // {{ $e.Message.Comment }}
 {{- end }}
-{{- range .Message.Fields }}
+{{- range $e.Message.Fields }}
   {{ if .Repeated }}repeated {{ end }}{{ .Type }} {{ .Name }} = {{ .Tag }}{{ if .Rules }} [(validate.rules){{ .Rules }}]{{ end }};{{ if .Comment }} // {{ .Comment }}{{ end }}
 {{- end }}
 }
-{{ end }}
-{{ end }}
+{{- end }}
+{{- end }}

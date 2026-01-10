@@ -118,6 +118,7 @@ func (e *Generator) generate(g *entgen.Graph) error {
 		}
 		nodeData := map[string]interface{}{
 			"Name":   n.Name,
+			"ID":     n.ID,
 			"Fields": n.Fields,
 			"Edges":  n.Edges,
 			"Enums":  enums,

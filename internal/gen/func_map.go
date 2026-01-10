@@ -28,6 +28,7 @@ var funcMap = template.FuncMap{
 	"edgeField":            edgeField,
 	"hasField":             hasField,
 	"protoStructField":     protoStructField,
+	"protoGoName":          protoGoName,
 	"edgeIDType":           edgeIDType,
 	"edgeProtoType":        edgeProtoType,
 	"edgeConvertToProto":   edgeConvertToProto,
@@ -40,20 +41,24 @@ var funcMap = template.FuncMap{
 	"isBizPointer": isBizPointer,
 	"isSensitive":  isSensitive,
 
-	"isProtoID":         isProtoID,
-	"isProtoMessage":    isProtoMessage,
-	"isProtoExclude":    isProtoExclude,
-	"enumToProtoFunc":   enumToProtoFuncName,
-	"enumFromProtoFunc": enumFromProtoFuncName,
-	"getAllEnums":       getAllEnums,
-	"bizFieldName":      bizFieldName,
-	"bizFieldType":      bizFieldType,
-	"explicitBizType":   explicitBizType,
-	"bizEdgeName":       bizEdgeName,
-	"pascal":            pascal,
-	"camel":             camel,
-	"convertEntToBiz":   convertEntToBiz,
-	"convertBizToEnt":   convertBizToEnt,
+	"isProtoID":           isProtoID,
+	"isProtoMessage":      isProtoMessage,
+	"isProtoExclude":      isProtoExclude,
+	"enumToProtoFunc":     enumToProtoFuncName,
+	"enumFromProtoFunc":   enumFromProtoFuncName,
+	"getAllEnums":         getAllEnums,
+	"bizFieldName":        bizFieldName,
+	"isSlice":             isSlice,
+	"getSliceElementType": getSliceElementType,
+	"getGoProtoType":      getGoProtoType,
+	"isSliceTypeMatch":    isSliceTypeMatch,
+	"bizFieldType":        bizFieldType,
+	"explicitBizType":     explicitBizType,
+	"bizEdgeName":         bizEdgeName,
+	"pascal":              pascal,
+	"camel":               camel,
+	"convertEntToBiz":     convertEntToBiz,
+	"convertBizToEnt":     convertBizToEnt,
 }
 
 func hasTimeNodes(nodes []interface{}) bool {
@@ -342,6 +347,9 @@ func getValidateRules(f *entgen.Field, nodeName string) string {
 }
 
 func getProtoType(f *entgen.Field) string {
+	if f == nil {
+		return "string"
+	}
 	a := getFieldAnnotation(f)
 	if a != nil && a.ProtoType != "" {
 		return a.ProtoType
@@ -382,6 +390,9 @@ func getProtoTag(f *entgen.Field, i int) int {
 
 // Updated to accept Node Name
 func convertToProto(f *entgen.Field, nodeName string) string {
+	if f == nil {
+		return ""
+	}
 	if isSensitive(f) {
 		// Just return zero value for safety, though template generally skips
 		return zeroValue(getProtoType(f))
@@ -393,7 +404,13 @@ func convertToProto(f *entgen.Field, nodeName string) string {
 		return fmt.Sprintf("timestamppb.New(b.%s)", bizFieldName(f))
 	}
 	if f.Type.String() == "uuid.UUID" {
-		return fmt.Sprintf("b.%s.String()", bizFieldName(f))
+		return fmt.Sprintf("b.%s", bizFieldName(f))
+	}
+
+	// Special handling for slices (repeated fields) matching simple types
+	// Avoid string() casting for []string
+	if strings.HasPrefix(f.Type.String(), "[]") && f.Type.String() != "[]byte" {
+		return "b." + bizFieldName(f)
 	}
 
 	// Explicit Type Conversion Logic
@@ -441,6 +458,9 @@ func convertToProto(f *entgen.Field, nodeName string) string {
 }
 
 func protoGoName(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
 	a := getFieldAnnotation(f)
 	if a != nil && a.ProtoName != "" {
 		return pascal(a.ProtoName)
@@ -450,6 +470,10 @@ func protoGoName(f *entgen.Field) string {
 
 // Updated to accept Node Name
 func convertFromProto(f *entgen.Field, nodeName string) string {
+	if f == nil {
+		// Should not happen if iteration is correct, but safer
+		return ""
+	}
 	if isSensitive(f) {
 		return zeroValue(bizFieldType(f))
 	}
@@ -459,13 +483,17 @@ func convertFromProto(f *entgen.Field, nodeName string) string {
 	if f.Type.String() == "time.Time" {
 		return fmt.Sprintf("p.%s.AsTime()", protoGoName(f))
 	}
-	if f.Type.String() == "uuid.UUID" {
-		return fmt.Sprintf("uuid.MustParse(p.%s)", protoGoName(f))
-	}
 
 	targetType := bizFieldType(f)
 	if targetType == "" {
 		targetType = f.Type.String()
+	}
+
+	if f.Type.String() == "uuid.UUID" {
+		if targetType == "string" {
+			return "p." + protoGoName(f)
+		}
+		return fmt.Sprintf("uuid.MustParse(p.%s)", protoGoName(f))
 	}
 
 	// Avoid redundant casting
@@ -538,7 +566,7 @@ func getEnumPairs(f *entgen.Field) []EnumPair {
 }
 
 func getFieldAnnotation(f *entgen.Field) *types.Annotation {
-	if f.Annotations == nil {
+	if f == nil {
 		return nil
 	}
 	if f.Annotations == nil {
@@ -708,6 +736,9 @@ func isBizPointer(e *entgen.Edge) bool {
 }
 
 func isSensitive(f *entgen.Field) bool {
+	if f == nil {
+		return false
+	}
 	return f.Sensitive()
 }
 
@@ -724,6 +755,48 @@ func isProtoMessage(e *entgen.Edge) bool {
 func isProtoExclude(e *entgen.Edge) bool {
 	s := getStrategy(e)
 	return s == types.BizPointerWithProtoExclude || s == types.BizIDWithProtoExclude || s == types.BizExcludeWithProtoExclude
+}
+
+func isSlice(f *entgen.Field) bool {
+	return strings.HasPrefix(f.Type.String(), "[]") && f.Type.String() != "[]byte"
+}
+
+func getSliceElementType(f *entgen.Field) string {
+	t := f.Type.String()
+	if strings.HasPrefix(t, "[]") {
+		return strings.TrimPrefix(t, "[]")
+	}
+	return t
+}
+
+func getGoProtoType(f *entgen.Field) string {
+	// Returns the Go type string for the Proto field
+	pt := getProtoType(f)
+	switch pt {
+	case "double":
+		return "float64"
+	case "float":
+		return "float32"
+	case "int32", "uint32", "int64", "uint64", "bool", "string":
+		return pt
+	case "bytes":
+		return "[]byte"
+	default:
+		return "string" // fallback, e.g. enums usually handled separately
+	}
+}
+
+func isSliceTypeMatch(f *entgen.Field) bool {
+	if !isSlice(f) {
+		return false
+	}
+	// Simple check: compare element type string
+	// Biz Element Type
+	bizType := getSliceElementType(f)
+	// Proto Element Type (Go representation)
+	protoType := getGoProtoType(f)
+
+	return bizType == protoType
 }
 
 func validateConflict(e *entgen.Edge) error {
@@ -767,6 +840,9 @@ func getAllEnums(nodes []interface{}) []EnumDef {
 }
 
 func bizFieldName(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
 	a := getFieldAnnotation(f)
 	if a != nil && a.BizName != "" {
 		return a.BizName
@@ -775,6 +851,9 @@ func bizFieldName(f *entgen.Field) string {
 }
 
 func bizFieldType(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
 	a := getFieldAnnotation(f)
 	if a != nil && a.BizType != "" {
 		return a.BizType
@@ -782,10 +861,16 @@ func bizFieldType(f *entgen.Field) string {
 	if f.IsEnum() {
 		return "" // handled in template
 	}
+	if f.Type.String() == "uuid.UUID" {
+		return "string"
+	}
 	return f.Type.String()
 }
 
 func explicitBizType(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
 	a := getFieldAnnotation(f)
 	if a != nil && a.BizType != "" {
 		return a.BizType

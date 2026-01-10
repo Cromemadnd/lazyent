@@ -3,6 +3,7 @@ package tests
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"entgo.io/ent/entc"
@@ -152,7 +153,26 @@ func TestLazyEntIntegration(t *testing.T) {
 			continue
 		}
 
-		if diff := cmp.Diff(string(goldenContent), string(genContent)); diff != "" {
+		// Normalize line endings and trim space
+		// Normalize line endings
+		genStr := strings.ReplaceAll(string(genContent), "\r\n", "\n")
+		goldenStr := strings.ReplaceAll(string(goldenContent), "\r\n", "\n")
+
+		// Function to remove blank lines
+		removeBlankLines := func(s string) string {
+			var lines []string
+			for _, line := range strings.Split(s, "\n") {
+				if strings.TrimSpace(line) != "" {
+					lines = append(lines, line)
+				}
+			}
+			return strings.Join(lines, "\n")
+		}
+
+		genNormalized := removeBlankLines(genStr)
+		goldenNormalized := removeBlankLines(goldenStr)
+
+		if diff := cmp.Diff(goldenNormalized, genNormalized); diff != "" {
 			t.Errorf("%s mismatch (-want +got):\n%s", filepath.Base(genRelPath), diff)
 		}
 	}

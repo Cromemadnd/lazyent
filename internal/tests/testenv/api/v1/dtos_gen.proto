@@ -15,7 +15,6 @@ message Group {
   repeated User users = 5;
 }
 
-
 message Post {
   string uuid = 1 [(validate.rules).string.uuid = true]; // 数据库主键
   google.protobuf.Timestamp created_at = 2; // 创建时间
@@ -25,14 +24,12 @@ message Post {
   string author = 6 [(validate.rules).string.uuid = true];
 }
 
-
 enum UserStatus {
   USERSTATUS_UNSPECIFIED = 0;
   USERSTATUS_ACTIVE = 1;
   USERSTATUS_INACTIVE = 4;
   USERSTATUS_BANNED = 3;
 }
-
 
 message User {
   string uuid = 1 [(validate.rules).string.uuid = true]; // 数据库主键
@@ -52,5 +49,3 @@ message User {
   }];
   repeated Group groups = 12;
 }
-
-

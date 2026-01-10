@@ -87,6 +87,10 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 	if b == nil {
 		return nil, errors.New("BizUserToProto: nil entity")
 	}
+	var postIds []string
+	for _, item := range b.PostIDs {
+		postIds = append(postIds, item)
+	}
 	var groups []*pb.Group
 	for _, item := range b.Groups {
 		v, err := BizGroupToProto(item)
@@ -94,10 +98,6 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 			return nil, err
 		}
 		groups = append(groups, v)
-	}
-	var postIds []string
-	for _, item := range b.PostIDs {
-		postIds = append(postIds, item)
 	}
 	return &pb.User{
 		Uuid:       b.UUID,
@@ -110,14 +110,18 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		IsVerified: b.IsVerified,
 		Tags:       b.Tags,
 		Status:     BizUserStatusToProto(b.Status),
-		Groups:     groups,
 		PostIds:    postIds,
+		Groups:     groups,
 	}, nil
 }
 
 func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 	if p == nil {
 		return nil, errors.New("ProtoUserToBiz: nil entity")
+	}
+	var postIds []string
+	for _, item := range p.PostIds {
+		postIds = append(postIds, item)
 	}
 	var groups []*biz.Group
 	for _, item := range p.Groups {
@@ -126,10 +130,6 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			return nil, err
 		}
 		groups = append(groups, v)
-	}
-	var postIds []string
-	for _, item := range p.PostIds {
-		postIds = append(postIds, item)
 	}
 	return &biz.User{
 		UserBase: biz.UserBase{
@@ -143,8 +143,8 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			IsVerified: p.IsVerified,
 			Tags:       p.Tags,
 			Status:     ProtoUserStatusToBiz(p.Status),
-			Groups:     groups,
 			PostIDs:    postIds,
+			Groups:     groups,
 		},
 	}, nil
 }

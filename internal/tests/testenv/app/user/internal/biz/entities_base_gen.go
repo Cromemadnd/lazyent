@@ -11,8 +11,7 @@ type GroupBase struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
-
-	Users []*User
+	Users     []*User
 }
 
 // PostBase 是 Post 的基础结构体，包含自动生成的字段定义
@@ -22,8 +21,7 @@ type PostBase struct {
 	UpdatedAt time.Time
 	Title     string
 	Content   string
-
-	Author *User
+	Author    *User
 }
 
 // Status 枚举定义
@@ -60,10 +58,7 @@ type UserBase struct {
 	IsVerified bool
 	Tags       []string
 	Status     UserStatus
-
-	PostIDs []string
-
-	Groups []*Group
-
-	Friends []*User
+	PostIDs    []string
+	Groups     []*Group
+	Friends    []*User
 }

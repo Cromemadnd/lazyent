@@ -6,7 +6,6 @@ import (
 
 	pb "github.com/Cromemadnd/lazyent/internal/tests/testenv/api/v1"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,6 +22,7 @@ func BizGroupToProto(b *biz.Group) (*pb.Group, error) {
 		users = append(users, v)
 	}
 	return &pb.Group{
+		Uuid:      b.UUID,
 		CreatedAt: timestamppb.New(b.CreatedAt),
 		UpdatedAt: timestamppb.New(b.UpdatedAt),
 		Name:      b.Name,
@@ -44,26 +44,27 @@ func ProtoGroupToBiz(p *pb.Group) (*biz.Group, error) {
 	}
 	return &biz.Group{
 		GroupBase: biz.GroupBase{
+			UUID:      p.Uuid,
 			CreatedAt: p.CreatedAt.AsTime(),
 			UpdatedAt: p.UpdatedAt.AsTime(),
 			Name:      p.Name,
-
-			Users: users,
+			Users:     users,
 		},
 	}, nil
 }
+
 func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 	if b == nil {
 		return nil, errors.New("BizPostToProto: nil entity")
 	}
 
 	return &pb.Post{
+		Uuid:      b.UUID,
 		CreatedAt: timestamppb.New(b.CreatedAt),
 		UpdatedAt: timestamppb.New(b.UpdatedAt),
 		Title:     b.Title,
 		Content:   b.Content,
-
-		Author: b.Author.UUID,
+		Author:    b.Author.UUID,
 	}, nil
 }
 
@@ -71,23 +72,18 @@ func ProtoPostToBiz(p *pb.Post) (*biz.Post, error) {
 	if p == nil {
 		return nil, errors.New("ProtoPostToBiz: nil entity")
 	}
-	author, err := ProtoUserToBiz(p.Author)
-	if err != nil {
-		return nil, err
-	}
 	return &biz.Post{
 		PostBase: biz.PostBase{
+			UUID:      p.Uuid,
 			CreatedAt: p.CreatedAt.AsTime(),
 			UpdatedAt: p.UpdatedAt.AsTime(),
 			Title:     p.Title,
 			Content:   p.Content,
-
-			Author: &biz.User{UserBase: biz.UserBase{UUID: p.Author}},
-
-			Author: author,
+			Author:    &biz.User{UserBase: biz.UserBase{UUID: p.Author}},
 		},
 	}, nil
 }
+
 func BizUserToProto(b *biz.User) (*pb.User, error) {
 	if b == nil {
 		return nil, errors.New("BizUserToProto: nil entity")
@@ -106,19 +102,18 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		groups = append(groups, v)
 	}
 	return &pb.User{
+		Uuid:       b.UUID,
 		CreatedAt:  timestamppb.New(b.CreatedAt),
 		UpdatedAt:  timestamppb.New(b.UpdatedAt),
 		Name:       b.Name,
 		Age:        int32(b.Age),
 		Nickname:   b.Nickname,
-		Score:      uint32(b.UserScore),
+		UserScore:  uint32(b.UserScore),
 		IsVerified: b.IsVerified,
-		Tags:       string(b.Tags),
-		Password:   "",
+		Tags:       b.Tags,
 		Status:     BizUserStatusToProto(b.Status),
-
-		PostIds: postIds,
-		Groups:  groups,
+		PostIds:    postIds,
+		Groups:     groups,
 	}, nil
 }
 
@@ -127,9 +122,9 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 		return nil, errors.New("ProtoUserToBiz: nil entity")
 	}
 
-	var postIDs []string
+	var postIds []string
 	for _, item := range p.PostIds {
-		postIDs = append(postIDs, item)
+		postIds = append(postIds, item)
 	}
 	var groups []*biz.Group
 	for _, item := range p.Groups {
@@ -139,16 +134,9 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 		}
 		groups = append(groups, v)
 	}
-	var friends []*biz.User
-	for _, item := range p.Friends {
-		v, err := ProtoUserToBiz(item)
-		if err != nil {
-			return nil, err
-		}
-		friends = append(friends, v)
-	}
 	return &biz.User{
 		UserBase: biz.UserBase{
+			UUID:       p.Uuid,
 			CreatedAt:  p.CreatedAt.AsTime(),
 			UpdatedAt:  p.UpdatedAt.AsTime(),
 			Name:       p.Name,
@@ -157,14 +145,9 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			UserScore:  uint8(p.UserScore),
 			IsVerified: p.IsVerified,
 			Tags:       p.Tags,
-			Password:   "",
 			Status:     ProtoUserStatusToBiz(p.Status),
-
-			PostIDs: postIDs,
-
-			Groups: groups,
-
-			Friends: friends,
+			PostIDs:    postIds,
+			Groups:     groups,
 		},
 	}, nil
 }
