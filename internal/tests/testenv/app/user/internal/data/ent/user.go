@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/user"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"github.com/google/uuid"
 )
 
@@ -40,6 +41,8 @@ type User struct {
 	Password string `json:"-"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
+	// 用户权限组
+	Role auth.UserRole `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -98,7 +101,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldAge, user.FieldScore:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus:
+		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -189,6 +192,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = user.Status(value.String)
 			}
+		case user.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				_m.Role = auth.UserRole(value.String)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field group_admins", values[i])
@@ -275,6 +284,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Role))
 	builder.WriteByte(')')
 	return builder.String()
 }

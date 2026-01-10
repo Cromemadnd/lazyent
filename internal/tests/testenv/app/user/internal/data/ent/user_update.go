@@ -16,6 +16,7 @@ import (
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/post"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/predicate"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/user"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"github.com/google/uuid"
 )
 
@@ -186,6 +187,20 @@ func (_u *UserUpdate) SetNillableStatus(v *user.Status) *UserUpdate {
 	return _u
 }
 
+// SetRole sets the "role" field.
+func (_u *UserUpdate) SetRole(v auth.UserRole) *UserUpdate {
+	_u.mutation.SetRole(v)
+	return _u
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableRole(v *auth.UserRole) *UserUpdate {
+	if v != nil {
+		_u.SetRole(*v)
+	}
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *UserUpdate) AddPostIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddPostIDs(ids...)
@@ -352,6 +367,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -416,6 +436,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -726,6 +749,20 @@ func (_u *UserUpdateOne) SetNillableStatus(v *user.Status) *UserUpdateOne {
 	return _u
 }
 
+// SetRole sets the "role" field.
+func (_u *UserUpdateOne) SetRole(v auth.UserRole) *UserUpdateOne {
+	_u.mutation.SetRole(v)
+	return _u
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableRole(v *auth.UserRole) *UserUpdateOne {
+	if v != nil {
+		_u.SetRole(*v)
+	}
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *UserUpdateOne) AddPostIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddPostIDs(ids...)
@@ -905,6 +942,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -986,6 +1028,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

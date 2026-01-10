@@ -9,6 +9,9 @@ import (
 {{- if hasTimeNodes .Nodes }}
 	"google.golang.org/protobuf/types/known/timestamppb"
 {{- end }}
+{{- range collectExternalImports .Nodes }}
+	"{{ . }}"
+{{- end }}
 )
 {{- range .Nodes }}
 {{- $node := . }}

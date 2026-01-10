@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -41,24 +42,29 @@ var funcMap = template.FuncMap{
 	"isBizPointer": isBizPointer,
 	"isSensitive":  isSensitive,
 
-	"isProtoID":           isProtoID,
-	"isProtoMessage":      isProtoMessage,
-	"isProtoExclude":      isProtoExclude,
-	"enumToProtoFunc":     enumToProtoFuncName,
-	"enumFromProtoFunc":   enumFromProtoFuncName,
-	"getAllEnums":         getAllEnums,
-	"bizFieldName":        bizFieldName,
-	"isSlice":             isSlice,
-	"getSliceElementType": getSliceElementType,
-	"getGoProtoType":      getGoProtoType,
-	"isSliceTypeMatch":    isSliceTypeMatch,
-	"bizFieldType":        bizFieldType,
-	"explicitBizType":     explicitBizType,
-	"bizEdgeName":         bizEdgeName,
-	"pascal":              pascal,
-	"camel":               camel,
-	"convertEntToBiz":     convertEntToBiz,
-	"convertBizToEnt":     convertBizToEnt,
+	"isProtoID":              isProtoID,
+	"isProtoMessage":         isProtoMessage,
+	"isProtoExclude":         isProtoExclude,
+	"enumToProtoFunc":        enumToProtoFuncName,
+	"enumFromProtoFunc":      enumFromProtoFuncName,
+	"getAllEnums":            getAllEnums,
+	"bizFieldName":           bizFieldName,
+	"isExternalEnum":         isExternalEnum,
+	"getExternalEnumPkg":     getExternalEnumPkg,
+	"getExternalEnumName":    getExternalEnumName,
+	"isSlice":                isSlice,
+	"getSliceElementType":    getSliceElementType,
+	"getGoProtoType":         getGoProtoType,
+	"isSliceTypeMatch":       isSliceTypeMatch,
+	"collectExternalImports": collectExternalImports,
+	"getEnumLiteralValues":   getEnumLiteralValues,
+	"bizFieldType":           bizFieldType,
+	"explicitBizType":        explicitBizType,
+	"bizEdgeName":            bizEdgeName,
+	"pascal":                 pascal,
+	"camel":                  camel,
+	"convertEntToBiz":        convertEntToBiz,
+	"convertBizToEnt":        convertBizToEnt,
 }
 
 func hasTimeNodes(nodes []interface{}) bool {
@@ -289,8 +295,8 @@ func protoType(f *entgen.Field, nodeName string) string {
 }
 
 func getValidateRules(f *entgen.Field, nodeName string) string {
-	// 1. Enum
-	if f.IsEnum() {
+	// 1. Enum - 外部枚举在proto中映射为string，不生成enum validation
+	if f.IsEnum() && !isExternalEnum(f) {
 		return ".enum.defined_only = true"
 	}
 
@@ -398,6 +404,11 @@ func convertToProto(f *entgen.Field, nodeName string) string {
 		return zeroValue(getProtoType(f))
 	}
 	if f.IsEnum() {
+		// External enums (string type aliases) -> string in proto
+		if isExternalEnum(f) {
+			return fmt.Sprintf("string(b.%s)", bizFieldName(f))
+		}
+		// Internal enums -> use converter function
 		return fmt.Sprintf("%s(b.%s)", enumToProtoFuncName(f, nodeName), bizFieldName(f))
 	}
 	if f.Type.String() == "time.Time" {
@@ -478,6 +489,11 @@ func convertFromProto(f *entgen.Field, nodeName string) string {
 		return zeroValue(bizFieldType(f))
 	}
 	if f.IsEnum() {
+		// External enums: proto string -> external type (string alias)
+		if isExternalEnum(f) {
+			return fmt.Sprintf("%s(p.%s)", getExternalEnumName(f), protoGoName(f))
+		}
+		// Internal enums: use converter function
 		return fmt.Sprintf("%s(p.%s)", enumFromProtoFuncName(f, nodeName), protoGoName(f))
 	}
 	if f.Type.String() == "time.Time" {
@@ -832,6 +848,10 @@ func getAllEnums(nodes []interface{}) []EnumDef {
 		}
 		for _, f := range fields {
 			if f.IsEnum() {
+				// Skip external enums (no local type definition)
+				if isExternalEnum(f) {
+					continue
+				}
 				enums = append(enums, EnumDef{NodeName: name, Field: f})
 			}
 		}
@@ -881,27 +901,21 @@ func explicitBizType(f *entgen.Field) string {
 func convertEntToBiz(f *entgen.Field, nodeName string, expr string) string {
 	// 1. Enum
 	if f.IsEnum() {
+		// 外部枚举类型（如 auth.UserRole）在 Ent 和 Biz 中类型相同，不需要转换
+		if isExternalEnum(f) {
+			return expr
+		}
 		return fmt.Sprintf("Ent%s%sToBiz(%s)", nodeName, f.StructField(), expr)
 	}
 
 	bizType := explicitBizType(f)
 	if bizType == "" {
-		// No explicit conversion needed (mostly)
-		// But check UUID
 		if f.Type.String() == "uuid.UUID" {
-			// Biz is uuid.UUID (unless bizType set, which we checked is empty)
-			// Ent is uuid.UUID
-			// Match.
+			bizType = "string"
+		} else {
+			// No explicit conversion needed
 			return expr
 		}
-		// Check pointer mismatch
-		// If Ent is pointer (Nillable/Optional) and Biz is not?
-		// Biz generated struct logic:
-		// if field is Optional in Ent, it might be pointer in Biz?
-		// Base.tmpl: {{ bizFieldType $f }}
-		// bizFieldType returns f.Type.String() (which is ent type).
-		// So if Ent is *int, Biz is *int.
-		return expr
 	}
 
 	// 2. Explicit BizType set (e.g. "uint8", "string", "int")
@@ -960,6 +974,10 @@ func convertEntToBiz(f *entgen.Field, nodeName string, expr string) string {
 func convertBizToEnt(f *entgen.Field, nodeName string, expr string) string {
 	// 1. Enum
 	if f.IsEnum() {
+		// 外部枚举类型在 Ent 和 Biz 中类型相同，不需要转换
+		if isExternalEnum(f) {
+			return expr
+		}
 		return fmt.Sprintf("Biz%s%sToEnt(%s)", nodeName, f.StructField(), expr)
 	}
 
@@ -1089,4 +1107,59 @@ func protoStructField(e *entgen.Edge) string {
 		return pascal(a.ProtoName)
 	}
 	return pascal(e.Name)
+}
+
+func isExternalEnum(f *entgen.Field) bool {
+	if !f.IsEnum() {
+		return false
+	}
+	// Check if PkgPath is set and not empty
+	return f.Type.PkgPath != ""
+}
+
+func getExternalEnumPkg(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
+	return f.Type.PkgPath
+}
+
+func getExternalEnumName(f *entgen.Field) string {
+	if f == nil {
+		return ""
+	}
+	return f.Type.String()
+}
+
+func collectExternalImports(nodes []interface{}) []string {
+	m := make(map[string]bool)
+	for _, node := range nodes {
+		n, ok := node.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		fields, ok := n["Fields"].([]*entgen.Field)
+		if !ok {
+			continue
+		}
+		for _, f := range fields {
+			if isExternalEnum(f) {
+				m[getExternalEnumPkg(f)] = true
+			}
+		}
+	}
+	var res []string
+	for k := range m {
+		res = append(res, k)
+	}
+	sort.Strings(res)
+	return res
+}
+
+func getEnumLiteralValues(f *entgen.Field) []string {
+	var res []string
+	for _, e := range f.Enums {
+		res = append(res, e.Value)
+	}
+	return res
 }

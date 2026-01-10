@@ -2,6 +2,7 @@
 package biz
 
 import (
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"time"
 )
 
@@ -58,6 +59,7 @@ type UserBase struct {
 	IsVerified bool
 	Tags       []string
 	Status     UserStatus
+	Role       auth.UserRole
 	PostIDs    []string
 	Groups     []*Group
 	Friends    []*User

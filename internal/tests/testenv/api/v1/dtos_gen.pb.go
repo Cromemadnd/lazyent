@@ -249,8 +249,9 @@ type User struct {
 	IsVerified    bool                   `protobuf:"varint,8,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
 	Tags          []string               `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"` // 用户标签
 	Status        UserStatus             `protobuf:"varint,10,opt,name=status,proto3,enum=user.v1.UserStatus" json:"status,omitempty"`
-	PostIds       []string               `protobuf:"bytes,11,rep,name=post_ids,json=postIds,proto3" json:"post_ids,omitempty"`
-	Groups        []*Group               `protobuf:"bytes,12,rep,name=groups,proto3" json:"groups,omitempty"`
+	Role          string                 `protobuf:"bytes,11,opt,name=role,proto3" json:"role,omitempty"` // 用户权限组
+	PostIds       []string               `protobuf:"bytes,12,rep,name=post_ids,json=postIds,proto3" json:"post_ids,omitempty"`
+	Groups        []*Group               `protobuf:"bytes,13,rep,name=groups,proto3" json:"groups,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -355,6 +356,13 @@ func (x *User) GetStatus() UserStatus {
 	return UserStatus_USERSTATUS_UNSPECIFIED
 }
 
+func (x *User) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
 func (x *User) GetPostIds() []string {
 	if x != nil {
 		return x.PostIds
@@ -390,7 +398,7 @@ const file_dtos_gen_proto_rawDesc = "" +
 	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1d\n" +
 	"\x05title\x18\x04 \x01(\tB\a\xfaB\x04r\x02\x10\x00R\x05title\x12\x18\n" +
 	"\acontent\x18\x05 \x01(\tR\acontent\x12 \n" +
-	"\x06author\x18\x06 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06author\"\xd0\x03\n" +
+	"\x06author\x18\x06 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06author\"\xee\x03\n" +
 	"\x04User\x12\x1c\n" +
 	"\x04uuid\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x04uuid\x129\n" +
 	"\n" +
@@ -406,10 +414,11 @@ const file_dtos_gen_proto_rawDesc = "" +
 	"isVerified\x12\x12\n" +
 	"\x04tags\x18\t \x03(\tR\x04tags\x125\n" +
 	"\x06status\x18\n" +
-	" \x01(\x0e2\x13.user.v1.UserStatusB\b\xfaB\x05\x82\x01\x02\x10\x01R\x06status\x12(\n" +
-	"\bpost_ids\x18\v \x03(\tB\r\xfaB\n" +
+	" \x01(\x0e2\x13.user.v1.UserStatusB\b\xfaB\x05\x82\x01\x02\x10\x01R\x06status\x12\x1c\n" +
+	"\x04role\x18\v \x01(\tB\b\xfaB\x05\x82\x01\x02\x10\x01R\x04role\x12(\n" +
+	"\bpost_ids\x18\f \x03(\tB\r\xfaB\n" +
 	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\apostIds\x12&\n" +
-	"\x06groups\x18\f \x03(\v2\x0e.user.v1.GroupR\x06groups*o\n" +
+	"\x06groups\x18\r \x03(\v2\x0e.user.v1.GroupR\x06groups*o\n" +
 	"\n" +
 	"UserStatus\x12\x1a\n" +
 	"\x16USERSTATUS_UNSPECIFIED\x10\x00\x12\x15\n" +

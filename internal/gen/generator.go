@@ -333,9 +333,9 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 		// For Node User: UserStatus is field enum. It appears BEFORE User Message.
 		// So for each Node: Append Enums, then Message.
 
-		// Collect Enums
+		// Collect Enums (skip external enums as they use string type in proto)
 		for _, f := range n.Fields {
-			if f.IsEnum() {
+			if f.IsEnum() && !isExternalEnum(f) {
 				files.Elements = append(files.Elements, PbElement{Enum: e.buildProtoEnum(n, f)})
 			}
 		}
@@ -419,7 +419,12 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 		if a := getFieldAnnotation(fld); a != nil && a.ProtoName != "" {
 			pf.Name = a.ProtoName
 		}
-		pf.Type = e.resolveProtoType(fld, n.Name, f)
+		// For external enums, use string type in proto
+		if fld.IsEnum() && isExternalEnum(fld) {
+			pf.Type = "string"
+		} else {
+			pf.Type = e.resolveProtoType(fld, n.Name, f)
+		}
 		if strings.HasPrefix(fld.Type.String(), "[]") && fld.Type.String() != "[]byte" {
 			pf.Repeated = true
 		}

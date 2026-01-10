@@ -42,10 +42,11 @@ message User {
   bool is_verified = 8;
   repeated string tags = 9; // 用户标签
   UserStatus status = 10 [(validate.rules).enum.defined_only = true];
-  repeated string post_ids = 11 [(validate.rules).repeated = {
+  string role = 11; // 用户权限组
+  repeated string post_ids = 12 [(validate.rules).repeated = {
     items: {
       string: { uuid: true }
     }
   }];
-  repeated Group groups = 12;
+  repeated Group groups = 13;
 }
