@@ -1,7 +1,10 @@
 # lazyent
 
 一个 Ent 插件，用于从 Ent Schema 生成 Domain Entity 与 DTO 定义 Protobuf Message。
+
 主要为 Clean Architecture (Kratos) 设计模式提供支持。
+
+Code mainly by Gemini AI.
 
 ## 特点
 
@@ -10,6 +13,24 @@
 - 生成行为可高度自定义化
 
 ## 安装与使用
+
+先安装 `protoc` 与 `protoc-gen-go`，并保证 `protoc-gen-go` 在 `PATH` 中。
+
+```bash
+# Windows
+choco install -y google-protobuf
+choco install -y protoc-gen-go
+
+# MacOS / Linux
+brew install protobuf
+brew install protoc-gen-go
+
+# 检查是否安装成功
+protoc --version
+protoc-gen-go --version
+```
+
+然后安装 `lazyent`。
 
 ```bash
 go install github.com/Cromemadnd/lazyent@latest
@@ -67,3 +88,7 @@ func main() {
 	}
 }
 ```
+
+使用时只需 `go generate` 即可。
+
+> 注意：由于Lazyent 不会自动编译生成的 proto 文件，生成的 `service_mappers_gen.go` 默认情况下会报错，你需要手动编译。

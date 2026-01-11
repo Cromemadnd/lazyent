@@ -2,8 +2,9 @@
 package biz
 
 import (
-	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	"time"
+
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 )
 
 // GroupBase 是 Group 的基础结构体，包含自动生成的字段定义

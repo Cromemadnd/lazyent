@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"go/format"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +13,7 @@ import (
 
 	entgen "entgo.io/ent/entc/gen"
 	"golang.org/x/mod/modfile"
+	"golang.org/x/tools/imports"
 )
 
 //go:embed templates/*
@@ -276,13 +276,20 @@ func (e *Generator) render(n *entgen.Type, tmplName string, targetPath string, d
 	}
 
 	content := buf.Bytes()
-	// Format Go files
+	// Format Go files with goimports (auto-fix imports)
 	if strings.HasSuffix(targetPath, ".go") {
-		formatted, err := format.Source(content)
+		// Try goimports first (handles imports + formatting)
+		formatted, err := imports.Process(targetPath, content, nil)
 		if err != nil {
-			return fmt.Errorf("failed to format source for %s: %w", targetPath, err)
+			// Fallback: proto files might not be compiled yet, just save raw generated code
+			// User will need to run protoc first, then goimports manually or via their build process
+			fmt.Printf("⚠️  Warning: Could not auto-fix imports for %s\n", filepath.Base(targetPath))
+			fmt.Printf("    Reason: %v\n", err)
+			fmt.Printf("    → Please compile proto files first (protoc), then run 'goimports -w %s'\n", targetPath)
+			// Don't format at all to preserve the template output for debugging
+		} else {
+			content = formatted
 		}
-		content = formatted
 	}
 
 	return os.WriteFile(targetPath, content, 0644)

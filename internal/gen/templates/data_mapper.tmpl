@@ -3,20 +3,10 @@
 package data
 
 import (
-	"errors"
-
-	"{{ .EntPackage }}"
 	"{{ .BizPackage }}"
-{{- if hasUUIDNodes .Nodes }}
-	"github.com/google/uuid"
-{{- end }}
-{{- range .Nodes }}
-{{- $node := . }}
-{{- range .Fields }}{{ if .IsEnum }}
-	"{{ $.EntPackage }}/{{ $node.Name | lower }}"
-{{- end }}{{ end }}
-{{- end }}
+	"{{ .EntPackage }}"
 )
+
 
 {{- range .Nodes }}
 {{- $node := . }}

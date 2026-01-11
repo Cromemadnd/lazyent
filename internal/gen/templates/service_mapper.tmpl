@@ -2,17 +2,13 @@
 package service
 
 import (
-	"errors"
-
-	"{{ .BizPackage }}"
 	pb "{{ .ApiPackage }}"
-{{- if hasTimeNodes .Nodes }}
-	"google.golang.org/protobuf/types/known/timestamppb"
-{{- end }}
+	"{{ .BizPackage }}"
 {{- range collectExternalImports .Nodes }}
 	"{{ . }}"
 {{- end }}
 )
+
 {{- range .Nodes }}
 {{- $node := . }}
 
