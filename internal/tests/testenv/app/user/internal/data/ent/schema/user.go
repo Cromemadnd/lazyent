@@ -4,8 +4,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/Cromemadnd/lazyent"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
-	lazyent "github.com/Cromemadnd/lazyent/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -18,19 +18,25 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty(),
-		field.Int("age").Positive().Annotations(lazyent.Annotation{
-			ProtoFieldID:    2,
-			ProtoValidation: "gte:0",
-		}),
-		field.String("nickname").Optional().Annotations(lazyent.Annotation{
-			ProtoValidation: "min_len:2,max_len:20,ignore_empty:true",
-		}), // Optional String
-		field.Int("score").Optional().Annotations(lazyent.Annotation{
-			BizType:   "uint8",
-			BizName:   "UserScore",
-			ProtoType: "uint32",
-			ProtoName: "user_score",
-		}), // Nillable Int
+		field.Int("age").Positive().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithProtoFieldID(2),
+			lazyent.WithValidation(lazyent.ValidationInt(lazyent.NumberRules{
+				GTE: lazyent.Float64(0),
+			})),
+		)),
+		field.String("nickname").Optional().Annotations(
+			lazyent.WithValidation(lazyent.ValidationString(lazyent.StringRules{
+				MinLen:      lazyent.Uint64(2),
+				MaxLen:      lazyent.Uint64(20),
+				IgnoreEmpty: true,
+			})),
+		), // Optional String
+		field.Int("score").Optional().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithBizType("uint8"),
+			lazyent.WithBizName("UserScore"),
+			lazyent.WithProtoType("uint32"),
+			lazyent.WithProtoName("user_score"),
+		)), // Nillable Int
 		field.Bool("is_verified").Default(false),                  // Bool
 		field.JSON("tags", []string{}).Optional().Comment("用户标签"), // JSON
 		field.String("password").Sensitive().Optional(),           // Sensitive
@@ -49,17 +55,17 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("posts", Post.Type).
-			Annotations(lazyent.Annotation{
-				BizName:           "PostIDs",
-				ProtoName:         "post_ids",
-				EdgeFieldStrategy: lazyent.BizIDWithProtoID, // Test BizIDOnly strategy
-			}),
+			Annotations(lazyent.MergeAnnotations(
+				lazyent.WithBizName("PostIDs"),
+				lazyent.WithProtoName("post_ids"),
+				lazyent.WithEdgeFieldStrategy(lazyent.BizIDWithProtoID), // Test BizIDOnly strategy
+			)),
 		edge.From("groups", Group.Type).
 			Ref("users"),
 		edge.To("friends", User.Type). // Test Self-Reference
-						Annotations(lazyent.Annotation{
-				EdgeFieldStrategy: lazyent.BizPointerWithProtoExclude, // Test ProtoExclude
-			}),
+						Annotations(
+				lazyent.WithEdgeFieldStrategy(lazyent.BizPointerWithProtoExclude), // Test ProtoExclude
+			),
 	}
 }
 

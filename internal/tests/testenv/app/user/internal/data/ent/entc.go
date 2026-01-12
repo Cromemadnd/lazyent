@@ -15,13 +15,14 @@ func main() {
 	opts := []entc.Option{
 		entc.Extensions(lazyent.NewExtension(
 			lazyent.Config{
-				ProtoOut:     "internal/tests/testenv/api/v1",
-				BizOut:       "internal/tests/testenv/app/user/internal/biz",
-				ServiceOut:   "internal/tests/testenv/app/user/internal/service",
-				DataOut:      "internal/tests/testenv/app/user/internal/data",
-				ProtoPackage: "user.v1",
-				GoPackage:    "lazyent-test-app/user/v1;v1",
-				SingleFile:   true,
+				ProtoOut:       "internal/tests/testenv/api/v1",
+				BizOut:         "internal/tests/testenv/app/user/internal/biz",
+				ServiceOut:     "internal/tests/testenv/app/user/internal/service",
+				DataOut:        "internal/tests/testenv/app/user/internal/data",
+				ProtoPackage:   "user.v1",
+				GoPackage:      "lazyent-test-app/user/v1;v1",
+				SingleFile:     true,
+				ProtoValidator: lazyent.ProtoValidatorPGV,
 			},
 		)),
 	}

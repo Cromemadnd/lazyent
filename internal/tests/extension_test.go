@@ -88,13 +88,14 @@ func TestLazyEntIntegration(t *testing.T) {
 	// entGenDir: internal/tests/testenv/app/user/internal/data/ent
 
 	conf := lazyent.Config{
-		ProtoOut:     "internal/tests/testenv/api/v1",
-		ProtoPackage: "user.v1",
-		GoPackage:    "lazyent-test-app/user/v1;v1",
-		BizOut:       "internal/tests/testenv/app/user/internal/biz",
-		ServiceOut:   "internal/tests/testenv/app/user/internal/service",
-		DataOut:      "internal/tests/testenv/app/user/internal/data",
-		SingleFile:   true,
+		ProtoOut:       "internal/tests/testenv/api/v1",
+		ProtoPackage:   "user.v1",
+		GoPackage:      "lazyent-test-app/user/v1;v1",
+		BizOut:         "internal/tests/testenv/app/user/internal/biz",
+		ServiceOut:     "internal/tests/testenv/app/user/internal/service",
+		DataOut:        "internal/tests/testenv/app/user/internal/data",
+		SingleFile:     true,
+		ProtoValidator: lazyent.ProtoValidatorPGV,
 	}
 
 	schemaPath := "./schema"

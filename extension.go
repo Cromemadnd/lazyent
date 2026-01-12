@@ -14,13 +14,14 @@ type Extension struct {
 
 // Config 定义了 Extension 的必填配置参数
 type Config struct {
-	ProtoOut     string // Proto 文件输出目录 (e.g. "api/v1")
-	ProtoPackage string // Proto 文件中的 package 定义
-	GoPackage    string // Protobuf 中的 go_package 定义
-	BizOut       string // Biz 层输出目录 (e.g. "internal/biz")
-	ServiceOut   string // Service 层输出目录 (e.g. "internal/service")
-	DataOut      string // Data 层输出目录 (e.g. "internal/data")
-	SingleFile   bool   // 是否启用单文件生成模式
+	ProtoOut       string         // Proto 文件输出目录 (e.g. "api/v1")
+	ProtoPackage   string         // Proto 文件中的 package 定义
+	GoPackage      string         // Protobuf 中的 go_package 定义
+	BizOut         string         // Biz 层输出目录 (e.g. "internal/biz")
+	ServiceOut     string         // Service 层输出目录 (e.g. "internal/service")
+	DataOut        string         // Data 层输出目录 (e.g. "internal/data")
+	SingleFile     bool           // 是否启用单文件生成模式
+	ProtoValidator ProtoValidator // Proto 校验器类型
 
 	// Optional configuration
 	BizBaseFileName    string
@@ -74,6 +75,7 @@ func (e *Extension) GenerateFiles(next gen.Generator) gen.Generator {
 			SvcMapperFileName:  e.conf.SvcMapperFileName,
 			DataMapperFileName: e.conf.DataMapperFileName,
 			ProtoFileName:      e.conf.ProtoFileName,
+			ProtoValidator:     e.conf.ProtoValidator,
 		}
 
 		return lg.Generate(iConf, g)
