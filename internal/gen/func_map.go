@@ -539,22 +539,19 @@ func convertFromProto(f *entgen.Field, nodeName string) string {
 
 func getEnumValues(f *entgen.Field) map[string]int32 {
 	a := getFieldAnnotation(f)
-	if a == nil {
+	if a == nil || a.EnumValues == nil {
+		// Auto-generate map from 0
+		if len(f.Enums) > 0 {
+			m := make(map[string]int32)
+			for i, e := range f.Enums {
+				m[e.Value] = int32(i)
+			}
+			return m
+		}
 		return nil
 	}
 	// Reorder based on f.Enums if available to match definition order
 	if len(f.Enums) > 0 {
-		// Use a special map that iterates in insertion order?
-		// Go maps don't support this.
-		// But the template iterates the map.
-		// We CANNOT control map iteration order here returning a map.
-		// We MUST change getEnumValues to return a slice of pairs!
-		// But updating template to handle slice is better.
-		// However, existing template uses assignment from map iteration.
-		// {{ $k, $v := ... }}
-		// If I return a map, it's useless for ordering.
-		// I must update the template to iterate a Slice.
-		// And update getEnumValues to return that Slice.
 		return a.EnumValues
 	}
 	return a.EnumValues
@@ -567,10 +564,16 @@ type EnumPair struct {
 
 func getEnumPairs(f *entgen.Field) []EnumPair {
 	a := getFieldAnnotation(f)
-	if a == nil {
-		return nil
-	}
 	var pairs []EnumPair
+
+	// If annotation missing or no mappings, auto-generate
+	if a == nil || a.EnumValues == nil {
+		for i, e := range f.Enums {
+			pairs = append(pairs, EnumPair{Key: e.Value, Value: int32(i)})
+		}
+		return pairs
+	}
+
 	// Use f.Enums for order
 	for _, e := range f.Enums {
 		if v, ok := a.EnumValues[e.Value]; ok {
@@ -944,7 +947,7 @@ func convertEntToBiz(f *entgen.Field, nodeName string, expr string) string {
 		}
 	} else if entType == "uuid.UUID" {
 		if bizType == "string" {
-			castExpr = fmt.Sprintf("%s.String()", exprVal)
+			castExpr = fmt.Sprintf("%s.String()", expr)
 		} else {
 			castExpr = fmt.Sprintf("%s(%s)", bizType, exprVal)
 		}

@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
 	lazyent "github.com/Cromemadnd/lazyent/internal/types"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -33,29 +34,14 @@ func (User) Fields() []ent.Field {
 		field.Bool("is_verified").Default(false),                  // Bool
 		field.JSON("tags", []string{}).Optional().Comment("用户标签"), // JSON
 		field.String("password").Sensitive().Optional(),           // Sensitive
+		field.UUID("test_uuid", uuid.UUID{}).Default(uuid.New).Comment("测试UUID"),
+		field.UUID("test_nillable_uuid", uuid.UUID{}).Default(uuid.New).Nillable().Comment("测试UUID2"),
 		field.Enum("status").
-			Values("ACTIVE", "INACTIVE", "BANNED").
-			Annotations(lazyent.Annotation{
-				EnumValues: map[string]int32{
-					"ACTIVE":   1,
-					"INACTIVE": 4,
-					"BANNED":   3,
-				},
-			}),
+			Values("UNSPECIFIED", "ACTIVE", "INACTIVE", "BANNED"), // Status Enum
 		field.Enum("role").
 			GoType(auth.UserRole("")).
 			Default(string(auth.RoleUser)).
-			Comment("用户权限组").
-			Annotations(lazyent.Annotation{
-				EnumValues: map[string]int32{
-					"public":  1,
-					"user":    2,
-					"tech":    3,
-					"dev":     4,
-					"leader":  5,
-					"manager": 6,
-				},
-			}),
+			Comment("用户权限组"), // Custom Type Enum
 	}
 }
 

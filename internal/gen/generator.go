@@ -548,23 +548,8 @@ func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
 		Name: enumName,
 	}
 
-	// Default UNSPECIFIED
-	pe.Values = append(pe.Values, &PbEnumValue{
-		Name:   strings.ToUpper(enumName) + "_UNSPECIFIED",
-		Number: 0,
-	})
-
 	vals := getEnumValues(f)
 	if vals != nil {
-		// Sort by definition order or value?
-		// Golden: ACTIVE(1), INACTIVE(4), BANNED(3).
-		// My sorted map iteration was unstable.
-		// I must iterate deterministically.
-		// If getEnumValues returns map, I can't sort it here easily unless I re-read Enums.
-		// The helper `getEnumValues` logic should be bypassed or I should use `getEnumPairs` logic here too?
-		// But `func_map` functions are not exported to this package easily unless I reuse logic.
-		// I can just iterate definition (f.Enums) and lookup map.
-
 		if f.Enums != nil {
 			for _, enumItem := range f.Enums {
 				if v, ok := vals[enumItem.Value]; ok {
@@ -585,6 +570,16 @@ func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
 				pe.Values = append(pe.Values, &PbEnumValue{
 					Name:   strings.ToUpper(enumName) + "_" + k,
 					Number: vals[k],
+				})
+			}
+		}
+	} else {
+		// Auto-generate from 0
+		if f.Enums != nil {
+			for i, enumItem := range f.Enums {
+				pe.Values = append(pe.Values, &PbEnumValue{
+					Name:   strings.ToUpper(enumName) + "_" + enumItem.Value,
+					Number: int32(i),
 				})
 			}
 		}

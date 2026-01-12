@@ -89,6 +89,14 @@ func init() {
 	userDescIsVerified := userFields[4].Descriptor()
 	// user.DefaultIsVerified holds the default value on creation for the is_verified field.
 	user.DefaultIsVerified = userDescIsVerified.Default.(bool)
+	// userDescTestUUID is the schema descriptor for test_uuid field.
+	userDescTestUUID := userFields[7].Descriptor()
+	// user.DefaultTestUUID holds the default value on creation for the test_uuid field.
+	user.DefaultTestUUID = userDescTestUUID.Default.(func() uuid.UUID)
+	// userDescTestNillableUUID is the schema descriptor for test_nillable_uuid field.
+	userDescTestNillableUUID := userFields[8].Descriptor()
+	// user.DefaultTestNillableUUID holds the default value on creation for the test_nillable_uuid field.
+	user.DefaultTestNillableUUID = userDescTestNillableUUID.Default.(func() uuid.UUID)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userMixinFields0[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.

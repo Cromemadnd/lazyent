@@ -173,6 +173,34 @@ func (_u *UserUpdate) ClearPassword() *UserUpdate {
 	return _u
 }
 
+// SetTestUUID sets the "test_uuid" field.
+func (_u *UserUpdate) SetTestUUID(v uuid.UUID) *UserUpdate {
+	_u.mutation.SetTestUUID(v)
+	return _u
+}
+
+// SetNillableTestUUID sets the "test_uuid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableTestUUID(v *uuid.UUID) *UserUpdate {
+	if v != nil {
+		_u.SetTestUUID(*v)
+	}
+	return _u
+}
+
+// SetTestNillableUUID sets the "test_nillable_uuid" field.
+func (_u *UserUpdate) SetTestNillableUUID(v uuid.UUID) *UserUpdate {
+	_u.mutation.SetTestNillableUUID(v)
+	return _u
+}
+
+// SetNillableTestNillableUUID sets the "test_nillable_uuid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableTestNillableUUID(v *uuid.UUID) *UserUpdate {
+	if v != nil {
+		_u.SetTestNillableUUID(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *UserUpdate) SetStatus(v user.Status) *UserUpdate {
 	_u.mutation.SetStatus(v)
@@ -433,6 +461,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := _u.mutation.TestUUID(); ok {
+		_spec.SetField(user.FieldTestUUID, field.TypeUUID, value)
+	}
+	if value, ok := _u.mutation.TestNillableUUID(); ok {
+		_spec.SetField(user.FieldTestNillableUUID, field.TypeUUID, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
@@ -735,6 +769,34 @@ func (_u *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	return _u
 }
 
+// SetTestUUID sets the "test_uuid" field.
+func (_u *UserUpdateOne) SetTestUUID(v uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetTestUUID(v)
+	return _u
+}
+
+// SetNillableTestUUID sets the "test_uuid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableTestUUID(v *uuid.UUID) *UserUpdateOne {
+	if v != nil {
+		_u.SetTestUUID(*v)
+	}
+	return _u
+}
+
+// SetTestNillableUUID sets the "test_nillable_uuid" field.
+func (_u *UserUpdateOne) SetTestNillableUUID(v uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetTestNillableUUID(v)
+	return _u
+}
+
+// SetNillableTestNillableUUID sets the "test_nillable_uuid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableTestNillableUUID(v *uuid.UUID) *UserUpdateOne {
+	if v != nil {
+		_u.SetTestNillableUUID(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *UserUpdateOne) SetStatus(v user.Status) *UserUpdateOne {
 	_u.mutation.SetStatus(v)
@@ -1025,6 +1087,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := _u.mutation.TestUUID(); ok {
+		_spec.SetField(user.FieldTestUUID, field.TypeUUID, value)
+	}
+	if value, ok := _u.mutation.TestNillableUUID(); ok {
+		_spec.SetField(user.FieldTestNillableUUID, field.TypeUUID, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)

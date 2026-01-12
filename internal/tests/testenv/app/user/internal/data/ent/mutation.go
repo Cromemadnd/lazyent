@@ -1213,36 +1213,38 @@ func (m *PostMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	created_at     *time.Time
-	updated_at     *time.Time
-	name           *string
-	age            *int
-	addage         *int
-	nickname       *string
-	score          *int
-	addscore       *int
-	is_verified    *bool
-	tags           *[]string
-	appendtags     []string
-	password       *string
-	status         *user.Status
-	role           *auth.UserRole
-	clearedFields  map[string]struct{}
-	posts          map[uuid.UUID]struct{}
-	removedposts   map[uuid.UUID]struct{}
-	clearedposts   bool
-	groups         map[uuid.UUID]struct{}
-	removedgroups  map[uuid.UUID]struct{}
-	clearedgroups  bool
-	friends        map[uuid.UUID]struct{}
-	removedfriends map[uuid.UUID]struct{}
-	clearedfriends bool
-	done           bool
-	oldValue       func(context.Context) (*User, error)
-	predicates     []predicate.User
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	created_at         *time.Time
+	updated_at         *time.Time
+	name               *string
+	age                *int
+	addage             *int
+	nickname           *string
+	score              *int
+	addscore           *int
+	is_verified        *bool
+	tags               *[]string
+	appendtags         []string
+	password           *string
+	test_uuid          *uuid.UUID
+	test_nillable_uuid *uuid.UUID
+	status             *user.Status
+	role               *auth.UserRole
+	clearedFields      map[string]struct{}
+	posts              map[uuid.UUID]struct{}
+	removedposts       map[uuid.UUID]struct{}
+	clearedposts       bool
+	groups             map[uuid.UUID]struct{}
+	removedgroups      map[uuid.UUID]struct{}
+	clearedgroups      bool
+	friends            map[uuid.UUID]struct{}
+	removedfriends     map[uuid.UUID]struct{}
+	clearedfriends     bool
+	done               bool
+	oldValue           func(context.Context) (*User, error)
+	predicates         []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1782,6 +1784,78 @@ func (m *UserMutation) ResetPassword() {
 	delete(m.clearedFields, user.FieldPassword)
 }
 
+// SetTestUUID sets the "test_uuid" field.
+func (m *UserMutation) SetTestUUID(u uuid.UUID) {
+	m.test_uuid = &u
+}
+
+// TestUUID returns the value of the "test_uuid" field in the mutation.
+func (m *UserMutation) TestUUID() (r uuid.UUID, exists bool) {
+	v := m.test_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestUUID returns the old "test_uuid" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldTestUUID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestUUID: %w", err)
+	}
+	return oldValue.TestUUID, nil
+}
+
+// ResetTestUUID resets all changes to the "test_uuid" field.
+func (m *UserMutation) ResetTestUUID() {
+	m.test_uuid = nil
+}
+
+// SetTestNillableUUID sets the "test_nillable_uuid" field.
+func (m *UserMutation) SetTestNillableUUID(u uuid.UUID) {
+	m.test_nillable_uuid = &u
+}
+
+// TestNillableUUID returns the value of the "test_nillable_uuid" field in the mutation.
+func (m *UserMutation) TestNillableUUID() (r uuid.UUID, exists bool) {
+	v := m.test_nillable_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestNillableUUID returns the old "test_nillable_uuid" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldTestNillableUUID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestNillableUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestNillableUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestNillableUUID: %w", err)
+	}
+	return oldValue.TestNillableUUID, nil
+}
+
+// ResetTestNillableUUID resets all changes to the "test_nillable_uuid" field.
+func (m *UserMutation) ResetTestNillableUUID() {
+	m.test_nillable_uuid = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *UserMutation) SetStatus(u user.Status) {
 	m.status = &u
@@ -2050,7 +2124,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -2077,6 +2151,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
+	}
+	if m.test_uuid != nil {
+		fields = append(fields, user.FieldTestUUID)
+	}
+	if m.test_nillable_uuid != nil {
+		fields = append(fields, user.FieldTestNillableUUID)
 	}
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
@@ -2110,6 +2190,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Tags()
 	case user.FieldPassword:
 		return m.Password()
+	case user.FieldTestUUID:
+		return m.TestUUID()
+	case user.FieldTestNillableUUID:
+		return m.TestNillableUUID()
 	case user.FieldStatus:
 		return m.Status()
 	case user.FieldRole:
@@ -2141,6 +2225,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTags(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
+	case user.FieldTestUUID:
+		return m.OldTestUUID(ctx)
+	case user.FieldTestNillableUUID:
+		return m.OldTestNillableUUID(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
 	case user.FieldRole:
@@ -2216,6 +2304,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPassword(v)
+		return nil
+	case user.FieldTestUUID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestUUID(v)
+		return nil
+	case user.FieldTestNillableUUID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestNillableUUID(v)
 		return nil
 	case user.FieldStatus:
 		v, ok := value.(user.Status)
@@ -2360,6 +2462,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
+		return nil
+	case user.FieldTestUUID:
+		m.ResetTestUUID()
+		return nil
+	case user.FieldTestNillableUUID:
+		m.ResetTestNillableUUID()
 		return nil
 	case user.FieldStatus:
 		m.ResetStatus()

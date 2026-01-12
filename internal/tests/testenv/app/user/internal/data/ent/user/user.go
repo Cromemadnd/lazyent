@@ -35,6 +35,10 @@ const (
 	FieldTags = "tags"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
+	// FieldTestUUID holds the string denoting the test_uuid field in the database.
+	FieldTestUUID = "test_uuid"
+	// FieldTestNillableUUID holds the string denoting the test_nillable_uuid field in the database.
+	FieldTestNillableUUID = "test_nillable_uuid"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role field in the database.
@@ -75,6 +79,8 @@ var Columns = []string{
 	FieldIsVerified,
 	FieldTags,
 	FieldPassword,
+	FieldTestUUID,
+	FieldTestNillableUUID,
 	FieldStatus,
 	FieldRole,
 }
@@ -122,6 +128,10 @@ var (
 	AgeValidator func(int) error
 	// DefaultIsVerified holds the default value on creation for the "is_verified" field.
 	DefaultIsVerified bool
+	// DefaultTestUUID holds the default value on creation for the "test_uuid" field.
+	DefaultTestUUID func() uuid.UUID
+	// DefaultTestNillableUUID holds the default value on creation for the "test_nillable_uuid" field.
+	DefaultTestNillableUUID func() uuid.UUID
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -131,9 +141,10 @@ type Status string
 
 // Status values.
 const (
-	StatusACTIVE   Status = "ACTIVE"
-	StatusINACTIVE Status = "INACTIVE"
-	StatusBANNED   Status = "BANNED"
+	StatusUNSPECIFIED Status = "UNSPECIFIED"
+	StatusACTIVE      Status = "ACTIVE"
+	StatusINACTIVE    Status = "INACTIVE"
+	StatusBANNED      Status = "BANNED"
 )
 
 func (s Status) String() string {
@@ -143,7 +154,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusACTIVE, StatusINACTIVE, StatusBANNED:
+	case StatusUNSPECIFIED, StatusACTIVE, StatusINACTIVE, StatusBANNED:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
@@ -208,6 +219,16 @@ func ByIsVerified(opts ...sql.OrderTermOption) OrderOption {
 // ByPassword orders the results by the password field.
 func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
+}
+
+// ByTestUUID orders the results by the test_uuid field.
+func ByTestUUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTestUUID, opts...).ToFunc()
+}
+
+// ByTestNillableUUID orders the results by the test_nillable_uuid field.
+func ByTestNillableUUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTestNillableUUID, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

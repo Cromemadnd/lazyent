@@ -97,6 +97,16 @@ func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
 }
 
+// TestUUID applies equality check predicate on the "test_uuid" field. It's identical to TestUUIDEQ.
+func TestUUID(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestUUID, v))
+}
+
+// TestNillableUUID applies equality check predicate on the "test_nillable_uuid" field. It's identical to TestNillableUUIDEQ.
+func TestNillableUUID(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestNillableUUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -500,6 +510,86 @@ func PasswordEqualFold(v string) predicate.User {
 // PasswordContainsFold applies the ContainsFold predicate on the "password" field.
 func PasswordContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPassword, v))
+}
+
+// TestUUIDEQ applies the EQ predicate on the "test_uuid" field.
+func TestUUIDEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestUUID, v))
+}
+
+// TestUUIDNEQ applies the NEQ predicate on the "test_uuid" field.
+func TestUUIDNEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldTestUUID, v))
+}
+
+// TestUUIDIn applies the In predicate on the "test_uuid" field.
+func TestUUIDIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldIn(FieldTestUUID, vs...))
+}
+
+// TestUUIDNotIn applies the NotIn predicate on the "test_uuid" field.
+func TestUUIDNotIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldTestUUID, vs...))
+}
+
+// TestUUIDGT applies the GT predicate on the "test_uuid" field.
+func TestUUIDGT(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldGT(FieldTestUUID, v))
+}
+
+// TestUUIDGTE applies the GTE predicate on the "test_uuid" field.
+func TestUUIDGTE(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldTestUUID, v))
+}
+
+// TestUUIDLT applies the LT predicate on the "test_uuid" field.
+func TestUUIDLT(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldLT(FieldTestUUID, v))
+}
+
+// TestUUIDLTE applies the LTE predicate on the "test_uuid" field.
+func TestUUIDLTE(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldTestUUID, v))
+}
+
+// TestNillableUUIDEQ applies the EQ predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestNillableUUID, v))
+}
+
+// TestNillableUUIDNEQ applies the NEQ predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDNEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldTestNillableUUID, v))
+}
+
+// TestNillableUUIDIn applies the In predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldIn(FieldTestNillableUUID, vs...))
+}
+
+// TestNillableUUIDNotIn applies the NotIn predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDNotIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldTestNillableUUID, vs...))
+}
+
+// TestNillableUUIDGT applies the GT predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDGT(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldGT(FieldTestNillableUUID, v))
+}
+
+// TestNillableUUIDGTE applies the GTE predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDGTE(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldTestNillableUUID, v))
+}
+
+// TestNillableUUIDLT applies the LT predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDLT(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldLT(FieldTestNillableUUID, v))
+}
+
+// TestNillableUUIDLTE applies the LTE predicate on the "test_nillable_uuid" field.
+func TestNillableUUIDLTE(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldTestNillableUUID, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
