@@ -33,7 +33,7 @@ protoc-gen-go --version
 然后安装 `lazyent`。
 
 ```bash
-go install github.com/Cromemadnd/lazyent@latest
+go get github.com/Cromemadnd/lazyent@latest
 ```
 
 然后，如果你的 `generate.go` 还是 ent 默认提供的，你需要更改它以使用 `entc.go`。
