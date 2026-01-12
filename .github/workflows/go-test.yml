@@ -2,18 +2,35 @@ name: Go Test
 
 on:
   push:
+    branches:
+      - main
+      - dev
+    tags-ignore:
+      - '**' # 明确排除 tag，解决你之前遇到的 tag 触发问题
   pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+# --- 新增：并发控制 ---
+# 如果同一个分支有新的任务进来，直接取消掉还在排队或运行中的旧任务
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: windows-latest # 如果没有 Windows 特定的依赖，换成 ubuntu-latest 会快很多且省额度
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.25'
+        go-version: '1.25' # 追新挺快呀，1.25 还没正式发布时你就在用了（或者是笔误？）
 
     - name: Run Tests
-      run: go test -v .\internal\tests\
+      # 建议：如果是 Go 项目，运行测试前通常需要 go mod download 
+      run: |
+        go mod download
+        go test -v ./internal/tests/

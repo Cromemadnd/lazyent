@@ -39,6 +39,10 @@ type User struct {
 	Tags []string `json:"tags,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
+	// 测试UUID
+	TestUUID uuid.UUID `json:"test_uuid,omitempty"`
+	// 测试UUID2
+	TestNillableUUID *uuid.UUID `json:"test_nillable_uuid,omitempty"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
 	// 用户权限组
@@ -95,6 +99,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldTestNillableUUID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case user.FieldTags:
 			values[i] = new([]byte)
 		case user.FieldIsVerified:
@@ -105,7 +111,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
+		case user.FieldID, user.FieldTestUUID:
 			values[i] = new(uuid.UUID)
 		case user.ForeignKeys[0]: // group_admins
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -185,6 +191,19 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
 				_m.Password = value.String
+			}
+		case user.FieldTestUUID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field test_uuid", values[i])
+			} else if value != nil {
+				_m.TestUUID = *value
+			}
+		case user.FieldTestNillableUUID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field test_nillable_uuid", values[i])
+			} else if value.Valid {
+				_m.TestNillableUUID = new(uuid.UUID)
+				*_m.TestNillableUUID = *value.S.(*uuid.UUID)
 			}
 		case user.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -281,6 +300,14 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("test_uuid=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TestUUID))
+	builder.WriteString(", ")
+	if v := _m.TestNillableUUID; v != nil {
+		builder.WriteString("test_nillable_uuid=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

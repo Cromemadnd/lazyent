@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"go/format"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +13,9 @@ import (
 
 	entgen "entgo.io/ent/entc/gen"
 	"golang.org/x/mod/modfile"
+	"golang.org/x/tools/imports"
+
+	"github.com/Cromemadnd/lazyent/internal/types"
 )
 
 //go:embed templates/*
@@ -127,8 +129,28 @@ func (e *Generator) generate(g *entgen.Graph) error {
 	}
 
 	// 4. Generate
+	var generatedProtoFiles []string
+
 	if e.conf.SingleFile {
-		// Single file generation
+		// --- Phase 1: Proto Generation ---
+		// Proto Files (Using new Builder)
+		protoDesc, err := e.buildProtoFile(g) // Build Descriptor
+		if err != nil {
+			return err
+		}
+		// Reset GoPackage if needed
+		if protoDesc.GoPackage == "" {
+			protoDesc.GoPackage = e.conf.GoPackage
+		}
+
+		protoPath := filepath.Join(moduleRoot, e.conf.ProtoOut, e.conf.ProtoFileName)
+		if err := e.render(nil, "templates/proto.tmpl", protoPath, protoDesc); err != nil {
+			return err
+		}
+		generatedProtoFiles = append(generatedProtoFiles, protoPath)
+
+		// --- Phase 3: Go Generation ---
+		// Single file generation data
 		data := make(map[string]interface{})
 		for k, v := range commonData {
 			data[k] = v
@@ -158,22 +180,27 @@ func (e *Generator) generate(g *entgen.Graph) error {
 			return err
 		}
 
-		// Proto Files (Using new Builder)
-		protoDesc, err := e.buildProtoFile(g) // Build Descriptor
-		if err != nil {
-			return err
-		}
-		// Reset GoPackage if needed
-		if protoDesc.GoPackage == "" {
-			protoDesc.GoPackage = e.conf.GoPackage
-		}
-
-		if err := e.render(nil, "templates/proto.tmpl", filepath.Join(moduleRoot, e.conf.ProtoOut, e.conf.ProtoFileName), protoDesc); err != nil {
-			return err
-		}
-
 	} else {
 		// Multiple files generation
+
+		// --- Phase 1: Proto Generation ---
+		for _, nd := range allNodes {
+			ndMap := nd.(map[string]interface{})
+			name := ndMap["Name"].(string)
+			lName := strings.ToLower(name)
+
+			singleNodeProto, err := e.buildSingleNodeProto(g, name)
+			if err != nil {
+				return err
+			}
+			protoPath := filepath.Join(moduleRoot, e.conf.ProtoOut, lName+".proto")
+			if err := e.render(nil, "templates/proto.tmpl", protoPath, singleNodeProto); err != nil {
+				return err
+			}
+			generatedProtoFiles = append(generatedProtoFiles, protoPath)
+		}
+
+		// --- Phase 3: Go Generation ---
 		for _, nd := range allNodes {
 			// Basic template data (legacy templates)
 			data := make(map[string]interface{})
@@ -205,15 +232,6 @@ func (e *Generator) generate(g *entgen.Graph) error {
 
 			// 4. Data Mapper
 			if err := e.render(nil, "templates/data.tmpl", filepath.Join(moduleRoot, e.conf.DataOut, lName+"_ent.go"), data); err != nil {
-				return err
-			}
-
-			// 5. Proto Files (Using new Builder per file)
-			singleNodeProto, err := e.buildSingleNodeProto(g, name)
-			if err != nil {
-				return err
-			}
-			if err := e.render(nil, "templates/proto.tmpl", filepath.Join(moduleRoot, e.conf.ProtoOut, lName+".proto"), singleNodeProto); err != nil {
 				return err
 			}
 		}
@@ -276,13 +294,20 @@ func (e *Generator) render(n *entgen.Type, tmplName string, targetPath string, d
 	}
 
 	content := buf.Bytes()
-	// Format Go files
+	// Format Go files with goimports (auto-fix imports)
 	if strings.HasSuffix(targetPath, ".go") {
-		formatted, err := format.Source(content)
+		// Try goimports first (handles imports + formatting)
+		formatted, err := imports.Process(targetPath, content, nil)
 		if err != nil {
-			return fmt.Errorf("failed to format source for %s: %w", targetPath, err)
+			// Fallback: proto files might not be compiled yet, just save raw generated code
+			// User will need to run protoc first, then goimports manually or via their build process
+			fmt.Printf("⚠️  Warning: Could not auto-fix imports for %s\n", filepath.Base(targetPath))
+			fmt.Printf("    Reason: %v\n", err)
+			fmt.Printf("    → Please compile proto files first (protoc), then run 'goimports -w %s'\n", targetPath)
+			// Don't format at all to preserve the template output for debugging
+		} else {
+			content = formatted
 		}
-		content = formatted
 	}
 
 	return os.WriteFile(targetPath, content, 0644)
@@ -320,10 +345,17 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 	// Ensure protoPkg is set
 	e.resolveDefaults(g)
 
+	imports := []string{}
+	if e.conf.ProtoValidator == types.ProtoValidatorPGV {
+		imports = append(imports, "validate/validate.proto")
+	} else if e.conf.ProtoValidator == types.ProtoValidatorProtoValidate {
+		imports = append(imports, "buf/validate/validate.proto")
+	}
+
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
-		Imports:   []string{"validate/validate.proto"}, // Default import
+		Imports:   imports,
 	}
 
 	for _, n := range g.Nodes {
@@ -348,10 +380,18 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 
 func (e *Generator) buildSingleNodeProto(g *entgen.Graph, nodeName string) (*PbFile, error) {
 	e.resolveDefaults(g)
+
+	imports := []string{}
+	if e.conf.ProtoValidator == types.ProtoValidatorPGV {
+		imports = append(imports, "validate/validate.proto")
+	} else if e.conf.ProtoValidator == types.ProtoValidatorProtoValidate {
+		imports = append(imports, "buf/validate/validate.proto")
+	}
+
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
-		Imports:   []string{"validate/validate.proto"},
+		Imports:   imports,
 	}
 	for _, n := range g.Nodes {
 		if n.Name != nodeName {
@@ -374,21 +414,38 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 		Name: n.Name,
 	}
 
-	// Pass 1: Reserve Explicit Tags
+	// 1. Fields (ID + Regular)
 	usedTags := make(map[int]bool)
-	type fieldInfo struct {
-		isID  bool
-		field *entgen.Field
-		edge  *entgen.Edge
-		pf    *PbField
-	}
 	var allFields []fieldInfo
+
+	fields := e.buildProtoFields(n, f, usedTags)
+	allFields = append(allFields, fields...)
+
+	// 2. Edges
+	edges := e.buildProtoEdges(n)
+	allFields = append(allFields, edges...)
+
+	// 3. Assign Tags
+	e.assignProtoTags(msg, allFields, usedTags)
+
+	return msg
+}
+
+type fieldInfo struct {
+	isID  bool
+	field *entgen.Field
+	edge  *entgen.Edge
+	pf    *PbField
+}
+
+func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int]bool) []fieldInfo {
+	var results []fieldInfo
 
 	// 1. ID
 	if n.ID != nil {
 		pf := &PbField{
 			Name:    n.ID.Name,
-			Rules:   getValidateRules(n.ID, n.Name),
+			Rules:   getValidateRules(n.ID, n.Name, e.conf.ProtoValidator),
 			Comment: n.ID.Comment(),
 		}
 		if a := getFieldAnnotation(n.ID); a != nil && a.ProtoName != "" {
@@ -401,7 +458,7 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 			pf.Tag = t
 			usedTags[t] = true
 		}
-		allFields = append(allFields, fieldInfo{isID: true, field: n.ID, pf: pf})
+		results = append(results, fieldInfo{isID: true, field: n.ID, pf: pf})
 	}
 
 	// 2. Fields
@@ -413,7 +470,7 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 
 		pf := &PbField{
 			Name:    fld.Name,
-			Rules:   getValidateRules(fld, n.Name),
+			Rules:   getValidateRules(fld, n.Name, e.conf.ProtoValidator),
 			Comment: fld.Comment(),
 		}
 		if a := getFieldAnnotation(fld); a != nil && a.ProtoName != "" {
@@ -434,18 +491,17 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 			pf.Tag = t
 			usedTags[t] = true
 		}
-		allFields = append(allFields, fieldInfo{field: fld, pf: pf})
+		results = append(results, fieldInfo{field: fld, pf: pf})
 	}
+	return results
+}
 
-	// 3. Edges
+func (e *Generator) buildProtoEdges(n *entgen.Type) []fieldInfo {
+	var results []fieldInfo
 	for _, edge := range n.Edges {
 		if isProtoExclude(edge) {
 			continue
 		}
-		// Edges usually don't have explicit tags via annotation on Edge?
-		// If they do, we'd need getProtoTag logic for edges.
-		// Current logic assumes none or simple sequence.
-		// We'll treat them as implicit for now, unless we add support.
 
 		if isProtoMessage(edge) {
 			pf := &PbField{
@@ -453,40 +509,12 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 				Type:     edge.Type.Name,
 				Repeated: !edge.Unique,
 			}
-			allFields = append(allFields, fieldInfo{edge: edge, pf: pf})
+			results = append(results, fieldInfo{edge: edge, pf: pf})
 		} else {
 			if isProtoID(edge) || (edgeHasFK(edge) && !hasField(n.Fields, edgeField(edge))) {
 				name := edge.Name
-				// Suffix _id logic?
-				// If List (Repeated), usually plural + (ids?). "posts" -> "post_ids"?
-				// If Unique, "author" -> "author_id" or "author".
-				// Check Annotation ProtoName
 				if a := getAnnotation(edge); a != nil && a.ProtoName != "" {
 					name = a.ProtoName
-				} else {
-					// Fallback naming
-					if !edge.Unique {
-						// e.g. "posts" -> "post_ids"?
-						// Or just "posts".
-						// Golden: "post_ids".
-						// If I don't implement inflection, I can't guess "post".
-						// But I can check if it ends in "s"?
-						// Or just default to edge.Name and expect user to annotate if they want snake_case ids.
-						// User provided ProtoName: "post_ids" in user.go. So Annotation check should handle it.
-						// If no annotation, keep edge.Name.
-						// But for Single FK, we were appending _id.
-						// Let's stick to edge.Name if explicit strategy doesn't optimize it.
-						// But explicit strategy BizPointerWithProtoID on `author` (Unique).
-						// Golden `author` (no _id).
-						// So edge.Name is safe default for implicit too?
-						// Wait, standard lazyent might prefer _id for FKs.
-						// But for now, let's use Annotation preference.
-					} else {
-						// Single.
-						// If explicit ProtoID, edge.Name ("author").
-						// If implicit FK, maybe _id?
-						// Golden expects "author".
-					}
 				}
 
 				pf := &PbField{
@@ -498,14 +526,6 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 				// Validation rules
 				if edge.Type.ID.Type.String() == "uuid.UUID" {
 					if pf.Repeated {
-						// Match Golden multi-line formatting?
-						// "repeated = {\n    items: {\n      string: { uuid: true }\n    }\n  }"
-						// Golden:
-						// repeated = {
-						//   items: {
-						//     string: { uuid: true }
-						//   }
-						// }
 						pf.Rules = ".repeated = {\n    items: {\n      string: { uuid: true }\n    }\n  }"
 					} else {
 						if pf.Type == "string" {
@@ -514,12 +534,14 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 					}
 				}
 
-				allFields = append(allFields, fieldInfo{edge: edge, pf: pf})
+				results = append(results, fieldInfo{edge: edge, pf: pf})
 			}
 		}
 	}
+	return results
+}
 
-	// Pass 2: Assign Implicit Tags
+func (e *Generator) assignProtoTags(msg *PbMessage, allFields []fieldInfo, usedTags map[int]bool) {
 	currentTag := 1
 	for _, info := range allFields {
 		if info.pf.Tag == 0 {
@@ -531,8 +553,6 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 		}
 		msg.Fields = append(msg.Fields, info.pf)
 	}
-
-	return msg
 }
 
 func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
@@ -541,23 +561,8 @@ func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
 		Name: enumName,
 	}
 
-	// Default UNSPECIFIED
-	pe.Values = append(pe.Values, &PbEnumValue{
-		Name:   strings.ToUpper(enumName) + "_UNSPECIFIED",
-		Number: 0,
-	})
-
 	vals := getEnumValues(f)
 	if vals != nil {
-		// Sort by definition order or value?
-		// Golden: ACTIVE(1), INACTIVE(4), BANNED(3).
-		// My sorted map iteration was unstable.
-		// I must iterate deterministically.
-		// If getEnumValues returns map, I can't sort it here easily unless I re-read Enums.
-		// The helper `getEnumValues` logic should be bypassed or I should use `getEnumPairs` logic here too?
-		// But `func_map` functions are not exported to this package easily unless I reuse logic.
-		// I can just iterate definition (f.Enums) and lookup map.
-
 		if f.Enums != nil {
 			for _, enumItem := range f.Enums {
 				if v, ok := vals[enumItem.Value]; ok {
@@ -578,6 +583,16 @@ func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
 				pe.Values = append(pe.Values, &PbEnumValue{
 					Name:   strings.ToUpper(enumName) + "_" + k,
 					Number: vals[k],
+				})
+			}
+		}
+	} else {
+		// Auto-generate from 0
+		if f.Enums != nil {
+			for i, enumItem := range f.Enums {
+				pe.Values = append(pe.Values, &PbEnumValue{
+					Name:   strings.ToUpper(enumName) + "_" + enumItem.Value,
+					Number: int32(i),
 				})
 			}
 		}

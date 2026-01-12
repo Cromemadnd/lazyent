@@ -126,6 +126,34 @@ func (_c *UserCreate) SetNillablePassword(v *string) *UserCreate {
 	return _c
 }
 
+// SetTestUUID sets the "test_uuid" field.
+func (_c *UserCreate) SetTestUUID(v uuid.UUID) *UserCreate {
+	_c.mutation.SetTestUUID(v)
+	return _c
+}
+
+// SetNillableTestUUID sets the "test_uuid" field if the given value is not nil.
+func (_c *UserCreate) SetNillableTestUUID(v *uuid.UUID) *UserCreate {
+	if v != nil {
+		_c.SetTestUUID(*v)
+	}
+	return _c
+}
+
+// SetTestNillableUUID sets the "test_nillable_uuid" field.
+func (_c *UserCreate) SetTestNillableUUID(v uuid.UUID) *UserCreate {
+	_c.mutation.SetTestNillableUUID(v)
+	return _c
+}
+
+// SetNillableTestNillableUUID sets the "test_nillable_uuid" field if the given value is not nil.
+func (_c *UserCreate) SetNillableTestNillableUUID(v *uuid.UUID) *UserCreate {
+	if v != nil {
+		_c.SetTestNillableUUID(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *UserCreate) SetStatus(v user.Status) *UserCreate {
 	_c.mutation.SetStatus(v)
@@ -252,6 +280,14 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultIsVerified
 		_c.mutation.SetIsVerified(v)
 	}
+	if _, ok := _c.mutation.TestUUID(); !ok {
+		v := user.DefaultTestUUID()
+		_c.mutation.SetTestUUID(v)
+	}
+	if _, ok := _c.mutation.TestNillableUUID(); !ok {
+		v := user.DefaultTestNillableUUID()
+		_c.mutation.SetTestNillableUUID(v)
+	}
 	if _, ok := _c.mutation.Role(); !ok {
 		v := user.DefaultRole
 		_c.mutation.SetRole(v)
@@ -288,6 +324,12 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsVerified(); !ok {
 		return &ValidationError{Name: "is_verified", err: errors.New(`ent: missing required field "User.is_verified"`)}
+	}
+	if _, ok := _c.mutation.TestUUID(); !ok {
+		return &ValidationError{Name: "test_uuid", err: errors.New(`ent: missing required field "User.test_uuid"`)}
+	}
+	if _, ok := _c.mutation.TestNillableUUID(); !ok {
+		return &ValidationError{Name: "test_nillable_uuid", err: errors.New(`ent: missing required field "User.test_nillable_uuid"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
@@ -375,6 +417,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
+	}
+	if value, ok := _c.mutation.TestUUID(); ok {
+		_spec.SetField(user.FieldTestUUID, field.TypeUUID, value)
+		_node.TestUUID = value
+	}
+	if value, ok := _c.mutation.TestNillableUUID(); ok {
+		_spec.SetField(user.FieldTestNillableUUID, field.TypeUUID, value)
+		_node.TestNillableUUID = &value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
