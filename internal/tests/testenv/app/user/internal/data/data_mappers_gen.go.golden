@@ -3,6 +3,7 @@ package data
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent"
@@ -45,12 +46,12 @@ func BizGroupToEnt(b *biz.Group) (*ent.Group, error) {
 		}
 		users = append(users, v)
 	}
-	id, err := uuid.Parse(b.UUID)
+	iDEntVal, err := uuid.Parse(b.UUID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid UUID for id: %w", err)
 	}
 	return &ent.Group{
-		ID:        id,
+		ID:        iDEntVal,
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
 		Name:      b.Name,
@@ -88,12 +89,12 @@ func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	id, err := uuid.Parse(b.UUID)
+	iDEntVal, err := uuid.Parse(b.UUID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid UUID for id: %w", err)
 	}
 	return &ent.Post{
-		ID:        id,
+		ID:        iDEntVal,
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
 		Title:     b.Title,
@@ -185,24 +186,24 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		}
 		friends = append(friends, v)
 	}
-	id, err := uuid.Parse(b.UUID)
+	iDEntVal, err := uuid.Parse(b.UUID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid UUID for id: %w", err)
 	}
-	testUUID, err := uuid.Parse(b.TestUUID)
+	testUUIDEntVal, err := uuid.Parse(b.TestUUID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid UUID for test_uuid: %w", err)
 	}
-	var testNillableUUID *uuid.UUID
+	var testNillableUUIDEntVal *uuid.UUID
 	if b.TestNillableUUID != "" {
 		parsed, err := uuid.Parse(b.TestNillableUUID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("invalid UUID for test_nillable_uuid: %w", err)
 		}
-		testNillableUUID = &parsed
+		testNillableUUIDEntVal = &parsed
 	}
 	return &ent.User{
-		ID:               id,
+		ID:               iDEntVal,
 		CreatedAt:        b.CreatedAt,
 		UpdatedAt:        b.UpdatedAt,
 		Name:             b.Name,
@@ -211,8 +212,8 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		Score:            int(b.UserScore),
 		IsVerified:       b.IsVerified,
 		Tags:             b.Tags,
-		TestUUID:         testUUID,
-		TestNillableUUID: testNillableUUID,
+		TestUUID:         testUUIDEntVal,
+		TestNillableUUID: testNillableUUIDEntVal,
 		Status:           BizUserStatusToEnt(b.Status),
 		Role:             b.Role,
 		Edges: ent.UserEdges{

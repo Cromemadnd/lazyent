@@ -21,12 +21,13 @@ type Config struct {
 	ServiceOut   string // Service 层输出目录 (e.g. "internal/service")
 	DataOut      string // Data 层输出目录 (e.g. "internal/data")
 	SingleFile   bool   // 是否启用单文件生成模式
+
 	// Optional configuration
-	bizBaseFileName    string
-	bizEntityFileName  string
-	svcMapperFileName  string
-	dataMapperFileName string
-	protoFileName      string
+	BizBaseFileName    string
+	BizEntityFileName  string
+	SvcMapperFileName  string
+	DataMapperFileName string
+	ProtoFileName      string
 }
 
 func NewExtension(cfg Config) *Extension {
@@ -68,11 +69,11 @@ func (e *Extension) GenerateFiles(next gen.Generator) gen.Generator {
 			ServiceOut:         e.conf.ServiceOut,
 			DataOut:            e.conf.DataOut,
 			SingleFile:         e.conf.SingleFile,
-			BizBaseFileName:    e.conf.bizBaseFileName,
-			BizEntityFileName:  e.conf.bizEntityFileName,
-			SvcMapperFileName:  e.conf.svcMapperFileName,
-			DataMapperFileName: e.conf.dataMapperFileName,
-			ProtoFileName:      e.conf.protoFileName,
+			BizBaseFileName:    e.conf.BizBaseFileName,
+			BizEntityFileName:  e.conf.BizEntityFileName,
+			SvcMapperFileName:  e.conf.SvcMapperFileName,
+			DataMapperFileName: e.conf.DataMapperFileName,
+			ProtoFileName:      e.conf.ProtoFileName,
 		}
 
 		return lg.Generate(iConf, g)
