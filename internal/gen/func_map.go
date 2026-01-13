@@ -3,16 +3,13 @@ package gen
 import (
 	"strings"
 	"text/template"
-
-	entgen "entgo.io/ent/entc/gen"
-	"github.com/Cromemadnd/lazyent/internal/types"
 )
 
 var funcMap = template.FuncMap{
-	"getEnumValues":        getEnumValues,
-	"getEnumPairs":         getEnumPairs,
-	"protoType":            protoType,
-	"getValidateRules":     func(f *entgen.Field) string { return getValidateRules(f, "", types.ProtoValidatorPGV) }, // Adapter for template if used
+	"getEnumValues": getEnumValues,
+	"getEnumPairs":  getEnumPairs,
+	"protoType":     protoType,
+
 	"getProtoTag":          getProtoTag,
 	"convertToProto":       convertToProto,
 	"convertFromProto":     convertFromProto,
@@ -33,7 +30,6 @@ var funcMap = template.FuncMap{
 	"edgeConvertToProto":   edgeConvertToProto,
 	"edgeConvertFromProto": edgeConvertFromProto,
 	"zeroValue":            zeroValue,
-	"validateConflict":     validateConflict,
 
 	"isBizIDOnly":  isBizIDOnly,
 	"isBizExclude": isBizExclude,

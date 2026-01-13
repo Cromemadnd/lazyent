@@ -5,23 +5,22 @@ package user.v1;
 
 option go_package = "lazyent-test-app/user/v1;v1";
 import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
 
 message Group {
-  string uuid = 1 [(validate.rules).string = { uuid: true }]; // 数据库主键
+  string uuid = 1; // 数据库主键
   google.protobuf.Timestamp created_at = 2; // 创建时间
   google.protobuf.Timestamp updated_at = 3; // 更新时间
-  string name = 4 [(validate.rules).string = { min_len: 0 }];
+  string name = 4;
   repeated User users = 5;
 }
 
 message Post {
-  string uuid = 1 [(validate.rules).string = { uuid: true }]; // 数据库主键
+  string uuid = 1; // 数据库主键
   google.protobuf.Timestamp created_at = 2; // 创建时间
   google.protobuf.Timestamp updated_at = 3; // 更新时间
-  string title = 4 [(validate.rules).string = { min_len: 0 }];
+  string title = 4;
   string content = 5;
-  string author = 6 [(validate.rules).string.uuid = true];
+  string author = 6;
 }
 
 enum UserStatus {
@@ -32,7 +31,7 @@ enum UserStatus {
 }
 
 message User {
-  string uuid = 1 [(validate.rules).string = { uuid: true }]; // 数据库主键
+  string uuid = 1; // 数据库主键
   google.protobuf.Timestamp created_at = 3; // 创建时间
   google.protobuf.Timestamp updated_at = 4; // 更新时间
   string name = 5;
@@ -41,14 +40,10 @@ message User {
   uint32 user_score = 7;
   bool is_verified = 8;
   repeated string tags = 9; // 用户标签
-  string test_uuid = 10 [(validate.rules).string = { uuid: true }]; // 测试UUID
-  string test_nillable_uuid = 11 [(validate.rules).string = { uuid: true }]; // 测试UUID2
-  UserStatus status = 12 [(validate.rules).enum = { defined_only: true }];
+  string test_uuid = 10; // 测试UUID
+  string test_nillable_uuid = 11; // 测试UUID2
+  UserStatus status = 12;
   string role = 13; // 用户权限组
-  repeated string post_ids = 14 [(validate.rules).repeated = {
-    items: {
-      string: { uuid: true }
-    }
-  }];
+  repeated string post_ids = 14;
   repeated Group groups = 15;
 }

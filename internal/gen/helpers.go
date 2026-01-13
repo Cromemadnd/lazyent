@@ -300,17 +300,6 @@ func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
 		}
 	}
 
-	if vRule, ok := m["proto_validation"]; ok {
-		if sVal, ok := vRule.(string); ok {
-			a.ProtoValidation = sVal
-		}
-	}
-	if vRule, ok := m["validate"]; ok {
-		if sVal, ok := vRule.(string); ok {
-			a.ProtoValidation = sVal
-		}
-	}
-
 	if v, ok := m["biz_name"]; ok {
 		a.BizName, _ = v.(string)
 	} else if v, ok := m["BizName"]; ok {
@@ -465,10 +454,6 @@ func isSliceTypeMatch(f *entgen.Field) bool {
 	protoType := getGoProtoType(f)
 
 	return bizType == protoType
-}
-
-func validateConflict(e *entgen.Edge) error {
-	return nil
 }
 
 type EnumDef struct {

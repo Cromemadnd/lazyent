@@ -22,7 +22,7 @@ message {{ $e.Message.Name }} {
   // {{ $e.Message.Comment }}
 {{- end }}
 {{- range $e.Message.Fields }}
-  {{ if .Repeated }}repeated {{ end }}{{ .Type }} {{ .Name }} = {{ .Tag }}{{ if .Rules }} [(validate.rules){{ .Rules }}]{{ end }};{{ if .Comment }} // {{ .Comment }}{{ end }}
+  {{ if .Repeated }}repeated {{ end }}{{ .Type }} {{ .Name }} = {{ .Tag }};{{ if .Comment }} // {{ .Comment }}{{ end }}
 {{- end }}
 }
 {{- end }}

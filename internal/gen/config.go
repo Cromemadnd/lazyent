@@ -1,9 +1,5 @@
 package gen
 
-import (
-	"github.com/Cromemadnd/lazyent/internal/types"
-)
-
 // Config defines the configuration for the generator
 type Config struct {
 	ProtoOut     string // Proto Output directory (e.g. "api/v1")
@@ -20,5 +16,4 @@ type Config struct {
 	SvcMapperFileName  string
 	DataMapperFileName string
 	ProtoFileName      string
-	ProtoValidator     types.ProtoValidator
 }

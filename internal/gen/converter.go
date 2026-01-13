@@ -219,9 +219,6 @@ func convertBizToEnt(f *entgen.Field, nodeName string, expr string) string {
 }
 
 func edgeConvertToProto(e *entgen.Edge) string {
-	if err := validateConflict(e); err != nil {
-		panic(err)
-	}
 	if isProtoMessage(e) {
 		if isBizPointer(e) {
 			return fmt.Sprintf("Biz%sToProto(b.%s)", e.Type.Name, bizEdgeName(e))
@@ -367,7 +364,7 @@ func convertBizToEntSetup(f *entgen.Field, nodeName string) string {
 	}
 
 	if f.Type.String() == "uuid.UUID" {
-		return fmt.Sprintf("%s, err := uuid.Parse(%s)\nif err != nil {\n\treturn nil, fmt.Errorf(\"invalid UUID for %s: %%w\", err)\n}", varName, bizExpr, f.Name)
+		return fmt.Sprintf("var %s uuid.UUID\nif %s != \"\" {\n\tval, err := uuid.Parse(%s)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"invalid UUID for %s: %%w\", err)\n\t}\n\t%s = val\n}", varName, bizExpr, bizExpr, f.Name, varName)
 	}
 
 	if f.Type.String() == "time.Time" && explicitBizType(f) == "string" {

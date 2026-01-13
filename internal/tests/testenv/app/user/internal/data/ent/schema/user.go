@@ -18,19 +18,10 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty(),
-		field.Int("age").Positive().Annotations(lazyent.MergeAnnotations(
+		field.Int("age").Positive().Annotations(
 			lazyent.WithProtoFieldID(2),
-			lazyent.WithValidation(lazyent.ValidationInt(lazyent.NumberRules{
-				GTE: lazyent.Float64(0),
-			})),
-		)),
-		field.String("nickname").Optional().Annotations(
-			lazyent.WithValidation(lazyent.ValidationString(lazyent.StringRules{
-				MinLen:      lazyent.Uint64(2),
-				MaxLen:      lazyent.Uint64(20),
-				IgnoreEmpty: true,
-			})),
-		), // Optional String
+		),
+		field.String("nickname").Optional(), // Optional String
 		field.Int("score").Optional().Annotations(lazyent.MergeAnnotations(
 			lazyent.WithBizType("uint8"),
 			lazyent.WithBizName("UserScore"),

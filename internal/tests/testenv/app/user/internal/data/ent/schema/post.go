@@ -15,9 +15,7 @@ type Post struct {
 // Fields of the Post.
 func (Post) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("title").NotEmpty().Annotations(lazyent.Annotation{
-			ProtoValidation: "min_len:0",
-		}),
+		field.String("title").NotEmpty().Annotations(lazyent.Annotation{}),
 		field.Text("content"),
 	}
 }

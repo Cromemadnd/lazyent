@@ -3,11 +3,6 @@ package lazyent
 import "github.com/Cromemadnd/lazyent/internal/types"
 
 // Convenience aliases
-type ValidationRules = types.ValidationRules
-type StringRules = types.StringRules
-type NumberRules = types.NumberRules
-type RepeatedRules = types.RepeatedRules
-type EnumRules = types.EnumRules
 
 // WithEnumValues 设置枚举数值映射
 // key: 枚举名称 (例如 "ACTIVE"), value: 枚举值 (例如 1)
@@ -63,47 +58,6 @@ func WithProtoFieldID(id int32) Annotation {
 	}
 }
 
-// WithProtoValidation 指定 Proto 字段验证规则 (PGV)
-// 也可以指定结构化规则
-// 例如: ".string.email = true"
-func WithProtoValidation(rules string) Annotation {
-	return Annotation{
-		ProtoValidation: rules,
-	}
-}
-
-// WithValidation 设置结构化校验规则
-func WithValidation(rules *ValidationRules) Annotation {
-	return Annotation{
-		Validation: rules,
-	}
-}
-
-// ValidationString 快捷创建 String 校验规则
-func ValidationString(r StringRules) *ValidationRules {
-	return &ValidationRules{String: &r}
-}
-
-// ValidationInt 快捷创建 Int/Uint 校验规则
-func ValidationInt(r NumberRules) *ValidationRules {
-	return &ValidationRules{Number: &r}
-}
-
-// ValidationFloat 快捷创建 Float 校验规则
-func ValidationFloat(r NumberRules) *ValidationRules {
-	return &ValidationRules{Number: &r}
-}
-
-// ValidationRepeated 快捷创建 Repeated 校验规则
-func ValidationRepeated(r RepeatedRules) *ValidationRules {
-	return &ValidationRules{Repeated: &r}
-}
-
-// ValidationEnum 快捷创建 Enum 校验规则
-func ValidationEnum(r EnumRules) *ValidationRules {
-	return &ValidationRules{Enum: &r}
-}
-
 // MergeAnnotations 合并多个 Annotation 选项
 // 后面的选项会覆盖前面的选项
 func MergeAnnotations(opts ...Annotation) Annotation {
@@ -129,12 +83,6 @@ func MergeAnnotations(opts ...Annotation) Annotation {
 		}
 		if opt.ProtoFieldID != 0 {
 			merged.ProtoFieldID = opt.ProtoFieldID
-		}
-		if opt.ProtoValidation != "" {
-			merged.ProtoValidation = opt.ProtoValidation
-		}
-		if opt.Validation != nil {
-			merged.Validation = opt.Validation
 		}
 	}
 	return merged

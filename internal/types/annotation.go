@@ -43,8 +43,7 @@ type Annotation struct {
 	ProtoName         string            `json:"proto_name"`          // Proto Field 名称
 	ProtoType         string            `json:"proto_type"`          // Proto Field 自定义类型
 	ProtoFieldID      int32             `json:"proto_field_id"`      // ProtoFieldID 指定 Proto 字段 ID
-	ProtoValidation   string            `json:"proto_validation"`    // ProtoValidation 指定 Proto 校验规则 (pgv)
-	Validation        *ValidationRules  `json:"validation"`          // Validation 指定结构化校验规则
+
 }
 
 // Name 实现 ent.Annotation 接口

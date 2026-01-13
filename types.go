@@ -6,16 +6,6 @@ import (
 
 // Exported types
 type Annotation = types.Annotation
-type ProtoValidator = types.ProtoValidator
-
-const (
-	// ProtoValidatorNoValidator 不生成任何校验规则
-	ProtoValidatorNoValidator = types.ProtoValidatorNoValidator
-	// ProtoValidatorPGV 使用 PGV (protoc-gen-validate) 校验器 (默认)
-	ProtoValidatorPGV = types.ProtoValidatorPGV
-	// ProtoValidatorProtoValidate 使用 Buf ProtoValidate 校验器
-	ProtoValidatorProtoValidate = types.ProtoValidatorProtoValidate
-)
 
 const (
 	// BizPointerWithProtoMessage 使用 Biz 指针和 Proto 消息

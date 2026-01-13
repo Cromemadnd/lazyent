@@ -14,8 +14,6 @@ import (
 	entgen "entgo.io/ent/entc/gen"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/imports"
-
-	"github.com/Cromemadnd/lazyent/internal/types"
 )
 
 //go:embed templates/*
@@ -46,7 +44,6 @@ type PbField struct {
 	Name     string
 	Type     string
 	Tag      int
-	Rules    string // PGV Validation rules
 	Repeated bool
 	Comment  string
 }
@@ -345,17 +342,10 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 	// Ensure protoPkg is set
 	e.resolveDefaults(g)
 
-	imports := []string{}
-	if e.conf.ProtoValidator == types.ProtoValidatorPGV {
-		imports = append(imports, "validate/validate.proto")
-	} else if e.conf.ProtoValidator == types.ProtoValidatorProtoValidate {
-		imports = append(imports, "buf/validate/validate.proto")
-	}
-
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
-		Imports:   imports,
+		Imports:   []string{},
 	}
 
 	for _, n := range g.Nodes {
@@ -381,17 +371,10 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 func (e *Generator) buildSingleNodeProto(g *entgen.Graph, nodeName string) (*PbFile, error) {
 	e.resolveDefaults(g)
 
-	imports := []string{}
-	if e.conf.ProtoValidator == types.ProtoValidatorPGV {
-		imports = append(imports, "validate/validate.proto")
-	} else if e.conf.ProtoValidator == types.ProtoValidatorProtoValidate {
-		imports = append(imports, "buf/validate/validate.proto")
-	}
-
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
-		Imports:   imports,
+		Imports:   []string{},
 	}
 	for _, n := range g.Nodes {
 		if n.Name != nodeName {
@@ -445,7 +428,6 @@ func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int
 	if n.ID != nil {
 		pf := &PbField{
 			Name:    n.ID.Name,
-			Rules:   getValidateRules(n.ID, n.Name, e.conf.ProtoValidator),
 			Comment: n.ID.Comment(),
 		}
 		if a := getFieldAnnotation(n.ID); a != nil && a.ProtoName != "" {
@@ -470,7 +452,6 @@ func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int
 
 		pf := &PbField{
 			Name:    fld.Name,
-			Rules:   getValidateRules(fld, n.Name, e.conf.ProtoValidator),
 			Comment: fld.Comment(),
 		}
 		if a := getFieldAnnotation(fld); a != nil && a.ProtoName != "" {
@@ -521,17 +502,6 @@ func (e *Generator) buildProtoEdges(n *entgen.Type) []fieldInfo {
 					Name:     name,
 					Type:     edgeProtoType(edge),
 					Repeated: !edge.Unique,
-				}
-
-				// Validation rules
-				if edge.Type.ID.Type.String() == "uuid.UUID" {
-					if pf.Repeated {
-						pf.Rules = ".repeated = {\n    items: {\n      string: { uuid: true }\n    }\n  }"
-					} else {
-						if pf.Type == "string" {
-							pf.Rules = ".string.uuid = true"
-						}
-					}
 				}
 
 				results = append(results, fieldInfo{edge: edge, pf: pf})

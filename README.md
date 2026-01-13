@@ -4,7 +4,7 @@
 
 主要为 Clean Architecture (Kratos) 设计模式提供支持。
 
-Code mainly by Gemini AI.
+Code mainly by Gemini 3 Pro.
 
 ## 特点
 

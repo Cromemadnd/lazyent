@@ -46,9 +46,13 @@ func BizGroupToEnt(b *biz.Group) (*ent.Group, error) {
 		}
 		users = append(users, v)
 	}
-	iDEntVal, err := uuid.Parse(b.UUID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid UUID for id: %w", err)
+	var iDEntVal uuid.UUID
+	if b.UUID != "" {
+		val, err := uuid.Parse(b.UUID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid UUID for id: %w", err)
+		}
+		iDEntVal = val
 	}
 	return &ent.Group{
 		ID:        iDEntVal,
@@ -89,9 +93,13 @@ func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	iDEntVal, err := uuid.Parse(b.UUID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid UUID for id: %w", err)
+	var iDEntVal uuid.UUID
+	if b.UUID != "" {
+		val, err := uuid.Parse(b.UUID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid UUID for id: %w", err)
+		}
+		iDEntVal = val
 	}
 	return &ent.Post{
 		ID:        iDEntVal,
@@ -186,13 +194,21 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		}
 		friends = append(friends, v)
 	}
-	iDEntVal, err := uuid.Parse(b.UUID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid UUID for id: %w", err)
+	var iDEntVal uuid.UUID
+	if b.UUID != "" {
+		val, err := uuid.Parse(b.UUID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid UUID for id: %w", err)
+		}
+		iDEntVal = val
 	}
-	testUUIDEntVal, err := uuid.Parse(b.TestUUID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid UUID for test_uuid: %w", err)
+	var testUUIDEntVal uuid.UUID
+	if b.TestUUID != "" {
+		val, err := uuid.Parse(b.TestUUID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid UUID for test_uuid: %w", err)
+		}
+		testUUIDEntVal = val
 	}
 	var testNillableUUIDEntVal *uuid.UUID
 	if b.TestNillableUUID != "" {
