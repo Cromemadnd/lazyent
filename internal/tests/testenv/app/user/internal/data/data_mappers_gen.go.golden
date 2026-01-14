@@ -2,7 +2,6 @@
 package data
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
@@ -13,7 +12,7 @@ import (
 
 func EntGroupToBiz(e *ent.Group) (*biz.Group, error) {
 	if e == nil {
-		return nil, errors.New("EntGroupToBiz: nil entity")
+		return nil, nil
 	}
 	var users []*biz.User
 	for _, item := range e.Edges.Users {
@@ -36,7 +35,7 @@ func EntGroupToBiz(e *ent.Group) (*biz.Group, error) {
 
 func BizGroupToEnt(b *biz.Group) (*ent.Group, error) {
 	if b == nil {
-		return nil, errors.New("BizGroupToEnt: nil entity")
+		return nil, nil
 	}
 	var users []*ent.User
 	for _, item := range b.Users {
@@ -67,7 +66,7 @@ func BizGroupToEnt(b *biz.Group) (*ent.Group, error) {
 
 func EntPostToBiz(e *ent.Post) (*biz.Post, error) {
 	if e == nil {
-		return nil, errors.New("EntPostToBiz: nil entity")
+		return nil, nil
 	}
 	author, err := EntUserToBiz(e.Edges.Author)
 	if err != nil {
@@ -87,7 +86,7 @@ func EntPostToBiz(e *ent.Post) (*biz.Post, error) {
 
 func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 	if b == nil {
-		return nil, errors.New("BizPostToEnt: nil entity")
+		return nil, nil
 	}
 	author, err := BizUserToEnt(b.Author)
 	if err != nil {
@@ -115,7 +114,7 @@ func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 
 func EntUserToBiz(e *ent.User) (*biz.User, error) {
 	if e == nil {
-		return nil, errors.New("EntUserToBiz: nil entity")
+		return nil, nil
 	}
 	var postIDs []string
 	for _, item := range e.Edges.Posts {
@@ -166,7 +165,7 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 
 func BizUserToEnt(b *biz.User) (*ent.User, error) {
 	if b == nil {
-		return nil, errors.New("BizUserToEnt: nil entity")
+		return nil, nil
 	}
 	var posts []*ent.Post
 	for _, item := range b.PostIDs {

@@ -12,7 +12,7 @@ import (
 {{- $node := . }}
 func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 	if e == nil {
-		return nil, errors.New("Ent{{ .Name }}ToBiz: nil entity")
+		return nil, nil
 	}
 {{- range $e := .Edges }}
 {{- if isBizExclude $e }}{{ continue }}{{ end }}
@@ -80,7 +80,7 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 
 func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 	if b == nil {
-		return nil, errors.New("Biz{{ .Name }}ToEnt: nil entity")
+		return nil, nil
 	}
 {{- range $e := .Edges }}
 {{- if isBizExclude $e }}{{ continue }}{{ end }}

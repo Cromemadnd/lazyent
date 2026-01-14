@@ -2,8 +2,6 @@
 package service
 
 import (
-	"errors"
-
 	pb "github.com/Cromemadnd/lazyent/internal/tests/testenv/api/v1"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
@@ -12,7 +10,7 @@ import (
 
 func BizGroupToProto(b *biz.Group) (*pb.Group, error) {
 	if b == nil {
-		return nil, errors.New("BizGroupToProto: nil entity")
+		return nil, nil
 	}
 	var users []*pb.User
 	for _, item := range b.Users {
@@ -33,7 +31,7 @@ func BizGroupToProto(b *biz.Group) (*pb.Group, error) {
 
 func ProtoGroupToBiz(p *pb.Group) (*biz.Group, error) {
 	if p == nil {
-		return nil, errors.New("ProtoGroupToBiz: nil entity")
+		return nil, nil
 	}
 	var users []*biz.User
 	for _, item := range p.Users {
@@ -56,7 +54,7 @@ func ProtoGroupToBiz(p *pb.Group) (*biz.Group, error) {
 
 func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 	if b == nil {
-		return nil, errors.New("BizPostToProto: nil entity")
+		return nil, nil
 	}
 
 	return &pb.Post{
@@ -71,7 +69,7 @@ func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 
 func ProtoPostToBiz(p *pb.Post) (*biz.Post, error) {
 	if p == nil {
-		return nil, errors.New("ProtoPostToBiz: nil entity")
+		return nil, nil
 	}
 	return &biz.Post{
 		PostBase: biz.PostBase{
@@ -87,7 +85,7 @@ func ProtoPostToBiz(p *pb.Post) (*biz.Post, error) {
 
 func BizUserToProto(b *biz.User) (*pb.User, error) {
 	if b == nil {
-		return nil, errors.New("BizUserToProto: nil entity")
+		return nil, nil
 	}
 
 	var postIds []string
@@ -123,7 +121,7 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 
 func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 	if p == nil {
-		return nil, errors.New("ProtoUserToBiz: nil entity")
+		return nil, nil
 	}
 
 	var postIds []string
