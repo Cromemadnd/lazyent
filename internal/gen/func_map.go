@@ -35,6 +35,7 @@ var funcMap = template.FuncMap{
 	"isBizExclude": isBizExclude,
 	"isBizPointer": isBizPointer,
 	"isSensitive":  isSensitive,
+	"isVirtual":    isVirtual,
 
 	"isProtoID":              isProtoID,
 	"isProtoMessage":         isProtoMessage,

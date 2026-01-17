@@ -74,6 +74,8 @@ var (
 		{Name: "test_nillable_uuid", Type: field.TypeUUID},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNSPECIFIED", "ACTIVE", "INACTIVE", "BANNED"}},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"public", "user", "tech", "dev", "leader", "manager"}, Default: "user"},
+		{Name: "remote_token", Type: field.TypeString},
+		{Name: "ext_user", Type: field.TypeJSON},
 		{Name: "group_admins", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -84,7 +86,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_admins",
-				Columns:    []*schema.Column{UsersColumns[14]},
+				Columns:    []*schema.Column{UsersColumns[16]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

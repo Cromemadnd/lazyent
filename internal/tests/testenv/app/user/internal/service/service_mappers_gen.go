@@ -114,6 +114,8 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		TestNillableUuid: b.TestNillableUUID,
 		Status:           BizUserStatusToProto(b.Status),
 		Role:             string(b.Role),
+		RemoteToken:      b.RemoteToken,
+		ExtUser:          b.ExtUser,
 		PostIds:          postIds,
 		Groups:           groups,
 	}, nil
@@ -151,6 +153,8 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			TestNillableUUID: p.TestNillableUuid,
 			Status:           ProtoUserStatusToBiz(p.Status),
 			Role:             auth.UserRole(p.Role),
+			RemoteToken:      p.RemoteToken,
+			ExtUser:          p.ExtUser,
 			PostIDs:          postIds,
 			Groups:           groups,
 		},

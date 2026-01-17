@@ -4,7 +4,7 @@ import (
 	"github.com/Cromemadnd/lazyent/internal/types"
 )
 
-// Exported types
+// Exported types & Consts
 type Annotation = types.Annotation
 
 const (

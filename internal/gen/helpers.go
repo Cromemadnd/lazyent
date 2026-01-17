@@ -323,6 +323,11 @@ func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
 	} else if v, ok := m["ProtoType"]; ok {
 		a.ProtoType, _ = v.(string)
 	}
+	if v, ok := m["virtual"]; ok {
+		a.Virtual, _ = v.(bool)
+	} else if v, ok := m["Virtual"]; ok {
+		a.Virtual, _ = v.(bool)
+	}
 
 	return a
 }
@@ -401,6 +406,14 @@ func isSensitive(f *entgen.Field) bool {
 		return false
 	}
 	return f.Sensitive()
+}
+
+func isVirtual(f *entgen.Field) bool {
+	if f == nil {
+		return false
+	}
+	a := getFieldAnnotation(f)
+	return a != nil && a.Virtual
 }
 
 func isProtoID(e *entgen.Edge) bool {

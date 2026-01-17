@@ -47,7 +47,7 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{ bizFieldName .ID }}: {{ convertEntToBiz .ID $node.Name "e.ID" }},
 			{{- end }}
 			{{- range $f := .Fields }}
-			{{- if not (isSensitive $f) }}
+			{{- if and (not (isSensitive $f)) (not (isVirtual $f)) }}
 			{{ bizFieldName $f }}: {{ convertEntToBiz $f $node.Name (printf "e.%s" $f.StructField) }},
 			{{- end }}
 			{{- end }}
@@ -127,7 +127,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 {{- end }}
 {{- end }}
 {{- range $f := .Fields }}
-{{- if requiresErrorCheck $f "BizToEnt" }}
+{{- if and (requiresErrorCheck $f "BizToEnt") (not (isVirtual $f)) }}
 	{{ convertBizToEntSetup $f $node.Name }}
 {{- end }}
 {{- end }}
@@ -136,7 +136,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 		ID: {{ convertBizToEntUsage .ID $node.Name }},
 {{- end }}
 {{- range $f := .Fields }}
-		{{- if not (isSensitive $f) }}
+		{{- if and (not (isSensitive $f)) (not (isVirtual $f)) }}
 		{{ $f.StructField }}: {{ convertBizToEntUsage $f $node.Name }},
 		{{- end }}
 {{- end }}

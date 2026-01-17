@@ -39,6 +39,16 @@ func (User) Fields() []ent.Field {
 			GoType(auth.UserRole("")).
 			Default(string(auth.RoleUser)).
 			Comment("用户权限组"), // Custom Type Enum
+		field.String("remote_token").
+			Annotations(lazyent.Virtual()).
+			Comment("虚拟令牌，不存数据库"),
+		field.Any("ext_user").
+			Annotations(lazyent.MergeAnnotations(
+				lazyent.Virtual(),
+				lazyent.WithBizType("*auth.User"),
+				lazyent.WithProtoType("auth.v1.User"),
+			)).
+			Comment("外部用户对象，不存数据库"),
 	}
 }
 

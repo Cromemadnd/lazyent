@@ -43,7 +43,7 @@ type Annotation struct {
 	ProtoName         string            `json:"proto_name"`          // Proto Field 名称
 	ProtoType         string            `json:"proto_type"`          // Proto Field 自定义类型
 	ProtoFieldID      int32             `json:"proto_field_id"`      // ProtoFieldID 指定 Proto 字段 ID
-
+	Virtual           bool              `json:"virtual"`             // 是否为虚拟字段 (不存入数据库)
 }
 
 // Name 实现 ent.Annotation 接口

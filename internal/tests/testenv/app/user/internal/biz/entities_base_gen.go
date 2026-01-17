@@ -66,6 +66,8 @@ type UserBase struct {
 	TestNillableUUID string
 	Status           UserStatus
 	Role             auth.UserRole
+	RemoteToken      string
+	ExtUser          *auth.User
 	PostIDs          []string
 	Groups           []*Group
 	Friends          []*User

@@ -43,6 +43,10 @@ const (
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldRemoteToken holds the string denoting the remote_token field in the database.
+	FieldRemoteToken = "remote_token"
+	// FieldExtUser holds the string denoting the ext_user field in the database.
+	FieldExtUser = "ext_user"
 	// EdgePosts holds the string denoting the posts edge name in mutations.
 	EdgePosts = "posts"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
@@ -83,6 +87,8 @@ var Columns = []string{
 	FieldTestNillableUUID,
 	FieldStatus,
 	FieldRole,
+	FieldRemoteToken,
+	FieldExtUser,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -239,6 +245,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByRemoteToken orders the results by the remote_token field.
+func ByRemoteToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemoteToken, opts...).ToFunc()
 }
 
 // ByPostsCount orders the results by posts count.

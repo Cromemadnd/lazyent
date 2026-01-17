@@ -58,6 +58,14 @@ func WithProtoFieldID(id int32) Annotation {
 	}
 }
 
+// Virtual 标记字段为虚拟字段
+// 虚拟字段不会映射到数据库，仅在 Biz 和 Proto 层存在
+func Virtual() Annotation {
+	return Annotation{
+		Virtual: true,
+	}
+}
+
 // MergeAnnotations 合并多个 Annotation 选项
 // 后面的选项会覆盖前面的选项
 func MergeAnnotations(opts ...Annotation) Annotation {
@@ -83,6 +91,9 @@ func MergeAnnotations(opts ...Annotation) Annotation {
 		}
 		if opt.ProtoFieldID != 0 {
 			merged.ProtoFieldID = opt.ProtoFieldID
+		}
+		if opt.Virtual {
+			merged.Virtual = true
 		}
 	}
 	return merged

@@ -44,6 +44,8 @@ message User {
   string test_nillable_uuid = 11; // 测试UUID2
   UserStatus status = 12;
   string role = 13; // 用户权限组
-  repeated string post_ids = 14;
-  repeated Group groups = 15;
+  string remote_token = 14; // 虚拟令牌，不存数据库
+  auth.v1.User ext_user = 15; // 外部用户对象，不存数据库
+  repeated string post_ids = 16;
+  repeated Group groups = 17;
 }
