@@ -249,6 +249,26 @@ func (_u *UserUpdate) SetExtUser(v any) *UserUpdate {
 	return _u
 }
 
+// SetTestTime sets the "test_time" field.
+func (_u *UserUpdate) SetTestTime(v time.Time) *UserUpdate {
+	_u.mutation.SetTestTime(v)
+	return _u
+}
+
+// SetNillableTestTime sets the "test_time" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableTestTime(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetTestTime(*v)
+	}
+	return _u
+}
+
+// ClearTestTime clears the value of the "test_time" field.
+func (_u *UserUpdate) ClearTestTime() *UserUpdate {
+	_u.mutation.ClearTestTime()
+	return _u
+}
+
 // SetLastLoginIP sets the "last_login_ip" field.
 func (_u *UserUpdate) SetLastLoginIP(v string) *UserUpdate {
 	_u.mutation.SetLastLoginIP(v)
@@ -638,6 +658,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ExtUser(); ok {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.TestTime(); ok {
+		_spec.SetField(user.FieldTestTime, field.TypeTime, value)
+	}
+	if _u.mutation.TestTimeCleared() {
+		_spec.ClearField(user.FieldTestTime, field.TypeTime)
 	}
 	if value, ok := _u.mutation.LastLoginIP(); ok {
 		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
@@ -1121,6 +1147,26 @@ func (_u *UserUpdateOne) SetExtUser(v any) *UserUpdateOne {
 	return _u
 }
 
+// SetTestTime sets the "test_time" field.
+func (_u *UserUpdateOne) SetTestTime(v time.Time) *UserUpdateOne {
+	_u.mutation.SetTestTime(v)
+	return _u
+}
+
+// SetNillableTestTime sets the "test_time" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableTestTime(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetTestTime(*v)
+	}
+	return _u
+}
+
+// ClearTestTime clears the value of the "test_time" field.
+func (_u *UserUpdateOne) ClearTestTime() *UserUpdateOne {
+	_u.mutation.ClearTestTime()
+	return _u
+}
+
 // SetLastLoginIP sets the "last_login_ip" field.
 func (_u *UserUpdateOne) SetLastLoginIP(v string) *UserUpdateOne {
 	_u.mutation.SetLastLoginIP(v)
@@ -1540,6 +1586,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.ExtUser(); ok {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.TestTime(); ok {
+		_spec.SetField(user.FieldTestTime, field.TypeTime, value)
+	}
+	if _u.mutation.TestTimeCleared() {
+		_spec.ClearField(user.FieldTestTime, field.TypeTime)
 	}
 	if value, ok := _u.mutation.LastLoginIP(); ok {
 		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)

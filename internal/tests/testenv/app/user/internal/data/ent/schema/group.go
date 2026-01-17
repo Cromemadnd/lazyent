@@ -26,6 +26,8 @@ func (Group) Edges() []ent.Edge {
 			lazyent.Annotation{
 				EdgeInStrategy:  lazyent.EdgeProtoMessage | lazyent.EdgeBizPointer,
 				EdgeOutStrategy: lazyent.EdgeProtoMessage | lazyent.EdgeBizPointer,
+				BizName:         "UsersTest",
+				ProtoName:       "users_test",
 			},
 		),
 		edge.To("admins", User.Type).

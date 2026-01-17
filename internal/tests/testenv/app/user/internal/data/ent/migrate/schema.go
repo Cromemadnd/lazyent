@@ -90,6 +90,7 @@ var (
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"public", "user", "tech", "dev", "leader", "manager"}, Default: "user"},
 		{Name: "remote_token", Type: field.TypeString},
 		{Name: "ext_user", Type: field.TypeJSON},
+		{Name: "test_time", Type: field.TypeTime, Nullable: true},
 		{Name: "last_login_ip", Type: field.TypeString, Nullable: true},
 		{Name: "verification_code", Type: field.TypeString, Nullable: true},
 		{Name: "internal_id", Type: field.TypeInt64, Nullable: true},
@@ -106,25 +107,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_admins",
-				Columns:    []*schema.Column{UsersColumns[19]},
+				Columns:    []*schema.Column{UsersColumns[20]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_posts_co_authors",
-				Columns:    []*schema.Column{UsersColumns[20]},
-				RefColumns: []*schema.Column{PostsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "users_posts_followers",
 				Columns:    []*schema.Column{UsersColumns[21]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "users_posts_co_authors_archive",
+				Symbol:     "users_posts_followers",
 				Columns:    []*schema.Column{UsersColumns[22]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_posts_co_authors_archive",
+				Columns:    []*schema.Column{UsersColumns[23]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

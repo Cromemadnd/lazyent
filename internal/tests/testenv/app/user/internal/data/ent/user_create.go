@@ -186,6 +186,20 @@ func (_c *UserCreate) SetExtUser(v any) *UserCreate {
 	return _c
 }
 
+// SetTestTime sets the "test_time" field.
+func (_c *UserCreate) SetTestTime(v time.Time) *UserCreate {
+	_c.mutation.SetTestTime(v)
+	return _c
+}
+
+// SetNillableTestTime sets the "test_time" field if the given value is not nil.
+func (_c *UserCreate) SetNillableTestTime(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetTestTime(*v)
+	}
+	return _c
+}
+
 // SetLastLoginIP sets the "last_login_ip" field.
 func (_c *UserCreate) SetLastLoginIP(v string) *UserCreate {
 	_c.mutation.SetLastLoginIP(v)
@@ -531,6 +545,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExtUser(); ok {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 		_node.ExtUser = value
+	}
+	if value, ok := _c.mutation.TestTime(); ok {
+		_spec.SetField(user.FieldTestTime, field.TypeTime, value)
+		_node.TestTime = value
 	}
 	if value, ok := _c.mutation.LastLoginIP(); ok {
 		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)

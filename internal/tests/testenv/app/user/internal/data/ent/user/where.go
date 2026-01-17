@@ -112,6 +112,11 @@ func RemoteToken(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldRemoteToken, v))
 }
 
+// TestTime applies equality check predicate on the "test_time" field. It's identical to TestTimeEQ.
+func TestTime(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestTime, v))
+}
+
 // LastLoginIP applies equality check predicate on the "last_login_ip" field. It's identical to LastLoginIPEQ.
 func LastLoginIP(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastLoginIP, v))
@@ -725,6 +730,56 @@ func RemoteTokenEqualFold(v string) predicate.User {
 // RemoteTokenContainsFold applies the ContainsFold predicate on the "remote_token" field.
 func RemoteTokenContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldRemoteToken, v))
+}
+
+// TestTimeEQ applies the EQ predicate on the "test_time" field.
+func TestTimeEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldTestTime, v))
+}
+
+// TestTimeNEQ applies the NEQ predicate on the "test_time" field.
+func TestTimeNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldTestTime, v))
+}
+
+// TestTimeIn applies the In predicate on the "test_time" field.
+func TestTimeIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldTestTime, vs...))
+}
+
+// TestTimeNotIn applies the NotIn predicate on the "test_time" field.
+func TestTimeNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldTestTime, vs...))
+}
+
+// TestTimeGT applies the GT predicate on the "test_time" field.
+func TestTimeGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldTestTime, v))
+}
+
+// TestTimeGTE applies the GTE predicate on the "test_time" field.
+func TestTimeGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldTestTime, v))
+}
+
+// TestTimeLT applies the LT predicate on the "test_time" field.
+func TestTimeLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldTestTime, v))
+}
+
+// TestTimeLTE applies the LTE predicate on the "test_time" field.
+func TestTimeLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldTestTime, v))
+}
+
+// TestTimeIsNil applies the IsNil predicate on the "test_time" field.
+func TestTimeIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldTestTime))
+}
+
+// TestTimeNotNil applies the NotNil predicate on the "test_time" field.
+func TestTimeNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldTestTime))
 }
 
 // LastLoginIPEQ applies the EQ predicate on the "last_login_ip" field.

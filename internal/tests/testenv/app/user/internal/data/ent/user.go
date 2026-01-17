@@ -51,6 +51,8 @@ type User struct {
 	RemoteToken string `json:"remote_token,omitempty"`
 	// 外部用户对象，不存数据库
 	ExtUser any `json:"ext_user,omitempty"`
+	// TestTime holds the value of the "test_time" field.
+	TestTime time.Time `json:"test_time,omitempty"`
 	// 仅回包包含
 	LastLoginIP string `json:"last_login_ip,omitempty"`
 	// 仅入参包含
@@ -144,7 +146,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole, user.FieldRemoteToken, user.FieldLastLoginIP, user.FieldVerificationCode:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldTestTime:
 			values[i] = new(sql.NullTime)
 		case user.FieldID, user.FieldTestUUID:
 			values[i] = new(uuid.UUID)
@@ -271,6 +273,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.ExtUser); err != nil {
 					return fmt.Errorf("unmarshal field ext_user: %w", err)
 				}
+			}
+		case user.FieldTestTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field test_time", values[i])
+			} else if value.Valid {
+				_m.TestTime = value.Time
 			}
 		case user.FieldLastLoginIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -424,6 +432,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ext_user=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ExtUser))
+	builder.WriteString(", ")
+	builder.WriteString("test_time=")
+	builder.WriteString(_m.TestTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("last_login_ip=")
 	builder.WriteString(_m.LastLoginIP)

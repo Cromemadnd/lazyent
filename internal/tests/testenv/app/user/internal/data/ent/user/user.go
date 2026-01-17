@@ -47,6 +47,8 @@ const (
 	FieldRemoteToken = "remote_token"
 	// FieldExtUser holds the string denoting the ext_user field in the database.
 	FieldExtUser = "ext_user"
+	// FieldTestTime holds the string denoting the test_time field in the database.
+	FieldTestTime = "test_time"
 	// FieldLastLoginIP holds the string denoting the last_login_ip field in the database.
 	FieldLastLoginIP = "last_login_ip"
 	// FieldVerificationCode holds the string denoting the verification_code field in the database.
@@ -103,6 +105,7 @@ var Columns = []string{
 	FieldRole,
 	FieldRemoteToken,
 	FieldExtUser,
+	FieldTestTime,
 	FieldLastLoginIP,
 	FieldVerificationCode,
 	FieldInternalID,
@@ -276,6 +279,11 @@ func ByRole(opts ...sql.OrderTermOption) OrderOption {
 // ByRemoteToken orders the results by the remote_token field.
 func ByRemoteToken(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemoteToken, opts...).ToFunc()
+}
+
+// ByTestTime orders the results by the test_time field.
+func ByTestTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTestTime, opts...).ToFunc()
 }
 
 // ByLastLoginIP orders the results by the last_login_ip field.

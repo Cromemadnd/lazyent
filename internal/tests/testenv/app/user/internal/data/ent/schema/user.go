@@ -50,6 +50,11 @@ func (User) Fields() []ent.Field {
 			)).
 			Comment("外部用户对象，不存数据库"),
 
+		field.Time("test_time").Optional().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithBizType("time.Time"),
+			lazyent.WithProtoType("int64"),
+		)),
+
 		// 补全字段策略测试覆盖
 		field.String("last_login_ip").Optional().Annotations(lazyent.MergeAnnotations(
 			lazyent.WithFieldInStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
@@ -88,6 +93,7 @@ func (User) Edges() []ent.Edge {
 		// 5. 场景：入参传完整 Message，回包仅返回 ID 列表 (存档/引用风格)
 		edge.To("co_authors_archive", User.Type).
 			Annotations(lazyent.Annotation{
+				ProtoName:       "co_authors_archive_test",
 				EdgeInStrategy:  lazyent.EdgeProtoMessage | lazyent.EdgeBizPointer,
 				EdgeOutStrategy: lazyent.EdgeProtoID | lazyent.EdgeBizPointer,
 			}),

@@ -3,6 +3,7 @@ package data
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent"
@@ -14,13 +15,13 @@ func EntGroupToBiz(e *ent.Group) (*biz.Group, error) {
 	if e == nil {
 		return nil, nil
 	}
-	var users []*biz.User
+	var usersTest []*biz.User
 	for _, item := range e.Edges.Users {
 		v, err := EntUserToBiz(item)
 		if err != nil {
 			return nil, err
 		}
-		users = append(users, v)
+		usersTest = append(usersTest, v)
 	}
 	return &biz.Group{
 		GroupBase: biz.GroupBase{
@@ -28,7 +29,7 @@ func EntGroupToBiz(e *ent.Group) (*biz.Group, error) {
 			CreatedAt: e.CreatedAt,
 			UpdatedAt: e.UpdatedAt,
 			Name:      e.Name,
-			Users:     users,
+			UsersTest: usersTest,
 		},
 	}, nil
 }
@@ -38,7 +39,7 @@ func BizGroupToEnt(b *biz.Group) (*ent.Group, error) {
 		return nil, nil
 	}
 	var users []*ent.User
-	for _, item := range b.Users {
+	for _, item := range b.UsersTest {
 		v, err := BizUserToEnt(item)
 		if err != nil {
 			return nil, err
@@ -249,6 +250,7 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 			}(),
 			Status:           EntUserStatusToBiz(e.Status),
 			Role:             e.Role,
+			TestTime:         time.Time(e.TestTime),
 			LastLoginIP:      e.LastLoginIP,
 			VerificationCode: e.VerificationCode,
 			PostIDs:          postIDs,
@@ -345,6 +347,7 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		TestNillableUUID: testNillableUUIDEntVal,
 		Status:           BizUserStatusToEnt(b.Status),
 		Role:             b.Role,
+		TestTime:         time.Time(b.TestTime),
 		LastLoginIP:      b.LastLoginIP,
 		VerificationCode: b.VerificationCode,
 		Edges: ent.UserEdges{

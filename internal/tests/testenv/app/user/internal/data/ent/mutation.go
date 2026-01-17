@@ -1936,6 +1936,7 @@ type UserMutation struct {
 	role                      *auth.UserRole
 	remote_token              *string
 	ext_user                  *any
+	test_time                 *time.Time
 	last_login_ip             *string
 	verification_code         *string
 	internal_id               *int64
@@ -2714,6 +2715,55 @@ func (m *UserMutation) ResetExtUser() {
 	m.ext_user = nil
 }
 
+// SetTestTime sets the "test_time" field.
+func (m *UserMutation) SetTestTime(t time.Time) {
+	m.test_time = &t
+}
+
+// TestTime returns the value of the "test_time" field in the mutation.
+func (m *UserMutation) TestTime() (r time.Time, exists bool) {
+	v := m.test_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestTime returns the old "test_time" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldTestTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestTime: %w", err)
+	}
+	return oldValue.TestTime, nil
+}
+
+// ClearTestTime clears the value of the "test_time" field.
+func (m *UserMutation) ClearTestTime() {
+	m.test_time = nil
+	m.clearedFields[user.FieldTestTime] = struct{}{}
+}
+
+// TestTimeCleared returns if the "test_time" field was cleared in this mutation.
+func (m *UserMutation) TestTimeCleared() bool {
+	_, ok := m.clearedFields[user.FieldTestTime]
+	return ok
+}
+
+// ResetTestTime resets all changes to the "test_time" field.
+func (m *UserMutation) ResetTestTime() {
+	m.test_time = nil
+	delete(m.clearedFields, user.FieldTestTime)
+}
+
 // SetLastLoginIP sets the "last_login_ip" field.
 func (m *UserMutation) SetLastLoginIP(s string) {
 	m.last_login_ip = &s
@@ -3186,7 +3236,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -3231,6 +3281,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.ext_user != nil {
 		fields = append(fields, user.FieldExtUser)
+	}
+	if m.test_time != nil {
+		fields = append(fields, user.FieldTestTime)
 	}
 	if m.last_login_ip != nil {
 		fields = append(fields, user.FieldLastLoginIP)
@@ -3279,6 +3332,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.RemoteToken()
 	case user.FieldExtUser:
 		return m.ExtUser()
+	case user.FieldTestTime:
+		return m.TestTime()
 	case user.FieldLastLoginIP:
 		return m.LastLoginIP()
 	case user.FieldVerificationCode:
@@ -3324,6 +3379,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRemoteToken(ctx)
 	case user.FieldExtUser:
 		return m.OldExtUser(ctx)
+	case user.FieldTestTime:
+		return m.OldTestTime(ctx)
 	case user.FieldLastLoginIP:
 		return m.OldLastLoginIP(ctx)
 	case user.FieldVerificationCode:
@@ -3444,6 +3501,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExtUser(v)
 		return nil
+	case user.FieldTestTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestTime(v)
+		return nil
 	case user.FieldLastLoginIP:
 		v, ok := value.(string)
 		if !ok {
@@ -3546,6 +3610,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldPassword) {
 		fields = append(fields, user.FieldPassword)
 	}
+	if m.FieldCleared(user.FieldTestTime) {
+		fields = append(fields, user.FieldTestTime)
+	}
 	if m.FieldCleared(user.FieldLastLoginIP) {
 		fields = append(fields, user.FieldLastLoginIP)
 	}
@@ -3580,6 +3647,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ClearPassword()
+		return nil
+	case user.FieldTestTime:
+		m.ClearTestTime()
 		return nil
 	case user.FieldLastLoginIP:
 		m.ClearLastLoginIP()
@@ -3642,6 +3712,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldExtUser:
 		m.ResetExtUser()
+		return nil
+	case user.FieldTestTime:
+		m.ResetTestTime()
 		return nil
 	case user.FieldLastLoginIP:
 		m.ResetLastLoginIP()

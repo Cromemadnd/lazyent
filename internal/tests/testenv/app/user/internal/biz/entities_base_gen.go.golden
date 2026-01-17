@@ -14,7 +14,7 @@ type GroupBase struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
-	Users     []*User
+	UsersTest []*User
 }
 
 // PostBase 是 Post 的基础结构体，包含自动生成的字段定义
@@ -78,6 +78,7 @@ type UserBase struct {
 	Role             auth.UserRole
 	RemoteToken      string
 	ExtUser          *auth.User
+	TestTime         time.Time
 	LastLoginIP      string
 	VerificationCode string
 	PostIDs          []uuid.UUID

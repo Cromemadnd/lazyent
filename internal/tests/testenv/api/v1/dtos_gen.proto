@@ -11,7 +11,7 @@ message Group {
   google.protobuf.Timestamp created_at = 2; // 创建时间
   google.protobuf.Timestamp updated_at = 3; // 更新时间
   string name = 4;
-  repeated User users = 5;
+  repeated User users_test = 5;
 }
 
 message GroupInput {
@@ -19,7 +19,7 @@ message GroupInput {
   google.protobuf.Timestamp created_at = 2; // 创建时间
   google.protobuf.Timestamp updated_at = 3; // 更新时间
   string name = 4;
-  repeated User users = 5;
+  repeated User users_test = 5;
 }
 
 message Post {
@@ -76,12 +76,13 @@ message User {
   string role = 13; // 用户权限组
   string remote_token = 14; // 虚拟令牌，不存数据库
   auth.v1.User ext_user = 15; // 外部用户对象，不存数据库
-  string last_login_ip = 16; // 仅回包包含
-  repeated string post_ids = 17;
-  repeated Group groups = 18;
-  repeated string followers_id = 19;
-  repeated string co_authors_archive_id = 20;
-  repeated User friends = 21;
+  int64 test_time = 16;
+  string last_login_ip = 17; // 仅回包包含
+  repeated string post_ids = 18;
+  repeated Group groups = 19;
+  repeated string followers_id = 20;
+  repeated string co_authors_archive_test = 21;
+  repeated User friends = 22;
 }
 
 message UserInput {
@@ -101,8 +102,9 @@ message UserInput {
   string role = 14; // 用户权限组
   string remote_token = 15; // 虚拟令牌，不存数据库
   auth.v1.User ext_user = 16; // 外部用户对象，不存数据库
-  string verification_code = 17; // 仅入参包含
-  repeated string post_ids = 18;
-  repeated Group groups = 19;
-  repeated User co_authors_archive = 20;
+  int64 test_time = 17;
+  string verification_code = 18; // 仅入参包含
+  repeated string post_ids = 19;
+  repeated Group groups = 20;
+  repeated User co_authors_archive_test = 21;
 }
