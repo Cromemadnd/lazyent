@@ -81,7 +81,7 @@ message User {
   string last_login_ip = 17; // 仅回包包含
   repeated string post_ids = 18;
   repeated Group groups = 19;
-  repeated string followers_id = 20;
+  repeated string followers_test = 20;
   repeated string co_authors_archive_test = 21;
   repeated User friends = 22;
 }

@@ -27,7 +27,7 @@ func BizGroupToProto(b *biz.Group) (*pb.Group, error) {
 		CreatedAt: timestamppb.New(b.CreatedAt),
 		UpdatedAt: timestamppb.New(b.UpdatedAt),
 		Name:      b.Name,
-		Users:     users,
+		UsersTest: users,
 	}, nil
 }
 
@@ -226,9 +226,9 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		postIds = append(postIds, item)
 	}
 
-	var followersID []string
+	var followersTest []string
 	for _, item := range b.Followers {
-		followersID = append(followersID, item.UUID)
+		followersTest = append(followersTest, item.UUID)
 	}
 
 	var coAuthorsArchiveTest []string
@@ -270,7 +270,7 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		TestTime:             b.TestTime.UnixMilli(),
 		LastLoginIp:          b.LastLoginIP,
 		PostIds:              postIds,
-		FollowersID:          followersID,
+		FollowersTest:        followersTest,
 		CoAuthorsArchiveTest: coAuthorsArchiveTest,
 		Groups:               groups,
 		Friends:              friends,
@@ -287,7 +287,7 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 		postIds = append(postIds, item)
 	}
 	var followers []*biz.User
-	for _, item := range p.FollowersID {
+	for _, item := range p.FollowersTest {
 		followers = append(followers, &biz.User{UserBase: biz.UserBase{UUID: item}})
 	}
 	var coAuthorsArchive []*biz.User

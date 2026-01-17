@@ -88,9 +88,9 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
 {{- end }}{{- end }}
 {{- range $e := .Edges }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if isProtoMessage $e false }}
 	{{- if $e.Unique }}
-		{{ $e.Name | pascal }}: {{ camel $e.Name }},
+		{{ protoStructField $e false }}: {{ camel $e.Name }},
 	{{- else }}
-		{{ $e.Name | pascal }}: {{ camel $e.Name }},
+		{{ protoStructField $e false }}: {{ camel $e.Name }},
 	{{- end }}
 {{- end }}{{- end }}
 	}, nil

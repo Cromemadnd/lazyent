@@ -86,6 +86,7 @@ func (User) Edges() []ent.Edge {
 		// 4. 场景：入参隐藏，回包仅返回 ID 列表 (只读关联)
 		edge.To("followers", User.Type).
 			Annotations(lazyent.Annotation{
+				ProtoName:       "followers_test",
 				EdgeInStrategy:  lazyent.EdgeProtoExcluded | lazyent.EdgeBizExcluded,
 				EdgeOutStrategy: lazyent.EdgeProtoID | lazyent.EdgeBizPointer,
 			}),
