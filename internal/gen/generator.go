@@ -41,11 +41,12 @@ type PbMessage struct {
 }
 
 type PbField struct {
-	Name     string
-	Type     string
-	Tag      int
-	Repeated bool
-	Comment  string
+	Name          string
+	Type          string
+	Tag           int
+	Repeated      bool
+	Comment       string
+	ValidateRules string
 }
 
 type PbEnum struct {
@@ -365,6 +366,8 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 		inputMsg.Name = n.Name + "Input"
 		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
 	}
+
+	e.ensureValidateImport(files)
 	return files, nil
 }
 
@@ -393,7 +396,39 @@ func (e *Generator) buildSingleNodeProto(g *entgen.Graph, nodeName string) (*PbF
 		inputMsg.Name = n.Name + "Input"
 		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
 	}
+	e.ensureValidateImport(files)
 	return files, nil
+}
+
+func (e *Generator) ensureValidateImport(f *PbFile) {
+	hasValidate := false
+	for _, el := range f.Elements {
+		if el.Message == nil {
+			continue
+		}
+		for _, fd := range el.Message.Fields {
+			if fd.ValidateRules != "" {
+				hasValidate = true
+				break
+			}
+		}
+		if hasValidate {
+			break
+		}
+	}
+	if hasValidate {
+		// append invalidates if not exists
+		found := false
+		for _, imp := range f.Imports {
+			if imp == "buf/validate/validate.proto" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			f.Imports = append(f.Imports, "buf/validate/validate.proto")
+		}
+	}
 }
 
 func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile, in bool) *PbMessage {
@@ -462,6 +497,9 @@ func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int
 			pf.Type = "string"
 		} else {
 			pf.Type = e.resolveProtoType(fld, n.Name, f)
+		}
+		if in {
+			pf.ValidateRules = getFieldValidateRules(fld)
 		}
 		if strings.HasPrefix(fld.Type.String(), "[]") && fld.Type.String() != "[]byte" {
 			pf.Repeated = true

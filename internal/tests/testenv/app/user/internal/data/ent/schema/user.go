@@ -17,7 +17,7 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").NotEmpty(),
+		field.String("name").NotEmpty().Annotations(lazyent.WithProtoValidation("(buf.validate.field).string.min_len = 1")),
 		field.Int("age").Positive().Annotations(
 			lazyent.WithProtoFieldID(2),
 		),

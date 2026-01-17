@@ -5,6 +5,7 @@ package user.v1;
 
 option go_package = "lazyent-test-app/user/v1;v1";
 import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
 
 message Group {
   string uuid = 1; // 数据库主键
@@ -89,7 +90,7 @@ message UserInput {
   string uuid = 1; // 数据库主键
   google.protobuf.Timestamp created_at = 3; // 创建时间
   google.protobuf.Timestamp updated_at = 4; // 更新时间
-  string name = 5;
+  string name = 5 [(buf.validate.field).string.min_len = 1];
   int32 age = 2;
   string nickname = 6;
   uint32 user_score = 7;

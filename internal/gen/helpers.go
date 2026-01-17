@@ -357,6 +357,12 @@ func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
 		a.Virtual, _ = v.(bool)
 	}
 
+	if v, ok := m["proto_validation"]; ok {
+		a.ProtoValidation, _ = v.(string)
+	} else if v, ok := m["ProtoValidation"]; ok {
+		a.ProtoValidation, _ = v.(string)
+	}
+
 	// Strategies
 	if v, ok := m["edge_in_strategy"]; ok {
 		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))

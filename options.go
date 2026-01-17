@@ -124,8 +124,20 @@ func MergeAnnotations(opts ...Annotation) Annotation {
 		if opt.Virtual {
 			merged.Virtual = true
 		}
+		if opt.ProtoValidation != "" {
+			merged.ProtoValidation = opt.ProtoValidation
+		}
 	}
 	return merged
+}
+
+// WithProtoValidation 自定义 Proto 字段验证规则 (Buf Validate)
+// 例如: "string.min_len = 1"
+// 最终生成: [(buf.validate.field).string.min_len = 1]
+func WithProtoValidation(rules string) Annotation {
+	return Annotation{
+		ProtoValidation: rules,
+	}
 }
 
 // Primitive Ptr Helpers
