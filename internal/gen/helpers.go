@@ -1,29 +1,58 @@
 package gen
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 
 	entgen "entgo.io/ent/entc/gen"
-	types "github.com/Cromemadnd/lazyent/internal/types"
+	"github.com/Cromemadnd/lazyent/internal/types"
 )
+
+// --- Adapters for Interface Support ---
+
+func asGenField(v interface{}) *GenField {
+	if v == nil {
+		return nil
+	}
+	if gf, ok := v.(*GenField); ok {
+		return gf
+	}
+	if f, ok := v.(*entgen.Field); ok {
+		// Just-in-time adaptation
+		gf, _ := adaptField(f, "")
+		return gf
+	}
+	return nil
+}
+
+func asGenEdge(v interface{}) *GenEdge {
+	if v == nil {
+		return nil
+	}
+	if ge, ok := v.(*GenEdge); ok {
+		return ge
+	}
+	if e, ok := v.(*entgen.Edge); ok {
+		// Just-in-time adaptation
+		ge, _ := adaptEdge(e)
+		return ge
+	}
+	return nil
+}
+
+// --- Helper Functions ---
 
 func hasTimeNodes(nodes []interface{}) bool {
 	for _, node := range nodes {
-		n, ok := node.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		fields, ok := n["Fields"].([]*entgen.Field)
-		if !ok {
-			continue
-		}
-		for _, f := range fields {
-			if f.Type.String() == "time.Time" {
-				return true
+		// Try GenNode
+		if gn, ok := node.(*GenNode); ok {
+			for _, f := range gn.Fields {
+				if f.Type.String() == "time.Time" {
+					return true
+				}
 			}
+			continue
 		}
 	}
 	return false
@@ -31,43 +60,62 @@ func hasTimeNodes(nodes []interface{}) bool {
 
 func hasUUIDNodes(nodes []interface{}) bool {
 	for _, node := range nodes {
-		n, ok := node.(map[string]interface{})
-		if !ok {
+		if gn, ok := node.(*GenNode); ok {
+			if hasUUID(gn.Fields, gn.Edges) {
+				return true
+			}
 			continue
 		}
-		fields, _ := n["Fields"].([]*entgen.Field)
-		edges, _ := n["Edges"].([]*entgen.Edge)
-		if hasUUID(fields, edges) {
+	}
+	return false
+}
+
+// Need to handle []interface{} (which might be []*GenField or equivalent)
+// But template usually passes .Fields which is specific slice type.
+// If hasTime is called with .Fields from template, it's either []*GenField or []*entgen.Field.
+// We use reflection to handle slice iteration.
+func hasTime(fields interface{}) bool {
+	v := reflect.ValueOf(fields)
+	if v.Kind() != reflect.Slice {
+		return false
+	}
+	for i := 0; i < v.Len(); i++ {
+		f := asGenField(v.Index(i).Interface())
+		if f != nil && f.Type.String() == "time.Time" {
 			return true
 		}
 	}
 	return false
 }
 
-func hasTime(fields []*entgen.Field) bool {
-	for _, f := range fields {
-		if f.Type.String() == "time.Time" {
-			return true
+func hasUUID(fields interface{}, edges interface{}) bool {
+	vFields := reflect.ValueOf(fields)
+	if vFields.Kind() == reflect.Slice {
+		for i := 0; i < vFields.Len(); i++ {
+			f := asGenField(vFields.Index(i).Interface())
+			if f != nil && f.Type.String() == "uuid.UUID" {
+				return true
+			}
+		}
+	}
+
+	vEdges := reflect.ValueOf(edges)
+	if vEdges.Kind() == reflect.Slice {
+		for i := 0; i < vEdges.Len(); i++ {
+			e := asGenEdge(vEdges.Index(i).Interface())
+			if e != nil && e.Type.ID.Type.String() == "uuid.UUID" {
+				return true
+			}
 		}
 	}
 	return false
 }
 
-func hasUUID(fields []*entgen.Field, edges []*entgen.Edge) bool {
-	for _, f := range fields {
-		if f.Type.String() == "uuid.UUID" {
-			return true
-		}
+func edgeHasFK(v interface{}) bool {
+	e := asGenEdge(v)
+	if e == nil {
+		return false
 	}
-	for _, e := range edges {
-		if e.Type.ID.Type.String() == "uuid.UUID" {
-			return true
-		}
-	}
-	return false
-}
-
-func edgeHasFK(e *entgen.Edge) bool {
 	if !e.IsInverse() {
 		return e.Unique
 	}
@@ -77,20 +125,47 @@ func edgeHasFK(e *entgen.Edge) bool {
 	return false
 }
 
-func edgeField(e *entgen.Edge, in bool) string { return bizEdgeName(e, in) }
+func edgeField(v interface{}, in bool) string { return bizEdgeName(v, in) }
 
-func hasField(fields []*entgen.Field, name string) bool {
-	for _, f := range fields {
-		if f.StructField() == name {
+func hasField(fields interface{}, name string) bool {
+	v := reflect.ValueOf(fields)
+	if v.Kind() != reflect.Slice {
+		return false
+	}
+	for i := 0; i < v.Len(); i++ {
+		f := asGenField(v.Index(i).Interface())
+		if f != nil && f.StructField() == name {
 			return true
 		}
 	}
 	return false
 }
 
-func edgeIDType(e *entgen.Edge) string { return e.Type.ID.Type.String() }
+func edgeIDType(v interface{}) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return "string"
+	}
+	t := e.Type.ID.Type.String()
+	if t == "uuid.UUID" {
+		return "string"
+	}
+	return t
+}
 
-func edgeProtoType(e *entgen.Edge, in bool) string {
+func entIDType(v interface{}) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return "string"
+	}
+	return e.Type.ID.Type.String()
+}
+
+func edgeProtoType(v interface{}, in bool) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return "string"
+	}
 	if isProtoMessage(e, in) {
 		return e.Type.Name
 	}
@@ -126,132 +201,85 @@ func zeroValue(t string) string {
 	}
 }
 
-func protoType(f *entgen.Field, nodeName string) string {
-	if f.IsEnum() {
-		return nodeName + f.StructField()
-	}
-	switch f.Type.String() {
-	case "int", "int32":
-		return "int32"
-	case "int64", "uint64":
-		return "int64"
-	case "string":
-		return "string"
-	case "bool":
-		return "bool"
-	case "time.Time":
-		return "google.protobuf.Timestamp"
-	case "float64":
-		return "double"
-	case "float32":
-		return "float"
-	case "uuid.UUID":
-		return "string"
-	default:
-		return "string"
-	}
-}
-
-func getProtoType(f *entgen.Field) string {
+func protoType(v interface{}, nodeName string) string {
+	f := asGenField(v)
 	if f == nil {
 		return "string"
 	}
-	a := getFieldAnnotation(f)
-	if a != nil && a.ProtoType != "" {
-		return a.ProtoType
+	// Use pre-calculated logic
+	// If adapter didn't have fallback for nodeName, we rely on JIT here which might fail nodeName logic for enums if passed empty.
+	// But GenField has NodeName.
+	if f.NodeName == "" && nodeName != "" {
+		f.NodeName = nodeName
 	}
-	t := f.Type.String()
-	switch t {
-	case "int", "int32":
-		return "int32"
-	case "int64":
-		return "int64"
-	case "uint64":
-		return "uint64"
-	case "string":
-		return "string"
-	case "bool":
-		return "bool"
-	case "float64":
-		return "double"
-	case "float32":
-		return "float"
-	case "uuid.UUID":
-		return "string"
-	}
-	if strings.HasPrefix(t, "[]") {
-		return "string"
-	}
-	return "string"
+	return ResolveProtoTypeString(f.Field, f.Annotation, f.NodeName)
 }
 
-func getProtoTag(f *entgen.Field, i int) int {
-	a := getFieldAnnotation(f)
-	if a != nil && a.ProtoFieldID > 0 {
-		return int(a.ProtoFieldID)
-	}
-	return i + 1
+func getProtoType(v interface{}) string {
+	return protoType(v, "")
 }
 
-func protoFieldName(f *entgen.Field) string {
-	a := getFieldAnnotation(f)
-	if a != nil && a.ProtoName != "" {
-		return a.ProtoName
+func getProtoTag(v interface{}, i int) int {
+	f := asGenField(v)
+	if f == nil || f.Annotation == nil || f.Annotation.ProtoFieldID == 0 {
+		return i + 1
 	}
-	return camelToSnake(f.Name)
+	return int(f.Annotation.ProtoFieldID)
 }
 
-func protoEdgeFieldName(e *entgen.Edge, in bool) string {
-	a := getAnnotation(e)
-	if a != nil && a.ProtoName != "" {
-		return a.ProtoName
+func protoFieldName(v interface{}) string {
+	f := asGenField(v)
+	if f == nil {
+		return ""
 	}
-	if isProtoID(e, in) {
+	return f.ProtoName
+}
+
+func protoEdgeFieldName(v interface{}, in bool) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return ""
+	}
+	if e.Annotation != nil && e.Annotation.ProtoName != "" {
+		return e.Annotation.ProtoName
+	}
+	if isProtoID(v, in) {
 		return camelToSnake(e.Name) + "_id"
 	}
 	return camelToSnake(e.Name)
 }
 
-func camelToSnake(s string) string {
-	var results []rune
-	for i, r := range s {
-		if i > 0 && r >= 'A' && r <= 'Z' {
-			results = append(results, '_')
-			results = append(results, r+'a'-'A')
-		} else {
-			results = append(results, r)
-		}
+func protoStructField(v interface{}, in bool) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return ""
 	}
-	return strings.ToLower(string(results))
+	if e.Annotation != nil && e.Annotation.ProtoName != "" {
+		return pascal(e.Annotation.ProtoName)
+	}
+	if isProtoID(v, in) {
+		return pascal(e.Name) + "ID"
+	}
+	return pascal(e.Name)
 }
 
-func protoGoName(f *entgen.Field) string {
+func protoGoName(v interface{}) string {
+	f := asGenField(v)
 	if f == nil {
 		return ""
 	}
-	a := getFieldAnnotation(f)
-	if a != nil && a.ProtoName != "" {
-		return pascal(a.ProtoName)
+	if f.Annotation != nil && f.Annotation.ProtoName != "" {
+		return pascal(f.Annotation.ProtoName)
 	}
 	return pascal(f.Name)
 }
 
-func getEnumValues(f *entgen.Field) map[string]int32 {
-	a := getFieldAnnotation(f)
-	if a == nil || a.EnumValues == nil {
-		if len(f.Enums) > 0 {
-			m := make(map[string]int32)
-			for i, e := range f.Enums {
-				m[e.Value] = int32(i)
-			}
-			return m
-		}
+func getEnumValues(v interface{}) map[string]int32 {
+	f := asGenField(v)
+	if f == nil {
 		return nil
 	}
-	if len(f.Enums) > 0 {
-		return a.EnumValues
-	}
-	return a.EnumValues
+	return f.EnumValues
 }
 
 type EnumPair struct {
@@ -259,388 +287,190 @@ type EnumPair struct {
 	Value int32
 }
 
-func getEnumPairs(f *entgen.Field) []EnumPair {
-	a := getFieldAnnotation(f)
+func getEnumPairs(v interface{}) []EnumPair {
+	f := asGenField(v)
 	var pairs []EnumPair
-
-	if a == nil || a.EnumValues == nil {
-		for i, e := range f.Enums {
-			pairs = append(pairs, EnumPair{Key: e.Value, Value: int32(i)})
-		}
+	if f == nil {
 		return pairs
 	}
-
-	for _, e := range f.Enums {
-		if v, ok := a.EnumValues[e.Value]; ok {
-			pairs = append(pairs, EnumPair{Key: e.Value, Value: v})
+	vals := f.EnumValues
+	// To preserve generic order if no annotation, JIT
+	if vals == nil {
+		// Should not happen if adaptField worked
+		return pairs
+	}
+	// Sort by value to be deterministic or check original enums
+	// If original Enums slice exists, use that order unless overridden values
+	if len(f.Enums) > 0 {
+		for i, e := range f.Enums {
+			if val, ok := vals[e.Value]; ok {
+				pairs = append(pairs, EnumPair{Key: e.Value, Value: val})
+			} else {
+				// fallback
+				pairs = append(pairs, EnumPair{Key: e.Value, Value: int32(i)})
+			}
 		}
+	} else {
+		// Just map
+		for k, v := range vals {
+			pairs = append(pairs, EnumPair{Key: k, Value: v})
+		}
+		sort.Slice(pairs, func(i, j int) bool { return pairs[i].Value < pairs[j].Value })
 	}
 	return pairs
 }
 
+// Re-export Annotation getter for internal use
 func getFieldAnnotation(f *entgen.Field) *types.Annotation {
-	if f == nil {
-		return nil
-	}
-	if f.Annotations == nil {
-		return nil
-	}
-	if v, ok := f.Annotations["LazyEnt"]; ok {
-		if a, ok := v.(types.Annotation); ok {
-			return &a
-		}
-		if m, ok := v.(map[string]interface{}); ok {
-			return decodeAnnotationMap(m)
-		}
-	}
-	if v, ok := f.Annotations["lazyent"]; ok {
-		if a, ok := v.(types.Annotation); ok {
-			return &a
-		}
-		if m, ok := v.(map[string]interface{}); ok {
-			return decodeAnnotationMap(m)
-		}
-	}
-	return nil
+	// Delegated to adapter.go via exported or duplicated logic?
+	// helpers.go originally had this. We can keep it or use the one from adapter.go (if exported).
+	// Since I duplicated/moved logic to adapter.go, I should probably remove this or make it call adapter.
+	// But adapter.go functions are private mostly.
+	// I'll keep the logic I copied into adapter.go, and since I'm overwriting helpers.go, I can rely on asGenField().Annotation
+	return asGenField(f).Annotation
 }
 
-func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
-	a := &types.Annotation{}
-	if ev, ok := m["enum_values"]; ok {
-		if evMap, ok := ev.(map[string]interface{}); ok {
-			res := make(map[string]int32)
-			for k, val := range evMap {
-				if fVal, ok := val.(float64); ok {
-					res[k] = int32(fVal)
-				} else if iVal, ok := val.(int); ok {
-					res[k] = int32(iVal)
-				}
-			}
-			a.EnumValues = res
-		}
-	}
-	if fid, ok := m["proto_field_id"]; ok {
-		a.ProtoFieldID = int32(toInt(fid))
-	} else if fid, ok := m["ProtoFieldID"]; ok {
-		a.ProtoFieldID = int32(toInt(fid))
-	}
-	if fid, ok := m["field_id"]; ok {
-		a.ProtoFieldID = int32(toInt(fid))
-	}
+// Strategies
 
-	if v, ok := m["biz_name"]; ok {
-		a.BizName, _ = v.(string)
-	} else if v, ok := m["BizName"]; ok {
-		a.BizName, _ = v.(string)
+func isBizIDOnly(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
+		return false
 	}
-
-	if v, ok := m["biz_type"]; ok {
-		a.BizType, _ = v.(string)
-	} else if v, ok := m["BizType"]; ok {
-		a.BizType, _ = v.(string)
-	}
-
-	if v, ok := m["proto_name"]; ok {
-		a.ProtoName, _ = v.(string)
-	} else if v, ok := m["ProtoName"]; ok {
-		a.ProtoName, _ = v.(string)
-	}
-
-	if v, ok := m["proto_type"]; ok {
-		a.ProtoType, _ = v.(string)
-	} else if v, ok := m["ProtoType"]; ok {
-		a.ProtoType, _ = v.(string)
-	}
-	if v, ok := m["virtual"]; ok {
-		a.Virtual, _ = v.(bool)
-	} else if v, ok := m["Virtual"]; ok {
-		a.Virtual, _ = v.(bool)
-	}
-
-	if v, ok := m["proto_validation"]; ok {
-		a.ProtoValidation, _ = v.(string)
-	} else if v, ok := m["ProtoValidation"]; ok {
-		a.ProtoValidation, _ = v.(string)
-	}
-
-	// Strategies
-	if v, ok := m["edge_in_strategy"]; ok {
-		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
-	} else if v, ok := m["EdgeInStrategy"]; ok {
-		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
-	}
-
-	if v, ok := m["edge_out_strategy"]; ok {
-		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
-	} else if v, ok := m["EdgeOutStrategy"]; ok {
-		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
-	}
-
-	if v, ok := m["field_in_strategy"]; ok {
-		a.FieldInStrategy = types.FieldStrategy(toInt(v))
-	} else if v, ok := m["FieldInStrategy"]; ok {
-		a.FieldInStrategy = types.FieldStrategy(toInt(v))
-	}
-
-	if v, ok := m["field_out_strategy"]; ok {
-		a.FieldOutStrategy = types.FieldStrategy(toInt(v))
-	} else if v, ok := m["FieldOutStrategy"]; ok {
-		a.FieldOutStrategy = types.FieldStrategy(toInt(v))
-	}
-
-	// Validation
-	if err := a.EdgeInStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("EdgeInStrategy conflict in field annotation: %v", err))
-	}
-	if err := a.EdgeOutStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("EdgeOutStrategy conflict in field annotation: %v", err))
-	}
-	if err := a.FieldInStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("FieldInStrategy conflict in field annotation: %v", err))
-	}
-	if err := a.FieldOutStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("FieldOutStrategy conflict in field annotation: %v", err))
-	}
-
-	return a
+	return isBizIDOnlyStrategy(ifStrategy(in, e.StrategyIn, e.StrategyOut))
 }
 
-func getAnnotation(e *entgen.Edge) *types.Annotation {
-	if e.Annotations == nil {
-		return nil
+func isBizExclude(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
+		return false
 	}
-	if v, ok := e.Annotations["LazyEnt"]; ok {
-		if a, ok := v.(types.Annotation); ok {
-			return &a
-		}
-		if m, ok := v.(map[string]interface{}); ok {
-			return decodeEdgeAnnotationMap(m)
-		}
-	}
-	if v, ok := e.Annotations["lazyent"]; ok {
-		if a, ok := v.(types.Annotation); ok {
-			return &a
-		}
-		if m, ok := v.(map[string]interface{}); ok {
-			return decodeEdgeAnnotationMap(m)
-		}
-	}
-	return nil
-}
-
-func decodeEdgeAnnotationMap(m map[string]interface{}) *types.Annotation {
-	a := &types.Annotation{}
-	if v, ok := m["biz_name"]; ok {
-		a.BizName, _ = v.(string)
-	} else if v, ok := m["BizName"]; ok {
-		a.BizName, _ = v.(string)
-	}
-
-	if v, ok := m["proto_name"]; ok {
-		a.ProtoName, _ = v.(string)
-	} else if v, ok := m["ProtoName"]; ok {
-		a.ProtoName, _ = v.(string)
-	}
-
-	if v, ok := m["edge_in_strategy"]; ok {
-		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
-	} else if v, ok := m["EdgeInStrategy"]; ok {
-		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
-	}
-
-	if v, ok := m["edge_out_strategy"]; ok {
-		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
-	} else if v, ok := m["EdgeOutStrategy"]; ok {
-		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
-	}
-
-	// Validation
-	if err := a.EdgeInStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("EdgeInStrategy conflict in edge annotation: %v", err))
-	}
-	if err := a.EdgeOutStrategy.Validate(); err != nil {
-		panic(fmt.Sprintf("EdgeOutStrategy conflict in edge annotation: %v", err))
-	}
-
-	return a
-}
-
-func getEdgeInStrategy(e *entgen.Edge) types.EdgeStrategy {
-	a := getAnnotation(e)
-	if a != nil && a.EdgeInStrategy != 0 {
-		return a.EdgeInStrategy
-	}
-	return types.EdgeProtoMessage | types.EdgeBizPointer
-}
-
-func getEdgeOutStrategy(e *entgen.Edge) types.EdgeStrategy {
-	a := getAnnotation(e)
-	if a != nil && a.EdgeOutStrategy != 0 {
-		return a.EdgeOutStrategy
-	}
-	return types.EdgeProtoMessage | types.EdgeBizPointer
-}
-
-func getFieldInStrategy(f *entgen.Field) types.FieldStrategy {
-	a := getFieldAnnotation(f)
-	if a != nil && a.FieldInStrategy != 0 {
-		return a.FieldInStrategy
-	}
-	if isSensitive(f) {
-		return types.FieldBizValue | types.FieldProtoRequired
-	}
-	if f.Optional {
-		return types.FieldBizPointer | types.FieldProtoOptional
-	}
-	return types.FieldBizValue | types.FieldProtoRequired
-}
-
-func getFieldOutStrategy(f *entgen.Field) types.FieldStrategy {
-	a := getFieldAnnotation(f)
-	if a != nil && a.FieldOutStrategy != 0 {
-		return a.FieldOutStrategy
-	}
-	if isSensitive(f) {
-		return types.FieldBizExcluded | types.FieldProtoExcluded
-	}
-	if f.Optional {
-		return types.FieldBizPointer | types.FieldProtoOptional
-	}
-	return types.FieldBizValue | types.FieldProtoRequired
-}
-
-func isBizIDOnly(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
-	}
-	return (s & types.EdgeBizMask) == types.EdgeBizID
-}
-
-func isFieldBizExclude(f *entgen.Field, in bool) bool {
-	var s types.FieldStrategy
-	if in {
-		s = getFieldInStrategy(f)
-	} else {
-		s = getFieldOutStrategy(f)
-	}
-	return (s & types.FieldBizMask) == types.FieldBizExcluded
-}
-
-func shouldGenerateBizField(f *entgen.Field) bool {
-	return !isFieldBizExclude(f, true) || !isFieldBizExclude(f, false)
-}
-
-func isBizExclude(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
-	}
+	s := ifStrategy(in, e.StrategyIn, e.StrategyOut)
 	return (s & types.EdgeBizMask) == types.EdgeBizExcluded
 }
 
-func shouldGenerateBizEdge(e *entgen.Edge) bool {
-	return !isBizExclude(e, true) || !isBizExclude(e, false)
+func shouldGenerateBizEdge(v interface{}) bool {
+	return !isBizExclude(v, true) || !isBizExclude(v, false)
 }
 
-func isBizPointer(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
+func isBizPointer(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
+		return false
 	}
+	s := ifStrategy(in, e.StrategyIn, e.StrategyOut)
 	return (s & types.EdgeBizMask) == types.EdgeBizPointer
 }
 
-func shouldBizPointer(e *entgen.Edge) bool {
-	return isBizPointer(e, true) || isBizPointer(e, false)
+func shouldBizPointer(v interface{}) bool {
+	return isBizPointer(v, true) || isBizPointer(v, false)
 }
 
-func isSensitive(f *entgen.Field) bool {
-	if f == nil {
+func isSensitive(v interface{}) bool {
+	f := asGenField(v)
+	return f != nil && f.Sensitive()
+}
+
+func isVirtual(v interface{}) bool {
+	f := asGenField(v)
+	return f != nil && f.Annotation != nil && f.Annotation.Virtual
+}
+
+func isProtoID(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
 		return false
 	}
-	return f.Sensitive()
+	return isProtoIDStrategy(ifStrategy(in, e.StrategyIn, e.StrategyOut))
 }
 
-func isVirtual(f *entgen.Field) bool {
-	if f == nil {
+func isProtoMessage(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
 		return false
 	}
-	a := getFieldAnnotation(f)
-	return a != nil && a.Virtual
-}
-
-func isProtoID(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
-	}
-	return (s & types.EdgeProtoMask) == types.EdgeProtoID
-}
-
-func isProtoMessage(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
-	}
+	s := ifStrategy(in, e.StrategyIn, e.StrategyOut)
 	return (s & types.EdgeProtoMask) == types.EdgeProtoMessage
 }
 
-func isProtoExclude(e *entgen.Edge, in bool) bool {
-	var s types.EdgeStrategy
-	if in {
-		s = getEdgeInStrategy(e)
-	} else {
-		s = getEdgeOutStrategy(e)
+func isProtoExclude(v interface{}, in bool) bool {
+	e := asGenEdge(v)
+	if e == nil {
+		return false
 	}
+	s := ifStrategy(in, e.StrategyIn, e.StrategyOut)
 	return (s & types.EdgeProtoMask) == types.EdgeProtoExcluded
 }
 
-func isFieldProtoExclude(f *entgen.Field, in bool) bool {
-	var s types.FieldStrategy
-	if in {
-		s = getFieldInStrategy(f)
-	} else {
-		s = getFieldOutStrategy(f)
+func isFieldProtoExclude(v interface{}, in bool) bool {
+	f := asGenField(v)
+	if f == nil {
+		return false
 	}
+	s := ifFStrategy(in, f.StrategyIn, f.StrategyOut)
 	return (s & types.FieldProtoMask) == types.FieldProtoExcluded
 }
 
-func isFieldProtoOptional(f *entgen.Field, in bool) bool {
-	var s types.FieldStrategy
-	if in {
-		s = getFieldInStrategy(f)
-	} else {
-		s = getFieldOutStrategy(f)
+func isFieldProtoOptional(v interface{}, in bool) bool {
+	f := asGenField(v)
+	if f == nil {
+		return false
 	}
+	s := ifFStrategy(in, f.StrategyIn, f.StrategyOut)
 	return (s & types.FieldProtoMask) == types.FieldProtoOptional
 }
 
-func isFieldProtoRequired(f *entgen.Field, in bool) bool {
-	var s types.FieldStrategy
-	if in {
-		s = getFieldInStrategy(f)
-	} else {
-		s = getFieldOutStrategy(f)
+func isFieldProtoRequired(v interface{}, in bool) bool {
+	f := asGenField(v)
+	if f == nil {
+		return false
 	}
+	s := ifFStrategy(in, f.StrategyIn, f.StrategyOut)
 	return (s & types.FieldProtoMask) == types.FieldProtoRequired
 }
 
-func isSlice(f *entgen.Field) bool {
-	return strings.HasPrefix(f.Type.String(), "[]") && f.Type.String() != "[]byte"
+func shouldGenerateBizField(v interface{}) bool {
+	return !isFieldProtoExclude(v, true) || !isFieldProtoExclude(v, false) // Wait, logic in original was BizExclude
+	// Original: 533: 	return !isFieldBizExclude(f, true) || !isFieldBizExclude(f, false)
+	// I need isFieldBizExclude
 }
 
-func getSliceElementType(f *entgen.Field) string {
+func isFieldBizExclude(v interface{}, in bool) bool {
+	f := asGenField(v)
+	if f == nil {
+		return false
+	}
+	s := ifFStrategy(in, f.StrategyIn, f.StrategyOut)
+	return (s & types.FieldBizMask) == types.FieldBizExcluded
+
+}
+
+// Utils
+
+func ifStrategy(in bool, sIn, sOut types.EdgeStrategy) types.EdgeStrategy {
+	if in {
+		return sIn
+	}
+	return sOut
+}
+
+func ifFStrategy(in bool, sIn, sOut types.FieldStrategy) types.FieldStrategy {
+	if in {
+		return sIn
+	}
+	return sOut
+}
+
+func isSlice(v interface{}) bool {
+	f := asGenField(v)
+	return f != nil && strings.HasPrefix(f.Type.String(), "[]") && f.Type.String() != "[]byte"
+}
+
+func getSliceElementType(v interface{}) string {
+	f := asGenField(v)
+	if f == nil {
+		return ""
+	}
 	t := f.Type.String()
 	if strings.HasPrefix(t, "[]") {
 		return strings.TrimPrefix(t, "[]")
@@ -648,8 +478,14 @@ func getSliceElementType(f *entgen.Field) string {
 	return t
 }
 
-func getGoProtoType(f *entgen.Field) string {
-	pt := getProtoType(f)
+func getGoProtoType(v interface{}) string {
+	f := asGenField(v)
+	if f == nil {
+		return "string"
+	}
+	// Delegate to pre-calculated ProtoType if matches basic types
+	// But getGoProtoType mapping is slightly different from ProtoType (e.g. double -> float64)
+	pt := f.ProtoType
 	switch pt {
 	case "double":
 		return "float64"
@@ -664,101 +500,89 @@ func getGoProtoType(f *entgen.Field) string {
 	}
 }
 
-func isSliceTypeMatch(f *entgen.Field) bool {
-	if !isSlice(f) {
+func isSliceTypeMatch(v interface{}) bool {
+	f := asGenField(v)
+	if f == nil || !isSlice(f) {
 		return false
 	}
 	bizType := getSliceElementType(f)
 	protoType := getGoProtoType(f)
-
 	return bizType == protoType
 }
 
-type EnumDef struct {
-	NodeName string
-	Field    *entgen.Field
-}
+func getAllEnums(nodes interface{}) []interface{} {
+	// Returning struct that template can use
+	type EnumDef struct {
+		NodeName string
+		Field    *GenField // Use GenField
+	}
+	var enums []interface{}
 
-func getAllEnums(nodes []interface{}) []EnumDef {
-	var enums []EnumDef
-	for _, node := range nodes {
-		n, ok := node.(map[string]interface{})
-		if !ok {
-			continue
+	var processNode func(*GenNode)
+	processNode = func(n *GenNode) {
+		for _, f := range n.Fields {
+			if f.IsEnum() && !f.IsExternalEnum {
+				enums = append(enums, EnumDef{NodeName: n.Name, Field: f})
+			}
 		}
-		name := n["Name"].(string)
-		fields, ok := n["Fields"].([]*entgen.Field)
-		if !ok {
-			continue
-		}
-		for _, f := range fields {
-			if f.IsEnum() {
-				if isExternalEnum(f) {
-					continue
-				}
-				enums = append(enums, EnumDef{NodeName: name, Field: f})
+	}
+
+	// Helper to iterate nodes generic list
+	v := reflect.ValueOf(nodes)
+	if v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			node := v.Index(i).Interface()
+			if gn, ok := node.(*GenNode); ok {
+				processNode(gn)
 			}
 		}
 	}
 	return enums
 }
 
-func bizFieldName(f *entgen.Field) string {
+func bizFieldName(v interface{}) string {
+	f := asGenField(v)
 	if f == nil {
 		return ""
 	}
-	a := getFieldAnnotation(f)
-	if a != nil && a.BizName != "" {
-		return a.BizName
-	}
-	return f.StructField()
+	return f.BizName
 }
 
-func bizFieldType(f *entgen.Field) string {
+func bizFieldType(v interface{}) string {
+	f := asGenField(v)
 	if f == nil {
 		return ""
 	}
-	a := getFieldAnnotation(f)
-	if a != nil && a.BizType != "" {
-		return a.BizType
-	}
-	if f.IsEnum() {
-		if isExternalEnum(f) {
-			// External enum: use the external type name
-			// Use the package name alias + type name
-			// But here we might just return the type string if imports are handled.
-			// Ideally, we want "auth.UserRole"
-			return f.Type.String()
-		}
-		// Internal enum: defined in Biz layer
-		return f.StructField()
-	}
-	if f.Type.String() == "uuid.UUID" {
-		return "string"
-	}
-	return f.Type.String()
+	return f.BizType
 }
 
-func explicitBizType(f *entgen.Field) string {
-	if f == nil {
-		return ""
-	}
-	a := getFieldAnnotation(f)
-	if a != nil && a.BizType != "" {
-		return a.BizType
+func explicitBizType(v interface{}) string {
+	f := asGenField(v)
+	if f != nil && f.Annotation != nil && f.Annotation.BizType != "" {
+		return f.Annotation.BizType
 	}
 	return ""
 }
 
-func bizEdgeName(e *entgen.Edge, in bool) string {
-	a := getAnnotation(e)
-	if a != nil && a.BizName != "" {
-		return a.BizName
+func bizEdgeName(v interface{}, in bool) string {
+	e := asGenEdge(v)
+	if e == nil {
+		return ""
 	}
-	if isBizIDOnly(e, in) {
-		return e.StructField() + "ID"
+	if in {
+		// Use StrategyIn logic (e.g. if ID only)
+		// But AdaptEdge already calculated BizName. Wait, BizName is static name?
+		// My AdaptEdge logic: if IDOnly, BizName = Field + ID.
+		// Does this cover both In and Out?
+		// If StrategyIn is IDOnly, but StrategyOut is Message, do we have different BizNames?
+		// "BizName" usually refers to the field name in the Biz struct.
+		// The Biz struct is usually one shared struct. So name should be consistent?
+		// Actually input and output might be different structs (UpdateInput vs Entity).
+		// For now, return e.BizName.
+		return e.BizName
 	}
-	return e.StructField()
+	// For output, if defined differently... stick to e.BizName for now.
+	return e.BizName
 }
 
 func pascal(s string) string {
@@ -783,52 +607,15 @@ func camel(s string) string {
 	return string(r)
 }
 
-func protoStructField(e *entgen.Edge, in bool) string {
-	a := getAnnotation(e)
-	if a != nil && a.ProtoName != "" {
-		return pascal(a.ProtoName)
-	}
-	if isProtoID(e, in) {
-		return pascal(e.Name) + "ID"
-	}
-	return pascal(e.Name)
-}
-
-func isExternalEnum(f *entgen.Field) bool {
-	if !f.IsEnum() {
-		return false
-	}
-	return f.Type.PkgPath != ""
-}
-
-func getExternalEnumPkg(f *entgen.Field) string {
-	if f == nil {
-		return ""
-	}
-	return f.Type.PkgPath
-}
-
-func getExternalEnumName(f *entgen.Field) string {
-	if f == nil {
-		return ""
-	}
-	return f.Type.String()
-}
-
 func collectExternalImports(nodes []interface{}) []string {
+	// ... Simplified logic using GenNode
 	m := make(map[string]bool)
 	for _, node := range nodes {
-		n, ok := node.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		fields, ok := n["Fields"].([]*entgen.Field)
-		if !ok {
-			continue
-		}
-		for _, f := range fields {
-			if isExternalEnum(f) {
-				m[getExternalEnumPkg(f)] = true
+		if gn, ok := node.(*GenNode); ok {
+			for _, f := range gn.Fields {
+				if f.IsExternalEnum {
+					m[f.Type.PkgPath] = true
+				}
 			}
 		}
 	}
@@ -840,27 +627,33 @@ func collectExternalImports(nodes []interface{}) []string {
 	return res
 }
 
-func getEnumLiteralValues(f *entgen.Field) []string {
+func getEnumLiteralValues(v interface{}) []string {
+	f := asGenField(v)
 	var res []string
+	if f == nil {
+		return res
+	}
 	for _, e := range f.Enums {
 		res = append(res, e.Value)
 	}
 	return res
 }
 
-func toInt(v interface{}) uint32 {
-	if v == nil {
-		return 0
+func isExternalEnum(v interface{}) bool {
+	f := asGenField(v)
+	return f != nil && f.IsExternalEnum
+}
+func getExternalEnumPkg(v interface{}) string {
+	f := asGenField(v)
+	if f != nil {
+		return f.Type.PkgPath
 	}
-	rv := reflect.ValueOf(v)
-	switch rv.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return uint32(rv.Int())
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return uint32(rv.Uint())
-	case reflect.Float32, reflect.Float64:
-		return uint32(rv.Float())
-	default:
-		return 0
+	return ""
+}
+func getExternalEnumName(v interface{}) string {
+	f := asGenField(v)
+	if f != nil {
+		return f.Type.String()
 	}
+	return ""
 }

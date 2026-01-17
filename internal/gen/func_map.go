@@ -26,6 +26,7 @@ var funcMap = template.FuncMap{
 	"protoStructField":     protoStructField,
 	"protoGoName":          protoGoName,
 	"edgeIDType":           edgeIDType,
+	"entIDType":            entIDType,
 	"edgeProtoType":        edgeProtoType,
 	"edgeConvertToProto":   edgeConvertToProto,
 	"edgeConvertFromProto": edgeConvertFromProto,

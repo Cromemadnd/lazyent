@@ -31,7 +31,11 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
     {{- if not $e.Unique }}
     var {{ camel (protoStructField $e false) }} []{{ edgeProtoType $e false }}
     for _, item := range b.{{ bizEdgeName $e false }} {
+        {{- if isBizIDOnly $e false }}
         {{ camel (protoStructField $e false) }} = append({{ camel (protoStructField $e false) }}, item)
+        {{- else }}
+        {{ camel (protoStructField $e false) }} = append({{ camel (protoStructField $e false) }}, item.UUID)
+        {{- end }}
     }
     {{- end }}
 {{- end }}

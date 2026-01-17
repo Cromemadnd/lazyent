@@ -58,7 +58,7 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{- if isBizIDOnly $e false }}
 			{{ bizEdgeName $e false }}: func() {{ edgeIDType $e }} {
 				if e.Edges.{{ $e.StructField }} != nil {
-					{{- if eq (edgeIDType $e) "uuid.UUID" }}
+					{{- if eq (entIDType $e) "uuid.UUID" }}
 					return e.Edges.{{ $e.StructField }}.ID.String()
 					{{- else }}
 					return {{ edgeIDType $e }}(e.Edges.{{ $e.StructField }}.ID)
@@ -95,7 +95,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 	{{- if isBizIDOnly $e false }}
 	var {{ camel $e.StructField }} []*ent.{{ $e.Type.Name }}
 	for _, item := range b.{{ bizEdgeName $e false }} {
-		{{- if eq (edgeIDType $e) "uuid.UUID" }}
+		{{- if eq (entIDType $e) "uuid.UUID" }}
 		val, err := uuid.Parse(item)
 		if err != nil {
 			return nil, err

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
-	"github.com/google/uuid"
 )
 
 // GroupBase 是 Group 的基础结构体，包含自动生成的字段定义
@@ -30,7 +29,7 @@ type PostBase struct {
 	ExtraData        string
 	Author           *User
 	CoAuthors        []*User
-	RelevantGroupsID []uuid.UUID
+	RelevantGroupsID []string
 	Followers        []*User
 	CoAuthorsArchive []*User
 }
@@ -81,7 +80,7 @@ type UserBase struct {
 	TestTime         time.Time
 	LastLoginIP      string
 	VerificationCode string
-	PostIDs          []uuid.UUID
+	PostIDs          []string
 	Groups           []*Group
 	Followers        []*User
 	CoAuthorsArchive []*User

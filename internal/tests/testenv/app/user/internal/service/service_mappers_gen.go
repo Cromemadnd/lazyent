@@ -2,6 +2,8 @@
 package service
 
 import (
+	"time"
+
 	pb "github.com/Cromemadnd/lazyent/internal/tests/testenv/api/v1"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/biz"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
@@ -87,12 +89,12 @@ func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 
 	var followersID []string
 	for _, item := range b.Followers {
-		followersID = append(followersID, item)
+		followersID = append(followersID, item.UUID)
 	}
 
 	var coAuthorsArchiveID []string
 	for _, item := range b.CoAuthorsArchive {
-		coAuthorsArchiveID = append(coAuthorsArchiveID, item)
+		coAuthorsArchiveID = append(coAuthorsArchiveID, item.UUID)
 	}
 	author, err := BizUserToProto(b.Author)
 	if err != nil {
@@ -226,12 +228,12 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 
 	var followersID []string
 	for _, item := range b.Followers {
-		followersID = append(followersID, item)
+		followersID = append(followersID, item.UUID)
 	}
 
 	var coAuthorsArchiveTest []string
 	for _, item := range b.CoAuthorsArchive {
-		coAuthorsArchiveTest = append(coAuthorsArchiveTest, item)
+		coAuthorsArchiveTest = append(coAuthorsArchiveTest, item.UUID)
 	}
 	var groups []*pb.Group
 	for _, item := range b.Groups {
@@ -265,7 +267,7 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		Role:                 string(b.Role),
 		RemoteToken:          b.RemoteToken,
 		ExtUser:              b.ExtUser,
-		TestTime:             timestamppb.New(b.TestTime),
+		TestTime:             b.TestTime.UnixMilli(),
 		LastLoginIp:          b.LastLoginIP,
 		PostIds:              postIds,
 		FollowersID:          followersID,
@@ -325,7 +327,7 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			Role:             auth.UserRole(p.Role),
 			RemoteToken:      p.RemoteToken,
 			ExtUser:          p.ExtUser,
-			TestTime:         p.TestTime.AsTime(),
+			TestTime:         time.UnixMilli(int64(p.TestTime)),
 			LastLoginIP:      "",
 			PostIDs:          postIds,
 			Followers:        followers,
@@ -379,7 +381,7 @@ func ProtoUserInputToBiz(p *pb.UserInput) (*biz.User, error) {
 			Role:             auth.UserRole(p.Role),
 			RemoteToken:      p.RemoteToken,
 			ExtUser:          p.ExtUser,
-			TestTime:         p.TestTime.AsTime(),
+			TestTime:         time.UnixMilli(int64(p.TestTime)),
 			VerificationCode: p.VerificationCode,
 			PostIDs:          postIds,
 			Groups:           groups,

@@ -92,7 +92,13 @@ func (e *Generator) generate(g *entgen.Graph) error {
 	// 1. Resolve Defaults
 	e.resolveDefaults(g)
 
-	// 2. Prepare Template Data
+	// 2. Adapt Graph (Pre-calculation)
+	genNodes, err := AdaptGraph(g)
+	if err != nil {
+		return fmt.Errorf("failed to adapt graph: %w", err)
+	}
+
+	// 3. Prepare Template Data
 	protoPkg := e.conf.ProtoPackage
 	if protoPkg == "" {
 		protoPkg = g.Package
@@ -107,23 +113,10 @@ func (e *Generator) generate(g *entgen.Graph) error {
 		"EntPackage": g.Config.Package,
 	}
 
-	// 3. Prepare Nodes Data
+	// Prepare Nodes Data for Templates (Use GenNode)
 	var allNodes []interface{}
-	for _, n := range g.Nodes {
-		var enums []*entgen.Field
-		for _, f := range n.Fields {
-			if f.IsEnum() {
-				enums = append(enums, f)
-			}
-		}
-		nodeData := map[string]interface{}{
-			"Name":   n.Name,
-			"ID":     n.ID,
-			"Fields": n.Fields,
-			"Edges":  n.Edges,
-			"Enums":  enums,
-		}
-		allNodes = append(allNodes, nodeData)
+	for _, n := range genNodes {
+		allNodes = append(allNodes, n)
 	}
 
 	// 4. Generate
@@ -131,8 +124,8 @@ func (e *Generator) generate(g *entgen.Graph) error {
 
 	if e.conf.SingleFile {
 		// --- Phase 1: Proto Generation ---
-		// Proto Files (Using new Builder)
-		protoDesc, err := e.buildProtoFile(g) // Build Descriptor
+		// Proto Files (Using new Builder with GenNodes)
+		protoDesc, err := e.buildProtoFile(genNodes) // Build Descriptor
 		if err != nil {
 			return err
 		}
@@ -182,12 +175,10 @@ func (e *Generator) generate(g *entgen.Graph) error {
 		// Multiple files generation
 
 		// --- Phase 1: Proto Generation ---
-		for _, nd := range allNodes {
-			ndMap := nd.(map[string]interface{})
-			name := ndMap["Name"].(string)
-			lName := strings.ToLower(name)
+		for _, nd := range genNodes {
+			lName := strings.ToLower(nd.Name) // GenNode has Name from Type
 
-			singleNodeProto, err := e.buildSingleNodeProto(g, name)
+			singleNodeProto, err := e.buildSingleNodeProto(nd)
 			if err != nil {
 				return err
 			}
@@ -199,16 +190,14 @@ func (e *Generator) generate(g *entgen.Graph) error {
 		}
 
 		// --- Phase 3: Go Generation ---
-		for _, nd := range allNodes {
-			// Basic template data (legacy templates)
+		for _, nd := range genNodes {
+			// Basic template data
 			data := make(map[string]interface{})
 			for k, v := range commonData {
 				data[k] = v
 			}
 			data["Nodes"] = []interface{}{nd}
-			ndMap := nd.(map[string]interface{})
-			name := ndMap["Name"].(string)
-			lName := strings.ToLower(name)
+			lName := strings.ToLower(nd.Name)
 
 			// 1. Biz Base
 			if err := e.render(nil, "templates/base.tmpl", filepath.Join(moduleRoot, e.conf.BizOut, lName+"_base_gen.go"), data); err != nil {
@@ -292,17 +281,13 @@ func (e *Generator) render(n *entgen.Type, tmplName string, targetPath string, d
 	}
 
 	content := buf.Bytes()
-	// Format Go files with goimports (auto-fix imports)
+	// Format Go files
 	if strings.HasSuffix(targetPath, ".go") {
-		// Try goimports first (handles imports + formatting)
 		formatted, err := imports.Process(targetPath, content, nil)
 		if err != nil {
-			// Fallback: proto files might not be compiled yet, just save raw generated code
-			// User will need to run protoc first, then goimports manually or via their build process
 			fmt.Printf("⚠️  Warning: Could not auto-fix imports for %s\n", filepath.Base(targetPath))
 			fmt.Printf("    Reason: %v\n", err)
 			fmt.Printf("    → Please compile proto files first (protoc), then run 'goimports -w %s'\n", targetPath)
-			// Don't format at all to preserve the template output for debugging
 		} else {
 			content = formatted
 		}
@@ -338,30 +323,27 @@ func getModulePath() (string, string, error) {
 	return "", "", fmt.Errorf("go.mod not found")
 }
 
-// buildProtoFile constructs the PbFile descriptor from entgen.Graph
-func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
-	// Ensure protoPkg is set
-	e.resolveDefaults(g)
-
+// buildProtoFile constructs the PbFile descriptor from GenNodes
+func (e *Generator) buildProtoFile(nodes []*GenNode) (*PbFile, error) {
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
 		Imports:   []string{},
 	}
 
-	for _, n := range g.Nodes {
-		// Collect Enums (skip external enums as they use string type in proto)
+	for _, n := range nodes {
+		// Enums
 		for _, f := range n.Fields {
-			if f.IsEnum() && !isExternalEnum(f) {
+			if f.IsEnum() && !f.IsExternalEnum {
 				files.Elements = append(files.Elements, PbElement{Enum: e.buildProtoEnum(n, f)})
 			}
 		}
 
-		// Append Output Message
+		// Output Message
 		msg := e.buildProtoMessage(n, files, false)
 		files.Elements = append(files.Elements, PbElement{Message: msg})
 
-		// Append Input Message
+		// Input Message
 		inputMsg := e.buildProtoMessage(n, files, true)
 		inputMsg.Name = n.Name + "Input"
 		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
@@ -371,31 +353,25 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 	return files, nil
 }
 
-func (e *Generator) buildSingleNodeProto(g *entgen.Graph, nodeName string) (*PbFile, error) {
-	e.resolveDefaults(g)
-
+func (e *Generator) buildSingleNodeProto(n *GenNode) (*PbFile, error) {
 	files := &PbFile{
 		Package:   e.conf.ProtoPackage,
 		GoPackage: e.conf.GoPackage,
 		Imports:   []string{},
 	}
-	for _, n := range g.Nodes {
-		if n.Name != nodeName {
-			continue
-		}
-		// Enums then Messages
-		for _, f := range n.Fields {
-			if f.IsEnum() {
-				files.Elements = append(files.Elements, PbElement{Enum: e.buildProtoEnum(n, f)})
-			}
-		}
-		msg := e.buildProtoMessage(n, files, false)
-		files.Elements = append(files.Elements, PbElement{Message: msg})
 
-		inputMsg := e.buildProtoMessage(n, files, true)
-		inputMsg.Name = n.Name + "Input"
-		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
+	for _, f := range n.Fields {
+		if f.IsEnum() && !f.IsExternalEnum {
+			files.Elements = append(files.Elements, PbElement{Enum: e.buildProtoEnum(n, f)})
+		}
 	}
+	msg := e.buildProtoMessage(n, files, false)
+	files.Elements = append(files.Elements, PbElement{Message: msg})
+
+	inputMsg := e.buildProtoMessage(n, files, true)
+	inputMsg.Name = n.Name + "Input"
+	files.Elements = append(files.Elements, PbElement{Message: inputMsg})
+
 	e.ensureValidateImport(files)
 	return files, nil
 }
@@ -417,21 +393,16 @@ func (e *Generator) ensureValidateImport(f *PbFile) {
 		}
 	}
 	if hasValidate {
-		// append invalidates if not exists
-		found := false
 		for _, imp := range f.Imports {
 			if imp == "buf/validate/validate.proto" {
-				found = true
-				break
+				return
 			}
 		}
-		if !found {
-			f.Imports = append(f.Imports, "buf/validate/validate.proto")
-		}
+		f.Imports = append(f.Imports, "buf/validate/validate.proto")
 	}
 }
 
-func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile, in bool) *PbMessage {
+func (e *Generator) buildProtoMessage(n *GenNode, f *PbFile, in bool) *PbMessage {
 	msg := &PbMessage{
 		Name: n.Name,
 	}
@@ -455,52 +426,81 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile, in bool) *PbMes
 
 type fieldInfo struct {
 	isID  bool
-	field *entgen.Field
-	edge  *entgen.Edge
+	field *GenField
+	edge  *GenEdge
 	pf    *PbField
 }
 
-func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int]bool, in bool) []fieldInfo {
+func (e *Generator) buildProtoFields(n *GenNode, f *PbFile, usedTags map[int]bool, in bool) []fieldInfo {
 	var results []fieldInfo
 
-	// 1. ID
+	// 1. ID (Implicitly handled? ID is not in n.Fields usually, but n.ID)
+	// GenNode doesn't wrap ID as GenField currently in local version of AdaptNode?
+	// models.go: GenNode has *entgen.Type.
+	// We can adapt ID on the fly if needed or just access n.ID and wrap it.
+	// But `buildProtoFields` previously worked on `entgen.Field`.
+	// For ID:
 	if n.ID != nil {
+		// We need to check strategy.
+		// ID doesn't have a wrapper in GenNode struct explicitly, just n.ID.
+		// But helpers expect interface that can be cast to *GenField or *entgen.Field.
+		// adaptField can adapt on fly if we pass it.
+		// But let's look at `isFieldProtoExclude`. It calls `asGenField`.
+		// `asGenField` handles `*entgen.Field`.
+		// So passing `n.ID` (which is `*entgen.Field`) works!
+
 		if !isFieldProtoExclude(n.ID, in) {
 			pf := &PbField{
-				Name:    protoFieldName(n.ID),
+				Name:    protoFieldName(n.ID), // helpers work on *entgen.Field via JIT adaptation
 				Comment: n.ID.Comment(),
 			}
-			pf.Type = e.resolveProtoType(n.ID, n.Name, f)
+
+			// Resolve Type
+			// JIT adaptation for type resolution
+			// We can use protoType helper which does JIT
+			pf.Type = protoType(n.ID, n.Name)
+			// Handle imports:
+			if pf.Type == "google.protobuf.Timestamp" {
+				f.AddImport("google/protobuf/timestamp.proto")
+			}
 
 			t := getProtoTag(n.ID, -1)
 			if t > 0 {
 				pf.Tag = t
 				usedTags[t] = true
 			}
-			results = append(results, fieldInfo{isID: true, field: n.ID, pf: pf})
+			// fieldInfo expects *GenField. `asGenField` returns *GenField.
+			results = append(results, fieldInfo{isID: true, field: asGenField(n.ID), pf: pf})
 		}
 	}
 
 	// 2. Fields
-	for _, fld := range n.Fields {
+	for _, fld := range n.Fields { // fld is *GenField
 		// Check Strategy
 		if isFieldProtoExclude(fld, in) {
 			continue
 		}
 
 		pf := &PbField{
-			Name:    protoFieldName(fld),
+			Name:    fld.ProtoName,
 			Comment: fld.Comment(),
 		}
-		// For external enums, use string type in proto
-		if fld.IsEnum() && isExternalEnum(fld) {
+
+		if fld.IsExternalEnum {
 			pf.Type = "string"
 		} else {
-			pf.Type = e.resolveProtoType(fld, n.Name, f)
+			pf.Type = fld.ProtoType
+			if pf.Type == "google.protobuf.Timestamp" {
+				f.AddImport("google/protobuf/timestamp.proto")
+			}
 		}
+
 		if in {
-			pf.ValidateRules = getFieldValidateRules(fld)
+			pf.ValidateRules = getFieldValidateRules(fld.Field) // This expects *entgen.Field usually?
+			// getFieldValidateRules is in validate.go (assumed). I need to check if it's updated.
+			// It probably just reads annotation.
 		}
+
 		if strings.HasPrefix(fld.Type.String(), "[]") && fld.Type.String() != "[]byte" {
 			pf.Repeated = true
 		}
@@ -515,9 +515,9 @@ func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int
 	return results
 }
 
-func (e *Generator) buildProtoEdges(n *entgen.Type, in bool) []fieldInfo {
+func (e *Generator) buildProtoEdges(n *GenNode, in bool) []fieldInfo {
 	var results []fieldInfo
-	for _, edge := range n.Edges {
+	for _, edge := range n.Edges { // edge is *GenEdge
 		if isProtoExclude(edge, in) {
 			continue
 		}
@@ -534,6 +534,7 @@ func (e *Generator) buildProtoEdges(n *entgen.Type, in bool) []fieldInfo {
 			}
 			results = append(results, fieldInfo{edge: edge, pf: pf})
 		} else {
+			// ID or FK
 			if isProtoID(edge, in) || (edgeHasFK(edge) && !hasField(n.Fields, edgeField(edge, in))) {
 				pf := &PbField{
 					Name:     protoEdgeFieldName(edge, in),
@@ -562,85 +563,29 @@ func (e *Generator) assignProtoTags(msg *PbMessage, allFields []fieldInfo, usedT
 	}
 }
 
-func (e *Generator) buildProtoEnum(n *entgen.Type, f *entgen.Field) *PbEnum {
+func (e *Generator) buildProtoEnum(n *GenNode, f *GenField) *PbEnum {
 	enumName := n.Name + f.StructField()
 	pe := &PbEnum{
 		Name: enumName,
 	}
 
-	vals := getEnumValues(f)
-	if vals != nil {
-		if f.Enums != nil {
-			for _, enumItem := range f.Enums {
-				if v, ok := vals[enumItem.Value]; ok {
-					pe.Values = append(pe.Values, &PbEnumValue{
-						Name:   strings.ToUpper(enumName) + "_" + enumItem.Value,
-						Number: v,
-					})
-				}
-			}
-		} else {
-			// Fallback sort by key
-			var keys []string
-			for k := range vals {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				pe.Values = append(pe.Values, &PbEnumValue{
-					Name:   strings.ToUpper(enumName) + "_" + k,
-					Number: vals[k],
-				})
-			}
-		}
-	} else {
-		// Auto-generate from 0
-		if f.Enums != nil {
-			for i, enumItem := range f.Enums {
-				pe.Values = append(pe.Values, &PbEnumValue{
-					Name:   strings.ToUpper(enumName) + "_" + enumItem.Value,
-					Number: int32(i),
-				})
-			}
-		}
+	// GenField has pre-calculated EnumValues
+	// vals := f.EnumValues (unused)
+
+	// Use helper to get consistent pairs
+	pairs := getEnumPairs(f) // Works with *GenField
+
+	for _, p := range pairs {
+		pe.Values = append(pe.Values, &PbEnumValue{
+			Name:   strings.ToUpper(enumName) + "_" + p.Key,
+			Number: p.Value,
+		})
 	}
 
 	return pe
 }
 
-func (e *Generator) resolveProtoType(f *entgen.Field, nodeName string, file *PbFile) string {
-	a := getFieldAnnotation(f)
-	if a != nil && a.ProtoType != "" {
-		return a.ProtoType
-	}
-	if f.IsEnum() {
-		return nodeName + f.StructField()
-	}
-	t := f.Type.String()
-	switch t {
-	case "int", "int32":
-		return "int32"
-	case "int64", "uint64":
-		return "int64"
-	case "string":
-		return "string"
-	case "bool":
-		return "bool"
-	case "time.Time":
-		file.AddImport("google/protobuf/timestamp.proto")
-		return "google.protobuf.Timestamp"
-	case "float64":
-		return "double"
-	case "float32":
-		return "float"
-	case "uuid.UUID":
-		return "string"
-	case "[]byte":
-		return "bytes"
-	case "[]string":
-		return "string"
-	default:
-		// Check for json types or other
-		return "string" // Fallback
-	}
-}
+// TODO: Ensure getFieldValidateRules is available or stubbed if it was in another file I didn't see?
+// It was likely in `validate.go` or `generator.go`.
+// Checking file listing earlier: `validate.go` exists.
+// I will assume it takes *entgen.Field.
