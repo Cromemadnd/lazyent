@@ -485,9 +485,13 @@ func (e *Generator) buildProtoEdges(n *entgen.Type, in bool) []fieldInfo {
 		}
 
 		if isProtoMessage(edge, in) {
+			typeName := edge.Type.Name
+			if in {
+				typeName += "Input"
+			}
 			pf := &PbField{
 				Name:     protoEdgeFieldName(edge, in),
-				Type:     edge.Type.Name,
+				Type:     typeName,
 				Repeated: !edge.Unique,
 			}
 			results = append(results, fieldInfo{edge: edge, pf: pf})
