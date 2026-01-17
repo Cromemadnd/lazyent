@@ -28,6 +28,16 @@ type Post struct {
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
+	// Slug holds the value of the "slug" field.
+	Slug string `json:"slug,omitempty"`
+	// InternalCode holds the value of the "internal_code" field.
+	InternalCode string `json:"internal_code,omitempty"`
+	// ManagementKey holds the value of the "management_key" field.
+	ManagementKey string `json:"-"`
+	// Summary holds the value of the "summary" field.
+	Summary string `json:"summary,omitempty"`
+	// ExtraData holds the value of the "extra_data" field.
+	ExtraData string `json:"extra_data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PostQuery when eager-loading is set.
 	Edges        PostEdges `json:"edges"`
@@ -39,9 +49,17 @@ type Post struct {
 type PostEdges struct {
 	// Author holds the value of the author edge.
 	Author *User `json:"author,omitempty"`
+	// CoAuthors holds the value of the co_authors edge.
+	CoAuthors []*User `json:"co_authors,omitempty"`
+	// RelevantGroups holds the value of the relevant_groups edge.
+	RelevantGroups []*Group `json:"relevant_groups,omitempty"`
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// CoAuthorsArchive holds the value of the co_authors_archive edge.
+	CoAuthorsArchive []*User `json:"co_authors_archive,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [5]bool
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -55,12 +73,48 @@ func (e PostEdges) AuthorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "author"}
 }
 
+// CoAuthorsOrErr returns the CoAuthors value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) CoAuthorsOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.CoAuthors, nil
+	}
+	return nil, &NotLoadedError{edge: "co_authors"}
+}
+
+// RelevantGroupsOrErr returns the RelevantGroups value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) RelevantGroupsOrErr() ([]*Group, error) {
+	if e.loadedTypes[2] {
+		return e.RelevantGroups, nil
+	}
+	return nil, &NotLoadedError{edge: "relevant_groups"}
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// CoAuthorsArchiveOrErr returns the CoAuthorsArchive value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) CoAuthorsArchiveOrErr() ([]*User, error) {
+	if e.loadedTypes[4] {
+		return e.CoAuthorsArchive, nil
+	}
+	return nil, &NotLoadedError{edge: "co_authors_archive"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Post) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case post.FieldTitle, post.FieldContent:
+		case post.FieldTitle, post.FieldContent, post.FieldSlug, post.FieldInternalCode, post.FieldManagementKey, post.FieldSummary, post.FieldExtraData:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -113,6 +167,36 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Content = value.String
 			}
+		case post.FieldSlug:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field slug", values[i])
+			} else if value.Valid {
+				_m.Slug = value.String
+			}
+		case post.FieldInternalCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field internal_code", values[i])
+			} else if value.Valid {
+				_m.InternalCode = value.String
+			}
+		case post.FieldManagementKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field management_key", values[i])
+			} else if value.Valid {
+				_m.ManagementKey = value.String
+			}
+		case post.FieldSummary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field summary", values[i])
+			} else if value.Valid {
+				_m.Summary = value.String
+			}
+		case post.FieldExtraData:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field extra_data", values[i])
+			} else if value.Valid {
+				_m.ExtraData = value.String
+			}
 		case post.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field user_posts", values[i])
@@ -136,6 +220,26 @@ func (_m *Post) Value(name string) (ent.Value, error) {
 // QueryAuthor queries the "author" edge of the Post entity.
 func (_m *Post) QueryAuthor() *UserQuery {
 	return NewPostClient(_m.config).QueryAuthor(_m)
+}
+
+// QueryCoAuthors queries the "co_authors" edge of the Post entity.
+func (_m *Post) QueryCoAuthors() *UserQuery {
+	return NewPostClient(_m.config).QueryCoAuthors(_m)
+}
+
+// QueryRelevantGroups queries the "relevant_groups" edge of the Post entity.
+func (_m *Post) QueryRelevantGroups() *GroupQuery {
+	return NewPostClient(_m.config).QueryRelevantGroups(_m)
+}
+
+// QueryFollowers queries the "followers" edge of the Post entity.
+func (_m *Post) QueryFollowers() *UserQuery {
+	return NewPostClient(_m.config).QueryFollowers(_m)
+}
+
+// QueryCoAuthorsArchive queries the "co_authors_archive" edge of the Post entity.
+func (_m *Post) QueryCoAuthorsArchive() *UserQuery {
+	return NewPostClient(_m.config).QueryCoAuthorsArchive(_m)
 }
 
 // Update returns a builder for updating this Post.
@@ -172,6 +276,20 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(_m.Content)
+	builder.WriteString(", ")
+	builder.WriteString("slug=")
+	builder.WriteString(_m.Slug)
+	builder.WriteString(", ")
+	builder.WriteString("internal_code=")
+	builder.WriteString(_m.InternalCode)
+	builder.WriteString(", ")
+	builder.WriteString("management_key=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("summary=")
+	builder.WriteString(_m.Summary)
+	builder.WriteString(", ")
+	builder.WriteString("extra_data=")
+	builder.WriteString(_m.ExtraData)
 	builder.WriteByte(')')
 	return builder.String()
 }

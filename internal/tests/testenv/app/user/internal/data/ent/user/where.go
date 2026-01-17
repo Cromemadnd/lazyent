@@ -112,6 +112,21 @@ func RemoteToken(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldRemoteToken, v))
 }
 
+// LastLoginIP applies equality check predicate on the "last_login_ip" field. It's identical to LastLoginIPEQ.
+func LastLoginIP(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLastLoginIP, v))
+}
+
+// VerificationCode applies equality check predicate on the "verification_code" field. It's identical to VerificationCodeEQ.
+func VerificationCode(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldVerificationCode, v))
+}
+
+// InternalID applies equality check predicate on the "internal_id" field. It's identical to InternalIDEQ.
+func InternalID(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldInternalID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -712,6 +727,206 @@ func RemoteTokenContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldRemoteToken, v))
 }
 
+// LastLoginIPEQ applies the EQ predicate on the "last_login_ip" field.
+func LastLoginIPEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLastLoginIP, v))
+}
+
+// LastLoginIPNEQ applies the NEQ predicate on the "last_login_ip" field.
+func LastLoginIPNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLastLoginIP, v))
+}
+
+// LastLoginIPIn applies the In predicate on the "last_login_ip" field.
+func LastLoginIPIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldLastLoginIP, vs...))
+}
+
+// LastLoginIPNotIn applies the NotIn predicate on the "last_login_ip" field.
+func LastLoginIPNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldLastLoginIP, vs...))
+}
+
+// LastLoginIPGT applies the GT predicate on the "last_login_ip" field.
+func LastLoginIPGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldLastLoginIP, v))
+}
+
+// LastLoginIPGTE applies the GTE predicate on the "last_login_ip" field.
+func LastLoginIPGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldLastLoginIP, v))
+}
+
+// LastLoginIPLT applies the LT predicate on the "last_login_ip" field.
+func LastLoginIPLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldLastLoginIP, v))
+}
+
+// LastLoginIPLTE applies the LTE predicate on the "last_login_ip" field.
+func LastLoginIPLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldLastLoginIP, v))
+}
+
+// LastLoginIPContains applies the Contains predicate on the "last_login_ip" field.
+func LastLoginIPContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldLastLoginIP, v))
+}
+
+// LastLoginIPHasPrefix applies the HasPrefix predicate on the "last_login_ip" field.
+func LastLoginIPHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldLastLoginIP, v))
+}
+
+// LastLoginIPHasSuffix applies the HasSuffix predicate on the "last_login_ip" field.
+func LastLoginIPHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldLastLoginIP, v))
+}
+
+// LastLoginIPIsNil applies the IsNil predicate on the "last_login_ip" field.
+func LastLoginIPIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldLastLoginIP))
+}
+
+// LastLoginIPNotNil applies the NotNil predicate on the "last_login_ip" field.
+func LastLoginIPNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldLastLoginIP))
+}
+
+// LastLoginIPEqualFold applies the EqualFold predicate on the "last_login_ip" field.
+func LastLoginIPEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldLastLoginIP, v))
+}
+
+// LastLoginIPContainsFold applies the ContainsFold predicate on the "last_login_ip" field.
+func LastLoginIPContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldLastLoginIP, v))
+}
+
+// VerificationCodeEQ applies the EQ predicate on the "verification_code" field.
+func VerificationCodeEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldVerificationCode, v))
+}
+
+// VerificationCodeNEQ applies the NEQ predicate on the "verification_code" field.
+func VerificationCodeNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldVerificationCode, v))
+}
+
+// VerificationCodeIn applies the In predicate on the "verification_code" field.
+func VerificationCodeIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldVerificationCode, vs...))
+}
+
+// VerificationCodeNotIn applies the NotIn predicate on the "verification_code" field.
+func VerificationCodeNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldVerificationCode, vs...))
+}
+
+// VerificationCodeGT applies the GT predicate on the "verification_code" field.
+func VerificationCodeGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldVerificationCode, v))
+}
+
+// VerificationCodeGTE applies the GTE predicate on the "verification_code" field.
+func VerificationCodeGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldVerificationCode, v))
+}
+
+// VerificationCodeLT applies the LT predicate on the "verification_code" field.
+func VerificationCodeLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldVerificationCode, v))
+}
+
+// VerificationCodeLTE applies the LTE predicate on the "verification_code" field.
+func VerificationCodeLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldVerificationCode, v))
+}
+
+// VerificationCodeContains applies the Contains predicate on the "verification_code" field.
+func VerificationCodeContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldVerificationCode, v))
+}
+
+// VerificationCodeHasPrefix applies the HasPrefix predicate on the "verification_code" field.
+func VerificationCodeHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldVerificationCode, v))
+}
+
+// VerificationCodeHasSuffix applies the HasSuffix predicate on the "verification_code" field.
+func VerificationCodeHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldVerificationCode, v))
+}
+
+// VerificationCodeIsNil applies the IsNil predicate on the "verification_code" field.
+func VerificationCodeIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldVerificationCode))
+}
+
+// VerificationCodeNotNil applies the NotNil predicate on the "verification_code" field.
+func VerificationCodeNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldVerificationCode))
+}
+
+// VerificationCodeEqualFold applies the EqualFold predicate on the "verification_code" field.
+func VerificationCodeEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldVerificationCode, v))
+}
+
+// VerificationCodeContainsFold applies the ContainsFold predicate on the "verification_code" field.
+func VerificationCodeContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldVerificationCode, v))
+}
+
+// InternalIDEQ applies the EQ predicate on the "internal_id" field.
+func InternalIDEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldInternalID, v))
+}
+
+// InternalIDNEQ applies the NEQ predicate on the "internal_id" field.
+func InternalIDNEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldInternalID, v))
+}
+
+// InternalIDIn applies the In predicate on the "internal_id" field.
+func InternalIDIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldIn(FieldInternalID, vs...))
+}
+
+// InternalIDNotIn applies the NotIn predicate on the "internal_id" field.
+func InternalIDNotIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldInternalID, vs...))
+}
+
+// InternalIDGT applies the GT predicate on the "internal_id" field.
+func InternalIDGT(v int64) predicate.User {
+	return predicate.User(sql.FieldGT(FieldInternalID, v))
+}
+
+// InternalIDGTE applies the GTE predicate on the "internal_id" field.
+func InternalIDGTE(v int64) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldInternalID, v))
+}
+
+// InternalIDLT applies the LT predicate on the "internal_id" field.
+func InternalIDLT(v int64) predicate.User {
+	return predicate.User(sql.FieldLT(FieldInternalID, v))
+}
+
+// InternalIDLTE applies the LTE predicate on the "internal_id" field.
+func InternalIDLTE(v int64) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldInternalID, v))
+}
+
+// InternalIDIsNil applies the IsNil predicate on the "internal_id" field.
+func InternalIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInternalID))
+}
+
+// InternalIDNotNil applies the NotNil predicate on the "internal_id" field.
+func InternalIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInternalID))
+}
+
 // HasPosts applies the HasEdge predicate on the "posts" edge.
 func HasPosts() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -750,6 +965,52 @@ func HasGroups() predicate.User {
 func HasGroupsWith(preds ...predicate.Group) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newGroupsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFollowers applies the HasEdge predicate on the "followers" edge.
+func HasFollowers() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, FollowersTable, FollowersPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFollowersWith applies the HasEdge predicate on the "followers" edge with a given conditions (other predicates).
+func HasFollowersWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFollowersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCoAuthorsArchive applies the HasEdge predicate on the "co_authors_archive" edge.
+func HasCoAuthorsArchive() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, CoAuthorsArchiveTable, CoAuthorsArchivePrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCoAuthorsArchiveWith applies the HasEdge predicate on the "co_authors_archive" edge with a given conditions (other predicates).
+func HasCoAuthorsArchiveWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCoAuthorsArchiveStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -27,6 +27,7 @@ type GroupQuery struct {
 	predicates []predicate.Group
 	withUsers  *UserQuery
 	withAdmins *UserQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -406,12 +407,16 @@ func (_q *GroupQuery) prepareQuery(ctx context.Context) error {
 func (_q *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group, error) {
 	var (
 		nodes       = []*Group{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
 			_q.withUsers != nil,
 			_q.withAdmins != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, group.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Group).scanValues(nil, columns)
 	}

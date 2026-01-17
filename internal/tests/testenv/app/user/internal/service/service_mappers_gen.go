@@ -52,18 +52,74 @@ func ProtoGroupToBiz(p *pb.Group) (*biz.Group, error) {
 	}, nil
 }
 
+func ProtoGroupInputToBiz(p *pb.GroupInput) (*biz.Group, error) {
+	if p == nil {
+		return nil, nil
+	}
+	var users []*biz.User
+	for _, item := range p.Users {
+		v, err := ProtoUserInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, v)
+	}
+	return &biz.Group{
+		GroupBase: biz.GroupBase{
+			UUID:      p.Uuid,
+			CreatedAt: p.CreatedAt.AsTime(),
+			UpdatedAt: p.UpdatedAt.AsTime(),
+			Name:      p.Name,
+			Users:     users,
+		},
+	}, nil
+}
+
 func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 	if b == nil {
 		return nil, nil
 	}
 
+	var relevantGroupsID []string
+	for _, item := range b.RelevantGroupsID {
+		relevantGroupsID = append(relevantGroupsID, item)
+	}
+
+	var followersID []string
+	for _, item := range b.Followers {
+		followersID = append(followersID, item)
+	}
+
+	var coAuthorsArchiveID []string
+	for _, item := range b.CoAuthorsArchive {
+		coAuthorsArchiveID = append(coAuthorsArchiveID, item)
+	}
+	author, err := BizUserToProto(b.Author)
+	if err != nil {
+		return nil, err
+	}
+	var co_authors []*pb.User
+	for _, item := range b.CoAuthors {
+		v, err := BizUserToProto(item)
+		if err != nil {
+			return nil, err
+		}
+		co_authors = append(co_authors, v)
+	}
 	return &pb.Post{
-		Uuid:      b.UUID,
-		CreatedAt: timestamppb.New(b.CreatedAt),
-		UpdatedAt: timestamppb.New(b.UpdatedAt),
-		Title:     b.Title,
-		Content:   b.Content,
-		Author:    b.Author.UUID,
+		Uuid:               b.UUID,
+		CreatedAt:          timestamppb.New(b.CreatedAt),
+		UpdatedAt:          timestamppb.New(b.UpdatedAt),
+		Title:              b.Title,
+		Content:            b.Content,
+		Slug:               b.Slug,
+		Summary:            b.Summary,
+		ExtraData:          b.ExtraData,
+		RelevantGroupsID:   relevantGroupsID,
+		FollowersID:        followersID,
+		CoAuthorsArchiveID: coAuthorsArchiveID,
+		Author:             author,
+		CoAuthors:          co_authors,
 	}, nil
 }
 
@@ -71,14 +127,89 @@ func ProtoPostToBiz(p *pb.Post) (*biz.Post, error) {
 	if p == nil {
 		return nil, nil
 	}
+
+	var relevantGroupsID []string
+	for _, item := range p.RelevantGroupsID {
+		relevantGroupsID = append(relevantGroupsID, item)
+	}
+	var followers []*biz.User
+	for _, item := range p.FollowersID {
+		followers = append(followers, &biz.User{UserBase: biz.UserBase{UUID: item}})
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range p.CoAuthorsArchiveID {
+		coAuthorsArchive = append(coAuthorsArchive, &biz.User{UserBase: biz.UserBase{UUID: item}})
+	}
+	author, err := ProtoUserToBiz(p.Author)
+	if err != nil {
+		return nil, err
+	}
+	var coAuthors []*biz.User
+	for _, item := range p.CoAuthors {
+		v, err := ProtoUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthors = append(coAuthors, v)
+	}
 	return &biz.Post{
 		PostBase: biz.PostBase{
-			UUID:      p.Uuid,
-			CreatedAt: p.CreatedAt.AsTime(),
-			UpdatedAt: p.UpdatedAt.AsTime(),
-			Title:     p.Title,
-			Content:   p.Content,
-			Author:    &biz.User{UserBase: biz.UserBase{UUID: p.Author}},
+			UUID:             p.Uuid,
+			CreatedAt:        p.CreatedAt.AsTime(),
+			UpdatedAt:        p.UpdatedAt.AsTime(),
+			Title:            p.Title,
+			Content:          p.Content,
+			Slug:             p.Slug,
+			Summary:          "",
+			ExtraData:        p.ExtraData,
+			RelevantGroupsID: relevantGroupsID,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
+			Author:           author,
+			CoAuthors:        coAuthors,
+		},
+	}, nil
+}
+
+func ProtoPostInputToBiz(p *pb.PostInput) (*biz.Post, error) {
+	if p == nil {
+		return nil, nil
+	}
+	var coAuthors []*biz.User
+	for _, item := range p.CoAuthorsID {
+		coAuthors = append(coAuthors, &biz.User{UserBase: biz.UserBase{UUID: item}})
+	}
+
+	var relevantGroupsID []string
+	for _, item := range p.RelevantGroupsID {
+		relevantGroupsID = append(relevantGroupsID, item)
+	}
+	author, err := ProtoUserInputToBiz(p.Author)
+	if err != nil {
+		return nil, err
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range p.CoAuthorsArchive {
+		v, err := ProtoUserInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
+	}
+	return &biz.Post{
+		PostBase: biz.PostBase{
+			UUID:             p.Uuid,
+			CreatedAt:        p.CreatedAt.AsTime(),
+			UpdatedAt:        p.UpdatedAt.AsTime(),
+			Title:            p.Title,
+			Content:          p.Content,
+			Slug:             p.Slug,
+			ManagementKey:    p.ManagementKey,
+			ExtraData:        p.ExtraData,
+			CoAuthors:        coAuthors,
+			RelevantGroupsID: relevantGroupsID,
+			Author:           author,
+			CoAuthorsArchive: coAuthorsArchive,
 		},
 	}, nil
 }
@@ -92,6 +223,16 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 	for _, item := range b.PostIDs {
 		postIds = append(postIds, item)
 	}
+
+	var followersID []string
+	for _, item := range b.Followers {
+		followersID = append(followersID, item)
+	}
+
+	var coAuthorsArchiveID []string
+	for _, item := range b.CoAuthorsArchive {
+		coAuthorsArchiveID = append(coAuthorsArchiveID, item)
+	}
 	var groups []*pb.Group
 	for _, item := range b.Groups {
 		v, err := BizGroupToProto(item)
@@ -100,24 +241,36 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		}
 		groups = append(groups, v)
 	}
+	var friends []*pb.User
+	for _, item := range b.Friends {
+		v, err := BizUserToProto(item)
+		if err != nil {
+			return nil, err
+		}
+		friends = append(friends, v)
+	}
 	return &pb.User{
-		Uuid:             b.UUID,
-		CreatedAt:        timestamppb.New(b.CreatedAt),
-		UpdatedAt:        timestamppb.New(b.UpdatedAt),
-		Name:             b.Name,
-		Age:              int32(b.Age),
-		Nickname:         b.Nickname,
-		UserScore:        uint32(b.UserScore),
-		IsVerified:       b.IsVerified,
-		Tags:             b.Tags,
-		TestUuid:         b.TestUUID,
-		TestNillableUuid: b.TestNillableUUID,
-		Status:           BizUserStatusToProto(b.Status),
-		Role:             string(b.Role),
-		RemoteToken:      b.RemoteToken,
-		ExtUser:          b.ExtUser,
-		PostIds:          postIds,
-		Groups:           groups,
+		Uuid:               b.UUID,
+		CreatedAt:          timestamppb.New(b.CreatedAt),
+		UpdatedAt:          timestamppb.New(b.UpdatedAt),
+		Name:               b.Name,
+		Age:                int32(b.Age),
+		Nickname:           b.Nickname,
+		UserScore:          uint32(b.UserScore),
+		IsVerified:         b.IsVerified,
+		Tags:               b.Tags,
+		TestUuid:           b.TestUUID,
+		TestNillableUuid:   b.TestNillableUUID,
+		Status:             BizUserStatusToProto(b.Status),
+		Role:               string(b.Role),
+		RemoteToken:        b.RemoteToken,
+		ExtUser:            b.ExtUser,
+		LastLoginIp:        b.LastLoginIP,
+		PostIds:            postIds,
+		FollowersID:        followersID,
+		CoAuthorsArchiveID: coAuthorsArchiveID,
+		Groups:             groups,
+		Friends:            friends,
 	}, nil
 }
 
@@ -130,6 +283,14 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 	for _, item := range p.PostIds {
 		postIds = append(postIds, item)
 	}
+	var followers []*biz.User
+	for _, item := range p.FollowersID {
+		followers = append(followers, &biz.User{UserBase: biz.UserBase{UUID: item}})
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range p.CoAuthorsArchiveID {
+		coAuthorsArchive = append(coAuthorsArchive, &biz.User{UserBase: biz.UserBase{UUID: item}})
+	}
 	var groups []*biz.Group
 	for _, item := range p.Groups {
 		v, err := ProtoGroupToBiz(item)
@@ -137,6 +298,14 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			return nil, err
 		}
 		groups = append(groups, v)
+	}
+	var friends []*biz.User
+	for _, item := range p.Friends {
+		v, err := ProtoUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		friends = append(friends, v)
 	}
 	return &biz.User{
 		UserBase: biz.UserBase{
@@ -155,8 +324,63 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 			Role:             auth.UserRole(p.Role),
 			RemoteToken:      p.RemoteToken,
 			ExtUser:          p.ExtUser,
+			LastLoginIP:      "",
+			PostIDs:          postIds,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
+			Groups:           groups,
+			Friends:          friends,
+		},
+	}, nil
+}
+
+func ProtoUserInputToBiz(p *pb.UserInput) (*biz.User, error) {
+	if p == nil {
+		return nil, nil
+	}
+
+	var postIds []string
+	for _, item := range p.PostIds {
+		postIds = append(postIds, item)
+	}
+	var groups []*biz.Group
+	for _, item := range p.Groups {
+		v, err := ProtoGroupInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, v)
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range p.CoAuthorsArchive {
+		v, err := ProtoUserInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
+	}
+	return &biz.User{
+		UserBase: biz.UserBase{
+			UUID:             p.Uuid,
+			CreatedAt:        p.CreatedAt.AsTime(),
+			UpdatedAt:        p.UpdatedAt.AsTime(),
+			Name:             p.Name,
+			Age:              int(p.Age),
+			Nickname:         p.Nickname,
+			UserScore:        uint8(p.UserScore),
+			IsVerified:       p.IsVerified,
+			Tags:             p.Tags,
+			Password:         p.Password,
+			TestUUID:         p.TestUuid,
+			TestNillableUUID: p.TestNillableUuid,
+			Status:           ProtoUserStatusToBiz(p.Status),
+			Role:             auth.UserRole(p.Role),
+			RemoteToken:      p.RemoteToken,
+			ExtUser:          p.ExtUser,
+			VerificationCode: p.VerificationCode,
 			PostIDs:          postIds,
 			Groups:           groups,
+			CoAuthorsArchive: coAuthorsArchive,
 		},
 	}, nil
 }

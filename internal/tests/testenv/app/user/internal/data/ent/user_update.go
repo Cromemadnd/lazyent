@@ -249,6 +249,73 @@ func (_u *UserUpdate) SetExtUser(v any) *UserUpdate {
 	return _u
 }
 
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_u *UserUpdate) SetLastLoginIP(v string) *UserUpdate {
+	_u.mutation.SetLastLoginIP(v)
+	return _u
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLastLoginIP(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetLastLoginIP(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (_u *UserUpdate) ClearLastLoginIP() *UserUpdate {
+	_u.mutation.ClearLastLoginIP()
+	return _u
+}
+
+// SetVerificationCode sets the "verification_code" field.
+func (_u *UserUpdate) SetVerificationCode(v string) *UserUpdate {
+	_u.mutation.SetVerificationCode(v)
+	return _u
+}
+
+// SetNillableVerificationCode sets the "verification_code" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableVerificationCode(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetVerificationCode(*v)
+	}
+	return _u
+}
+
+// ClearVerificationCode clears the value of the "verification_code" field.
+func (_u *UserUpdate) ClearVerificationCode() *UserUpdate {
+	_u.mutation.ClearVerificationCode()
+	return _u
+}
+
+// SetInternalID sets the "internal_id" field.
+func (_u *UserUpdate) SetInternalID(v int64) *UserUpdate {
+	_u.mutation.ResetInternalID()
+	_u.mutation.SetInternalID(v)
+	return _u
+}
+
+// SetNillableInternalID sets the "internal_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableInternalID(v *int64) *UserUpdate {
+	if v != nil {
+		_u.SetInternalID(*v)
+	}
+	return _u
+}
+
+// AddInternalID adds value to the "internal_id" field.
+func (_u *UserUpdate) AddInternalID(v int64) *UserUpdate {
+	_u.mutation.AddInternalID(v)
+	return _u
+}
+
+// ClearInternalID clears the value of the "internal_id" field.
+func (_u *UserUpdate) ClearInternalID() *UserUpdate {
+	_u.mutation.ClearInternalID()
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *UserUpdate) AddPostIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddPostIDs(ids...)
@@ -277,6 +344,36 @@ func (_u *UserUpdate) AddGroups(v ...*Group) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_u *UserUpdate) AddFollowerIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddFollowerIDs(ids...)
+	return _u
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_u *UserUpdate) AddFollowers(v ...*User) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_u *UserUpdate) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_u *UserUpdate) AddCoAuthorsArchive(v ...*User) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorsArchiveIDs(ids...)
 }
 
 // AddFriendIDs adds the "friends" edge to the User entity by IDs.
@@ -339,6 +436,48 @@ func (_u *UserUpdate) RemoveGroups(v ...*Group) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveGroupIDs(ids...)
+}
+
+// ClearFollowers clears all "followers" edges to the User entity.
+func (_u *UserUpdate) ClearFollowers() *UserUpdate {
+	_u.mutation.ClearFollowers()
+	return _u
+}
+
+// RemoveFollowerIDs removes the "followers" edge to User entities by IDs.
+func (_u *UserUpdate) RemoveFollowerIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveFollowerIDs(ids...)
+	return _u
+}
+
+// RemoveFollowers removes "followers" edges to User entities.
+func (_u *UserUpdate) RemoveFollowers(v ...*User) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFollowerIDs(ids...)
+}
+
+// ClearCoAuthorsArchive clears all "co_authors_archive" edges to the User entity.
+func (_u *UserUpdate) ClearCoAuthorsArchive() *UserUpdate {
+	_u.mutation.ClearCoAuthorsArchive()
+	return _u
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to User entities by IDs.
+func (_u *UserUpdate) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthorsArchive removes "co_authors_archive" edges to User entities.
+func (_u *UserUpdate) RemoveCoAuthorsArchive(v ...*User) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorsArchiveIDs(ids...)
 }
 
 // ClearFriends clears all "friends" edges to the User entity.
@@ -500,6 +639,27 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ExtUser(); ok {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 	}
+	if value, ok := _u.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginIPCleared() {
+		_spec.ClearField(user.FieldLastLoginIP, field.TypeString)
+	}
+	if value, ok := _u.mutation.VerificationCode(); ok {
+		_spec.SetField(user.FieldVerificationCode, field.TypeString, value)
+	}
+	if _u.mutation.VerificationCodeCleared() {
+		_spec.ClearField(user.FieldVerificationCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.InternalID(); ok {
+		_spec.SetField(user.FieldInternalID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedInternalID(); ok {
+		_spec.AddField(user.FieldInternalID, field.TypeInt64, value)
+	}
+	if _u.mutation.InternalIDCleared() {
+		_spec.ClearField(user.FieldInternalID, field.TypeInt64)
+	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -583,6 +743,96 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !_u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsArchiveIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -871,6 +1121,73 @@ func (_u *UserUpdateOne) SetExtUser(v any) *UserUpdateOne {
 	return _u
 }
 
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_u *UserUpdateOne) SetLastLoginIP(v string) *UserUpdateOne {
+	_u.mutation.SetLastLoginIP(v)
+	return _u
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLastLoginIP(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetLastLoginIP(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (_u *UserUpdateOne) ClearLastLoginIP() *UserUpdateOne {
+	_u.mutation.ClearLastLoginIP()
+	return _u
+}
+
+// SetVerificationCode sets the "verification_code" field.
+func (_u *UserUpdateOne) SetVerificationCode(v string) *UserUpdateOne {
+	_u.mutation.SetVerificationCode(v)
+	return _u
+}
+
+// SetNillableVerificationCode sets the "verification_code" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableVerificationCode(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetVerificationCode(*v)
+	}
+	return _u
+}
+
+// ClearVerificationCode clears the value of the "verification_code" field.
+func (_u *UserUpdateOne) ClearVerificationCode() *UserUpdateOne {
+	_u.mutation.ClearVerificationCode()
+	return _u
+}
+
+// SetInternalID sets the "internal_id" field.
+func (_u *UserUpdateOne) SetInternalID(v int64) *UserUpdateOne {
+	_u.mutation.ResetInternalID()
+	_u.mutation.SetInternalID(v)
+	return _u
+}
+
+// SetNillableInternalID sets the "internal_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableInternalID(v *int64) *UserUpdateOne {
+	if v != nil {
+		_u.SetInternalID(*v)
+	}
+	return _u
+}
+
+// AddInternalID adds value to the "internal_id" field.
+func (_u *UserUpdateOne) AddInternalID(v int64) *UserUpdateOne {
+	_u.mutation.AddInternalID(v)
+	return _u
+}
+
+// ClearInternalID clears the value of the "internal_id" field.
+func (_u *UserUpdateOne) ClearInternalID() *UserUpdateOne {
+	_u.mutation.ClearInternalID()
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *UserUpdateOne) AddPostIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddPostIDs(ids...)
@@ -899,6 +1216,36 @@ func (_u *UserUpdateOne) AddGroups(v ...*Group) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_u *UserUpdateOne) AddFollowerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddFollowerIDs(ids...)
+	return _u
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_u *UserUpdateOne) AddFollowers(v ...*User) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_u *UserUpdateOne) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_u *UserUpdateOne) AddCoAuthorsArchive(v ...*User) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorsArchiveIDs(ids...)
 }
 
 // AddFriendIDs adds the "friends" edge to the User entity by IDs.
@@ -961,6 +1308,48 @@ func (_u *UserUpdateOne) RemoveGroups(v ...*Group) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveGroupIDs(ids...)
+}
+
+// ClearFollowers clears all "followers" edges to the User entity.
+func (_u *UserUpdateOne) ClearFollowers() *UserUpdateOne {
+	_u.mutation.ClearFollowers()
+	return _u
+}
+
+// RemoveFollowerIDs removes the "followers" edge to User entities by IDs.
+func (_u *UserUpdateOne) RemoveFollowerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveFollowerIDs(ids...)
+	return _u
+}
+
+// RemoveFollowers removes "followers" edges to User entities.
+func (_u *UserUpdateOne) RemoveFollowers(v ...*User) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFollowerIDs(ids...)
+}
+
+// ClearCoAuthorsArchive clears all "co_authors_archive" edges to the User entity.
+func (_u *UserUpdateOne) ClearCoAuthorsArchive() *UserUpdateOne {
+	_u.mutation.ClearCoAuthorsArchive()
+	return _u
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to User entities by IDs.
+func (_u *UserUpdateOne) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthorsArchive removes "co_authors_archive" edges to User entities.
+func (_u *UserUpdateOne) RemoveCoAuthorsArchive(v ...*User) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorsArchiveIDs(ids...)
 }
 
 // ClearFriends clears all "friends" edges to the User entity.
@@ -1152,6 +1541,27 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.ExtUser(); ok {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 	}
+	if value, ok := _u.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginIPCleared() {
+		_spec.ClearField(user.FieldLastLoginIP, field.TypeString)
+	}
+	if value, ok := _u.mutation.VerificationCode(); ok {
+		_spec.SetField(user.FieldVerificationCode, field.TypeString, value)
+	}
+	if _u.mutation.VerificationCodeCleared() {
+		_spec.ClearField(user.FieldVerificationCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.InternalID(); ok {
+		_spec.SetField(user.FieldInternalID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedInternalID(); ok {
+		_spec.AddField(user.FieldInternalID, field.TypeInt64, value)
+	}
+	if _u.mutation.InternalIDCleared() {
+		_spec.ClearField(user.FieldInternalID, field.TypeInt64)
+	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1235,6 +1645,96 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !_u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsArchiveIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

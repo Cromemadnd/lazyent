@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/pkg/auth"
+	"github.com/google/uuid"
 )
 
 // GroupBase 是 Group 的基础结构体，包含自动生成的字段定义
@@ -18,12 +19,20 @@ type GroupBase struct {
 
 // PostBase 是 Post 的基础结构体，包含自动生成的字段定义
 type PostBase struct {
-	UUID      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Title     string
-	Content   string
-	Author    *User
+	UUID             string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	Title            string
+	Content          string
+	Slug             string
+	ManagementKey    string
+	Summary          string
+	ExtraData        string
+	Author           *User
+	CoAuthors        []*User
+	RelevantGroupsID []uuid.UUID
+	Followers        []*User
+	CoAuthorsArchive []*User
 }
 
 // Status 枚举定义
@@ -62,13 +71,18 @@ type UserBase struct {
 	UserScore        uint8
 	IsVerified       bool
 	Tags             []string
+	Password         string
 	TestUUID         string
 	TestNillableUUID string
 	Status           UserStatus
 	Role             auth.UserRole
 	RemoteToken      string
 	ExtUser          *auth.User
-	PostIDs          []string
+	LastLoginIP      string
+	VerificationCode string
+	PostIDs          []uuid.UUID
 	Groups           []*Group
+	Followers        []*User
+	CoAuthorsArchive []*User
 	Friends          []*User
 }

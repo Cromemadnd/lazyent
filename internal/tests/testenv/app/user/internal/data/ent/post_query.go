@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/group"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/post"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/predicate"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/user"
@@ -20,12 +22,16 @@ import (
 // PostQuery is the builder for querying Post entities.
 type PostQuery struct {
 	config
-	ctx        *QueryContext
-	order      []post.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Post
-	withAuthor *UserQuery
-	withFKs    bool
+	ctx                  *QueryContext
+	order                []post.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Post
+	withAuthor           *UserQuery
+	withCoAuthors        *UserQuery
+	withRelevantGroups   *GroupQuery
+	withFollowers        *UserQuery
+	withCoAuthorsArchive *UserQuery
+	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +83,94 @@ func (_q *PostQuery) QueryAuthor() *UserQuery {
 			sqlgraph.From(post.Table, post.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, post.AuthorTable, post.AuthorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCoAuthors chains the current query on the "co_authors" edge.
+func (_q *PostQuery) QueryCoAuthors() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(post.Table, post.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, post.CoAuthorsTable, post.CoAuthorsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRelevantGroups chains the current query on the "relevant_groups" edge.
+func (_q *PostQuery) QueryRelevantGroups() *GroupQuery {
+	query := (&GroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(post.Table, post.FieldID, selector),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, post.RelevantGroupsTable, post.RelevantGroupsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFollowers chains the current query on the "followers" edge.
+func (_q *PostQuery) QueryFollowers() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(post.Table, post.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, post.FollowersTable, post.FollowersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCoAuthorsArchive chains the current query on the "co_authors_archive" edge.
+func (_q *PostQuery) QueryCoAuthorsArchive() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(post.Table, post.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, post.CoAuthorsArchiveTable, post.CoAuthorsArchiveColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -271,12 +365,16 @@ func (_q *PostQuery) Clone() *PostQuery {
 		return nil
 	}
 	return &PostQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]post.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Post{}, _q.predicates...),
-		withAuthor: _q.withAuthor.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]post.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.Post{}, _q.predicates...),
+		withAuthor:           _q.withAuthor.Clone(),
+		withCoAuthors:        _q.withCoAuthors.Clone(),
+		withRelevantGroups:   _q.withRelevantGroups.Clone(),
+		withFollowers:        _q.withFollowers.Clone(),
+		withCoAuthorsArchive: _q.withCoAuthorsArchive.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -291,6 +389,50 @@ func (_q *PostQuery) WithAuthor(opts ...func(*UserQuery)) *PostQuery {
 		opt(query)
 	}
 	_q.withAuthor = query
+	return _q
+}
+
+// WithCoAuthors tells the query-builder to eager-load the nodes that are connected to
+// the "co_authors" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PostQuery) WithCoAuthors(opts ...func(*UserQuery)) *PostQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCoAuthors = query
+	return _q
+}
+
+// WithRelevantGroups tells the query-builder to eager-load the nodes that are connected to
+// the "relevant_groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PostQuery) WithRelevantGroups(opts ...func(*GroupQuery)) *PostQuery {
+	query := (&GroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRelevantGroups = query
+	return _q
+}
+
+// WithFollowers tells the query-builder to eager-load the nodes that are connected to
+// the "followers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PostQuery) WithFollowers(opts ...func(*UserQuery)) *PostQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFollowers = query
+	return _q
+}
+
+// WithCoAuthorsArchive tells the query-builder to eager-load the nodes that are connected to
+// the "co_authors_archive" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PostQuery) WithCoAuthorsArchive(opts ...func(*UserQuery)) *PostQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCoAuthorsArchive = query
 	return _q
 }
 
@@ -373,8 +515,12 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 		nodes       = []*Post{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [5]bool{
 			_q.withAuthor != nil,
+			_q.withCoAuthors != nil,
+			_q.withRelevantGroups != nil,
+			_q.withFollowers != nil,
+			_q.withCoAuthorsArchive != nil,
 		}
 	)
 	if _q.withAuthor != nil {
@@ -404,6 +550,34 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 	if query := _q.withAuthor; query != nil {
 		if err := _q.loadAuthor(ctx, query, nodes, nil,
 			func(n *Post, e *User) { n.Edges.Author = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCoAuthors; query != nil {
+		if err := _q.loadCoAuthors(ctx, query, nodes,
+			func(n *Post) { n.Edges.CoAuthors = []*User{} },
+			func(n *Post, e *User) { n.Edges.CoAuthors = append(n.Edges.CoAuthors, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRelevantGroups; query != nil {
+		if err := _q.loadRelevantGroups(ctx, query, nodes,
+			func(n *Post) { n.Edges.RelevantGroups = []*Group{} },
+			func(n *Post, e *Group) { n.Edges.RelevantGroups = append(n.Edges.RelevantGroups, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFollowers; query != nil {
+		if err := _q.loadFollowers(ctx, query, nodes,
+			func(n *Post) { n.Edges.Followers = []*User{} },
+			func(n *Post, e *User) { n.Edges.Followers = append(n.Edges.Followers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCoAuthorsArchive; query != nil {
+		if err := _q.loadCoAuthorsArchive(ctx, query, nodes,
+			func(n *Post) { n.Edges.CoAuthorsArchive = []*User{} },
+			func(n *Post, e *User) { n.Edges.CoAuthorsArchive = append(n.Edges.CoAuthorsArchive, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -439,6 +613,130 @@ func (_q *PostQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes []*
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *PostQuery) loadCoAuthors(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Post)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(post.CoAuthorsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.post_co_authors
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "post_co_authors" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "post_co_authors" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PostQuery) loadRelevantGroups(ctx context.Context, query *GroupQuery, nodes []*Post, init func(*Post), assign func(*Post, *Group)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Post)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(post.RelevantGroupsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.post_relevant_groups
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "post_relevant_groups" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "post_relevant_groups" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PostQuery) loadFollowers(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Post)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(post.FollowersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.post_followers
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "post_followers" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "post_followers" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PostQuery) loadCoAuthorsArchive(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Post)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(post.CoAuthorsArchiveColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.post_co_authors_archive
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "post_co_authors_archive" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "post_co_authors_archive" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

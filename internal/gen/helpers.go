@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -75,7 +77,7 @@ func edgeHasFK(e *entgen.Edge) bool {
 	return false
 }
 
-func edgeField(e *entgen.Edge) string { return bizEdgeName(e) }
+func edgeField(e *entgen.Edge, in bool) string { return bizEdgeName(e, in) }
 
 func hasField(fields []*entgen.Field, name string) bool {
 	for _, f := range fields {
@@ -88,8 +90,8 @@ func hasField(fields []*entgen.Field, name string) bool {
 
 func edgeIDType(e *entgen.Edge) string { return e.Type.ID.Type.String() }
 
-func edgeProtoType(e *entgen.Edge) string {
-	if isProtoMessage(e) {
+func edgeProtoType(e *entgen.Edge, in bool) string {
+	if isProtoMessage(e, in) {
 		return e.Type.Name
 	}
 	t := e.Type.ID.Type.String()
@@ -191,6 +193,38 @@ func getProtoTag(f *entgen.Field, i int) int {
 	return i + 1
 }
 
+func protoFieldName(f *entgen.Field) string {
+	a := getFieldAnnotation(f)
+	if a != nil && a.ProtoName != "" {
+		return a.ProtoName
+	}
+	return camelToSnake(f.Name)
+}
+
+func protoEdgeFieldName(e *entgen.Edge, in bool) string {
+	a := getAnnotation(e)
+	if a != nil && a.ProtoName != "" {
+		return a.ProtoName
+	}
+	if isProtoID(e, in) {
+		return camelToSnake(e.Name) + "_id"
+	}
+	return camelToSnake(e.Name)
+}
+
+func camelToSnake(s string) string {
+	var results []rune
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			results = append(results, '_')
+			results = append(results, r+'a'-'A')
+		} else {
+			results = append(results, r)
+		}
+	}
+	return strings.ToLower(string(results))
+}
+
 func protoGoName(f *entgen.Field) string {
 	if f == nil {
 		return ""
@@ -286,18 +320,12 @@ func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
 		}
 	}
 	if fid, ok := m["proto_field_id"]; ok {
-		if fVal, ok := fid.(float64); ok {
-			a.ProtoFieldID = int32(fVal)
-		} else if iVal, ok := fid.(int); ok {
-			a.ProtoFieldID = int32(iVal)
-		}
+		a.ProtoFieldID = int32(toInt(fid))
+	} else if fid, ok := m["ProtoFieldID"]; ok {
+		a.ProtoFieldID = int32(toInt(fid))
 	}
 	if fid, ok := m["field_id"]; ok {
-		if fVal, ok := fid.(float64); ok {
-			a.ProtoFieldID = int32(fVal)
-		} else if iVal, ok := fid.(int); ok {
-			a.ProtoFieldID = int32(iVal)
-		}
+		a.ProtoFieldID = int32(toInt(fid))
 	}
 
 	if v, ok := m["biz_name"]; ok {
@@ -329,6 +357,45 @@ func decodeAnnotationMap(m map[string]interface{}) *types.Annotation {
 		a.Virtual, _ = v.(bool)
 	}
 
+	// Strategies
+	if v, ok := m["edge_in_strategy"]; ok {
+		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
+	} else if v, ok := m["EdgeInStrategy"]; ok {
+		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
+	}
+
+	if v, ok := m["edge_out_strategy"]; ok {
+		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
+	} else if v, ok := m["EdgeOutStrategy"]; ok {
+		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
+	}
+
+	if v, ok := m["field_in_strategy"]; ok {
+		a.FieldInStrategy = types.FieldStrategy(toInt(v))
+	} else if v, ok := m["FieldInStrategy"]; ok {
+		a.FieldInStrategy = types.FieldStrategy(toInt(v))
+	}
+
+	if v, ok := m["field_out_strategy"]; ok {
+		a.FieldOutStrategy = types.FieldStrategy(toInt(v))
+	} else if v, ok := m["FieldOutStrategy"]; ok {
+		a.FieldOutStrategy = types.FieldStrategy(toInt(v))
+	}
+
+	// Validation
+	if err := a.EdgeInStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("EdgeInStrategy conflict in field annotation: %v", err))
+	}
+	if err := a.EdgeOutStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("EdgeOutStrategy conflict in field annotation: %v", err))
+	}
+	if err := a.FieldInStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("FieldInStrategy conflict in field annotation: %v", err))
+	}
+	if err := a.FieldOutStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("FieldOutStrategy conflict in field annotation: %v", err))
+	}
+
 	return a
 }
 
@@ -357,13 +424,6 @@ func getAnnotation(e *entgen.Edge) *types.Annotation {
 
 func decodeEdgeAnnotationMap(m map[string]interface{}) *types.Annotation {
 	a := &types.Annotation{}
-	if es, ok := m["edge_field_strategy"]; ok {
-		if f, ok := es.(float64); ok {
-			a.EdgeFieldStrategy = types.EdgeFieldStrategy(int(f))
-		} else if i, ok := es.(int); ok {
-			a.EdgeFieldStrategy = types.EdgeFieldStrategy(i)
-		}
-	}
 	if v, ok := m["biz_name"]; ok {
 		a.BizName, _ = v.(string)
 	} else if v, ok := m["BizName"]; ok {
@@ -375,30 +435,124 @@ func decodeEdgeAnnotationMap(m map[string]interface{}) *types.Annotation {
 	} else if v, ok := m["ProtoName"]; ok {
 		a.ProtoName, _ = v.(string)
 	}
+
+	if v, ok := m["edge_in_strategy"]; ok {
+		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
+	} else if v, ok := m["EdgeInStrategy"]; ok {
+		a.EdgeInStrategy = types.EdgeStrategy(toInt(v))
+	}
+
+	if v, ok := m["edge_out_strategy"]; ok {
+		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
+	} else if v, ok := m["EdgeOutStrategy"]; ok {
+		a.EdgeOutStrategy = types.EdgeStrategy(toInt(v))
+	}
+
+	// Validation
+	if err := a.EdgeInStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("EdgeInStrategy conflict in edge annotation: %v", err))
+	}
+	if err := a.EdgeOutStrategy.Validate(); err != nil {
+		panic(fmt.Sprintf("EdgeOutStrategy conflict in edge annotation: %v", err))
+	}
+
 	return a
 }
 
-func getStrategy(e *entgen.Edge) types.EdgeFieldStrategy {
+func getEdgeInStrategy(e *entgen.Edge) types.EdgeStrategy {
 	a := getAnnotation(e)
-	if a != nil {
-		return a.EdgeFieldStrategy
+	if a != nil && a.EdgeInStrategy != 0 {
+		return a.EdgeInStrategy
 	}
-	return types.BizPointerWithProtoMessage
+	return types.EdgeProtoMessage | types.EdgeBizPointer
 }
 
-func isBizIDOnly(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizIDWithProtoID || s == types.BizIDWithProtoExclude
+func getEdgeOutStrategy(e *entgen.Edge) types.EdgeStrategy {
+	a := getAnnotation(e)
+	if a != nil && a.EdgeOutStrategy != 0 {
+		return a.EdgeOutStrategy
+	}
+	return types.EdgeProtoMessage | types.EdgeBizPointer
 }
 
-func isBizExclude(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizExcludeWithProtoExclude
+func getFieldInStrategy(f *entgen.Field) types.FieldStrategy {
+	a := getFieldAnnotation(f)
+	if a != nil && a.FieldInStrategy != 0 {
+		return a.FieldInStrategy
+	}
+	if isSensitive(f) {
+		return types.FieldBizValue | types.FieldProtoRequired
+	}
+	if f.Optional {
+		return types.FieldBizPointer | types.FieldProtoOptional
+	}
+	return types.FieldBizValue | types.FieldProtoRequired
 }
 
-func isBizPointer(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizPointerWithProtoMessage || s == types.BizPointerWithProtoID || s == types.BizPointerWithProtoExclude
+func getFieldOutStrategy(f *entgen.Field) types.FieldStrategy {
+	a := getFieldAnnotation(f)
+	if a != nil && a.FieldOutStrategy != 0 {
+		return a.FieldOutStrategy
+	}
+	if isSensitive(f) {
+		return types.FieldBizExcluded | types.FieldProtoExcluded
+	}
+	if f.Optional {
+		return types.FieldBizPointer | types.FieldProtoOptional
+	}
+	return types.FieldBizValue | types.FieldProtoRequired
+}
+
+func isBizIDOnly(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeBizMask) == types.EdgeBizID
+}
+
+func isFieldBizExclude(f *entgen.Field, in bool) bool {
+	var s types.FieldStrategy
+	if in {
+		s = getFieldInStrategy(f)
+	} else {
+		s = getFieldOutStrategy(f)
+	}
+	return (s & types.FieldBizMask) == types.FieldBizExcluded
+}
+
+func shouldGenerateBizField(f *entgen.Field) bool {
+	return !isFieldBizExclude(f, true) || !isFieldBizExclude(f, false)
+}
+
+func isBizExclude(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeBizMask) == types.EdgeBizExcluded
+}
+
+func shouldGenerateBizEdge(e *entgen.Edge) bool {
+	return !isBizExclude(e, true) || !isBizExclude(e, false)
+}
+
+func isBizPointer(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeBizMask) == types.EdgeBizPointer
+}
+
+func shouldBizPointer(e *entgen.Edge) bool {
+	return isBizPointer(e, true) || isBizPointer(e, false)
 }
 
 func isSensitive(f *entgen.Field) bool {
@@ -416,19 +570,64 @@ func isVirtual(f *entgen.Field) bool {
 	return a != nil && a.Virtual
 }
 
-func isProtoID(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizPointerWithProtoID || s == types.BizIDWithProtoID
+func isProtoID(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeProtoMask) == types.EdgeProtoID
 }
 
-func isProtoMessage(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizPointerWithProtoMessage
+func isProtoMessage(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeProtoMask) == types.EdgeProtoMessage
 }
 
-func isProtoExclude(e *entgen.Edge) bool {
-	s := getStrategy(e)
-	return s == types.BizPointerWithProtoExclude || s == types.BizIDWithProtoExclude || s == types.BizExcludeWithProtoExclude
+func isProtoExclude(e *entgen.Edge, in bool) bool {
+	var s types.EdgeStrategy
+	if in {
+		s = getEdgeInStrategy(e)
+	} else {
+		s = getEdgeOutStrategy(e)
+	}
+	return (s & types.EdgeProtoMask) == types.EdgeProtoExcluded
+}
+
+func isFieldProtoExclude(f *entgen.Field, in bool) bool {
+	var s types.FieldStrategy
+	if in {
+		s = getFieldInStrategy(f)
+	} else {
+		s = getFieldOutStrategy(f)
+	}
+	return (s & types.FieldProtoMask) == types.FieldProtoExcluded
+}
+
+func isFieldProtoOptional(f *entgen.Field, in bool) bool {
+	var s types.FieldStrategy
+	if in {
+		s = getFieldInStrategy(f)
+	} else {
+		s = getFieldOutStrategy(f)
+	}
+	return (s & types.FieldProtoMask) == types.FieldProtoOptional
+}
+
+func isFieldProtoRequired(f *entgen.Field, in bool) bool {
+	var s types.FieldStrategy
+	if in {
+		s = getFieldInStrategy(f)
+	} else {
+		s = getFieldOutStrategy(f)
+	}
+	return (s & types.FieldProtoMask) == types.FieldProtoRequired
 }
 
 func isSlice(f *entgen.Field) bool {
@@ -518,7 +717,15 @@ func bizFieldType(f *entgen.Field) string {
 		return a.BizType
 	}
 	if f.IsEnum() {
-		return ""
+		if isExternalEnum(f) {
+			// External enum: use the external type name
+			// Use the package name alias + type name
+			// But here we might just return the type string if imports are handled.
+			// Ideally, we want "auth.UserRole"
+			return f.Type.String()
+		}
+		// Internal enum: defined in Biz layer
+		return f.StructField()
 	}
 	if f.Type.String() == "uuid.UUID" {
 		return "string"
@@ -537,12 +744,12 @@ func explicitBizType(f *entgen.Field) string {
 	return ""
 }
 
-func bizEdgeName(e *entgen.Edge) string {
+func bizEdgeName(e *entgen.Edge, in bool) string {
 	a := getAnnotation(e)
 	if a != nil && a.BizName != "" {
 		return a.BizName
 	}
-	if isBizIDOnly(e) {
+	if isBizIDOnly(e, in) {
 		return e.StructField() + "ID"
 	}
 	return e.StructField()
@@ -570,10 +777,13 @@ func camel(s string) string {
 	return string(r)
 }
 
-func protoStructField(e *entgen.Edge) string {
+func protoStructField(e *entgen.Edge, in bool) string {
 	a := getAnnotation(e)
 	if a != nil && a.ProtoName != "" {
 		return pascal(a.ProtoName)
+	}
+	if isProtoID(e, in) {
+		return pascal(e.Name) + "ID"
 	}
 	return pascal(e.Name)
 }
@@ -630,4 +840,21 @@ func getEnumLiteralValues(f *entgen.Field) []string {
 		res = append(res, e.Value)
 	}
 	return res
+}
+
+func toInt(v interface{}) uint32 {
+	if v == nil {
+		return 0
+	}
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return uint32(rv.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return uint32(rv.Uint())
+	case reflect.Float32, reflect.Float64:
+		return uint32(rv.Float())
+	default:
+		return 0
+	}
 }

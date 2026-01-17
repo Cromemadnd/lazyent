@@ -349,12 +349,6 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 	}
 
 	for _, n := range g.Nodes {
-		msg := e.buildProtoMessage(n, files)
-		// Enums first for this node? Golden: Group (Msg), Post (Msg), UserStatus (Enum), User (Msg).
-		// Wait, Golden order: Group, Post, UserStatus, User.
-		// For Node User: UserStatus is field enum. It appears BEFORE User Message.
-		// So for each Node: Append Enums, then Message.
-
 		// Collect Enums (skip external enums as they use string type in proto)
 		for _, f := range n.Fields {
 			if f.IsEnum() && !isExternalEnum(f) {
@@ -362,8 +356,14 @@ func (e *Generator) buildProtoFile(g *entgen.Graph) (*PbFile, error) {
 			}
 		}
 
-		// Append Message
+		// Append Output Message
+		msg := e.buildProtoMessage(n, files, false)
 		files.Elements = append(files.Elements, PbElement{Message: msg})
+
+		// Append Input Message
+		inputMsg := e.buildProtoMessage(n, files, true)
+		inputMsg.Name = n.Name + "Input"
+		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
 	}
 	return files, nil
 }
@@ -380,19 +380,23 @@ func (e *Generator) buildSingleNodeProto(g *entgen.Graph, nodeName string) (*PbF
 		if n.Name != nodeName {
 			continue
 		}
-		// Enums then Message
+		// Enums then Messages
 		for _, f := range n.Fields {
 			if f.IsEnum() {
 				files.Elements = append(files.Elements, PbElement{Enum: e.buildProtoEnum(n, f)})
 			}
 		}
-		msg := e.buildProtoMessage(n, files)
+		msg := e.buildProtoMessage(n, files, false)
 		files.Elements = append(files.Elements, PbElement{Message: msg})
+
+		inputMsg := e.buildProtoMessage(n, files, true)
+		inputMsg.Name = n.Name + "Input"
+		files.Elements = append(files.Elements, PbElement{Message: inputMsg})
 	}
 	return files, nil
 }
 
-func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
+func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile, in bool) *PbMessage {
 	msg := &PbMessage{
 		Name: n.Name,
 	}
@@ -401,11 +405,11 @@ func (e *Generator) buildProtoMessage(n *entgen.Type, f *PbFile) *PbMessage {
 	usedTags := make(map[int]bool)
 	var allFields []fieldInfo
 
-	fields := e.buildProtoFields(n, f, usedTags)
+	fields := e.buildProtoFields(n, f, usedTags, in)
 	allFields = append(allFields, fields...)
 
 	// 2. Edges
-	edges := e.buildProtoEdges(n)
+	edges := e.buildProtoEdges(n, in)
 	allFields = append(allFields, edges...)
 
 	// 3. Assign Tags
@@ -421,41 +425,37 @@ type fieldInfo struct {
 	pf    *PbField
 }
 
-func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int]bool) []fieldInfo {
+func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int]bool, in bool) []fieldInfo {
 	var results []fieldInfo
 
 	// 1. ID
 	if n.ID != nil {
-		pf := &PbField{
-			Name:    n.ID.Name,
-			Comment: n.ID.Comment(),
-		}
-		if a := getFieldAnnotation(n.ID); a != nil && a.ProtoName != "" {
-			pf.Name = a.ProtoName
-		}
-		pf.Type = e.resolveProtoType(n.ID, n.Name, f)
+		if !isFieldProtoExclude(n.ID, in) {
+			pf := &PbField{
+				Name:    protoFieldName(n.ID),
+				Comment: n.ID.Comment(),
+			}
+			pf.Type = e.resolveProtoType(n.ID, n.Name, f)
 
-		t := getProtoTag(n.ID, -1)
-		if t > 0 {
-			pf.Tag = t
-			usedTags[t] = true
+			t := getProtoTag(n.ID, -1)
+			if t > 0 {
+				pf.Tag = t
+				usedTags[t] = true
+			}
+			results = append(results, fieldInfo{isID: true, field: n.ID, pf: pf})
 		}
-		results = append(results, fieldInfo{isID: true, field: n.ID, pf: pf})
 	}
 
 	// 2. Fields
 	for _, fld := range n.Fields {
-		// Skip sensitive fields
-		if fld.Sensitive() {
+		// Check Strategy
+		if isFieldProtoExclude(fld, in) {
 			continue
 		}
 
 		pf := &PbField{
-			Name:    fld.Name,
+			Name:    protoFieldName(fld),
 			Comment: fld.Comment(),
-		}
-		if a := getFieldAnnotation(fld); a != nil && a.ProtoName != "" {
-			pf.Name = a.ProtoName
 		}
 		// For external enums, use string type in proto
 		if fld.IsEnum() && isExternalEnum(fld) {
@@ -477,30 +477,25 @@ func (e *Generator) buildProtoFields(n *entgen.Type, f *PbFile, usedTags map[int
 	return results
 }
 
-func (e *Generator) buildProtoEdges(n *entgen.Type) []fieldInfo {
+func (e *Generator) buildProtoEdges(n *entgen.Type, in bool) []fieldInfo {
 	var results []fieldInfo
 	for _, edge := range n.Edges {
-		if isProtoExclude(edge) {
+		if isProtoExclude(edge, in) {
 			continue
 		}
 
-		if isProtoMessage(edge) {
+		if isProtoMessage(edge, in) {
 			pf := &PbField{
-				Name:     edge.Name,
+				Name:     protoEdgeFieldName(edge, in),
 				Type:     edge.Type.Name,
 				Repeated: !edge.Unique,
 			}
 			results = append(results, fieldInfo{edge: edge, pf: pf})
 		} else {
-			if isProtoID(edge) || (edgeHasFK(edge) && !hasField(n.Fields, edgeField(edge))) {
-				name := edge.Name
-				if a := getAnnotation(edge); a != nil && a.ProtoName != "" {
-					name = a.ProtoName
-				}
-
+			if isProtoID(edge, in) || (edgeHasFK(edge) && !hasField(n.Fields, edgeField(edge, in))) {
 				pf := &PbField{
-					Name:     name,
-					Type:     edgeProtoType(edge),
+					Name:     protoEdgeFieldName(edge, in),
+					Type:     edgeProtoType(edge, in),
 					Repeated: !edge.Unique,
 				}
 

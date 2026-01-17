@@ -27,8 +27,9 @@ type Group struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupQuery when eager-loading is set.
-	Edges        GroupEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                GroupEdges `json:"edges"`
+	post_relevant_groups *uuid.UUID
+	selectValues         sql.SelectValues
 }
 
 // GroupEdges holds the relations/edges for other nodes in the graph.
@@ -71,6 +72,8 @@ func (*Group) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case group.FieldID:
 			values[i] = new(uuid.UUID)
+		case group.ForeignKeys[0]: // post_relevant_groups
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -109,6 +112,13 @@ func (_m *Group) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case group.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field post_relevant_groups", values[i])
+			} else if value.Valid {
+				_m.post_relevant_groups = new(uuid.UUID)
+				*_m.post_relevant_groups = *value.S.(*uuid.UUID)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

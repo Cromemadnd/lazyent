@@ -72,14 +72,49 @@ func EntPostToBiz(e *ent.Post) (*biz.Post, error) {
 	if err != nil {
 		return nil, err
 	}
+	var coAuthors []*biz.User
+	for _, item := range e.Edges.CoAuthors {
+		v, err := EntUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthors = append(coAuthors, v)
+	}
+	var relevantGroupsID []string
+	for _, item := range e.Edges.RelevantGroups {
+		relevantGroupsID = append(relevantGroupsID, item.ID.String())
+	}
+	var followers []*biz.User
+	for _, item := range e.Edges.Followers {
+		v, err := EntUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, v)
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range e.Edges.CoAuthorsArchive {
+		v, err := EntUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
+	}
 	return &biz.Post{
 		PostBase: biz.PostBase{
-			UUID:      e.ID.String(),
-			CreatedAt: e.CreatedAt,
-			UpdatedAt: e.UpdatedAt,
-			Title:     e.Title,
-			Content:   e.Content,
-			Author:    author,
+			UUID:             e.ID.String(),
+			CreatedAt:        e.CreatedAt,
+			UpdatedAt:        e.UpdatedAt,
+			Title:            e.Title,
+			Content:          e.Content,
+			Slug:             e.Slug,
+			ManagementKey:    e.ManagementKey,
+			Summary:          e.Summary,
+			Author:           author,
+			CoAuthors:        coAuthors,
+			RelevantGroupsID: relevantGroupsID,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
 		},
 	}, nil
 }
@@ -92,6 +127,40 @@ func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 	if err != nil {
 		return nil, err
 	}
+	var coAuthors []*ent.User
+	for _, item := range b.CoAuthors {
+		v, err := BizUserToEnt(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthors = append(coAuthors, v)
+	}
+	var relevantGroups []*ent.Group
+	for _, item := range b.RelevantGroupsID {
+		val, err := uuid.Parse(item)
+		if err != nil {
+			return nil, err
+		}
+		relevantGroups = append(relevantGroups, &ent.Group{
+			ID: val,
+		})
+	}
+	var followers []*ent.User
+	for _, item := range b.Followers {
+		v, err := BizUserToEnt(item)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, v)
+	}
+	var coAuthorsArchive []*ent.User
+	for _, item := range b.CoAuthorsArchive {
+		v, err := BizUserToEnt(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
+	}
 	var iDEntVal uuid.UUID
 	if b.UUID != "" {
 		val, err := uuid.Parse(b.UUID)
@@ -101,13 +170,20 @@ func BizPostToEnt(b *biz.Post) (*ent.Post, error) {
 		iDEntVal = val
 	}
 	return &ent.Post{
-		ID:        iDEntVal,
-		CreatedAt: b.CreatedAt,
-		UpdatedAt: b.UpdatedAt,
-		Title:     b.Title,
-		Content:   b.Content,
+		ID:            iDEntVal,
+		CreatedAt:     b.CreatedAt,
+		UpdatedAt:     b.UpdatedAt,
+		Title:         b.Title,
+		Content:       b.Content,
+		Slug:          b.Slug,
+		ManagementKey: b.ManagementKey,
+		Summary:       b.Summary,
 		Edges: ent.PostEdges{
-			Author: author,
+			Author:           author,
+			CoAuthors:        coAuthors,
+			RelevantGroups:   relevantGroups,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
 		},
 	}, nil
 }
@@ -128,6 +204,22 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 		}
 		groups = append(groups, v)
 	}
+	var followers []*biz.User
+	for _, item := range e.Edges.Followers {
+		v, err := EntUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, v)
+	}
+	var coAuthorsArchive []*biz.User
+	for _, item := range e.Edges.CoAuthorsArchive {
+		v, err := EntUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
+	}
 	var friends []*biz.User
 	for _, item := range e.Edges.Friends {
 		v, err := EntUserToBiz(item)
@@ -147,6 +239,7 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 			UserScore:  uint8(e.Score),
 			IsVerified: e.IsVerified,
 			Tags:       e.Tags,
+			Password:   e.Password,
 			TestUUID:   e.TestUUID.String(),
 			TestNillableUUID: func() string {
 				if e.TestNillableUUID != nil {
@@ -154,11 +247,15 @@ func EntUserToBiz(e *ent.User) (*biz.User, error) {
 				}
 				return ""
 			}(),
-			Status:  EntUserStatusToBiz(e.Status),
-			Role:    e.Role,
-			PostIDs: postIDs,
-			Groups:  groups,
-			Friends: friends,
+			Status:           EntUserStatusToBiz(e.Status),
+			Role:             e.Role,
+			LastLoginIP:      e.LastLoginIP,
+			VerificationCode: e.VerificationCode,
+			PostIDs:          postIDs,
+			Groups:           groups,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
+			Friends:          friends,
 		},
 	}, nil
 }
@@ -184,6 +281,22 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 			return nil, err
 		}
 		groups = append(groups, v)
+	}
+	var followers []*ent.User
+	for _, item := range b.Followers {
+		v, err := BizUserToEnt(item)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, v)
+	}
+	var coAuthorsArchive []*ent.User
+	for _, item := range b.CoAuthorsArchive {
+		v, err := BizUserToEnt(item)
+		if err != nil {
+			return nil, err
+		}
+		coAuthorsArchive = append(coAuthorsArchive, v)
 	}
 	var friends []*ent.User
 	for _, item := range b.Friends {
@@ -227,14 +340,19 @@ func BizUserToEnt(b *biz.User) (*ent.User, error) {
 		Score:            int(b.UserScore),
 		IsVerified:       b.IsVerified,
 		Tags:             b.Tags,
+		Password:         b.Password,
 		TestUUID:         testUUIDEntVal,
 		TestNillableUUID: testNillableUUIDEntVal,
 		Status:           BizUserStatusToEnt(b.Status),
 		Role:             b.Role,
+		LastLoginIP:      b.LastLoginIP,
+		VerificationCode: b.VerificationCode,
 		Edges: ent.UserEdges{
-			Posts:   posts,
-			Groups:  groups,
-			Friends: friends,
+			Posts:            posts,
+			Groups:           groups,
+			Followers:        followers,
+			CoAuthorsArchive: coAuthorsArchive,
+			Friends:          friends,
 		},
 	}, nil
 }

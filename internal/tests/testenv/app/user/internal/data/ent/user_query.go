@@ -22,14 +22,16 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx         *QueryContext
-	order       []user.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.User
-	withPosts   *PostQuery
-	withGroups  *GroupQuery
-	withFriends *UserQuery
-	withFKs     bool
+	ctx                  *QueryContext
+	order                []user.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.User
+	withPosts            *PostQuery
+	withGroups           *GroupQuery
+	withFollowers        *UserQuery
+	withCoAuthorsArchive *UserQuery
+	withFriends          *UserQuery
+	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,50 @@ func (_q *UserQuery) QueryGroups() *GroupQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.GroupsTable, user.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFollowers chains the current query on the "followers" edge.
+func (_q *UserQuery) QueryFollowers() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowersTable, user.FollowersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCoAuthorsArchive chains the current query on the "co_authors_archive" edge.
+func (_q *UserQuery) QueryCoAuthorsArchive() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.CoAuthorsArchiveTable, user.CoAuthorsArchivePrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -319,14 +365,16 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]user.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.User{}, _q.predicates...),
-		withPosts:   _q.withPosts.Clone(),
-		withGroups:  _q.withGroups.Clone(),
-		withFriends: _q.withFriends.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]user.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.User{}, _q.predicates...),
+		withPosts:            _q.withPosts.Clone(),
+		withGroups:           _q.withGroups.Clone(),
+		withFollowers:        _q.withFollowers.Clone(),
+		withCoAuthorsArchive: _q.withCoAuthorsArchive.Clone(),
+		withFriends:          _q.withFriends.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -352,6 +400,28 @@ func (_q *UserQuery) WithGroups(opts ...func(*GroupQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withGroups = query
+	return _q
+}
+
+// WithFollowers tells the query-builder to eager-load the nodes that are connected to
+// the "followers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFollowers(opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFollowers = query
+	return _q
+}
+
+// WithCoAuthorsArchive tells the query-builder to eager-load the nodes that are connected to
+// the "co_authors_archive" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCoAuthorsArchive(opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCoAuthorsArchive = query
 	return _q
 }
 
@@ -445,9 +515,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			_q.withPosts != nil,
 			_q.withGroups != nil,
+			_q.withFollowers != nil,
+			_q.withCoAuthorsArchive != nil,
 			_q.withFriends != nil,
 		}
 	)
@@ -483,6 +555,20 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadGroups(ctx, query, nodes,
 			func(n *User) { n.Edges.Groups = []*Group{} },
 			func(n *User, e *Group) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFollowers; query != nil {
+		if err := _q.loadFollowers(ctx, query, nodes,
+			func(n *User) { n.Edges.Followers = []*User{} },
+			func(n *User, e *User) { n.Edges.Followers = append(n.Edges.Followers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCoAuthorsArchive; query != nil {
+		if err := _q.loadCoAuthorsArchive(ctx, query, nodes,
+			func(n *User) { n.Edges.CoAuthorsArchive = []*User{} },
+			func(n *User, e *User) { n.Edges.CoAuthorsArchive = append(n.Edges.CoAuthorsArchive, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -581,6 +667,128 @@ func (_q *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []
 		nodes, ok := nids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *UserQuery) loadFollowers(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.FollowersTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.FollowersPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.FollowersPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.FollowersPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "followers" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *UserQuery) loadCoAuthorsArchive(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.CoAuthorsArchiveTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.CoAuthorsArchivePrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.CoAuthorsArchivePrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.CoAuthorsArchivePrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "co_authors_archive" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)

@@ -12,11 +12,31 @@ func WithEnumValues(values map[string]int32) Annotation {
 	}
 }
 
-// WithEdgeFieldStrategy 设置 Edge 字段的生成策略
-// 默认策略为 BizPointerWithProtoMessage
-func WithEdgeFieldStrategy(strategy types.EdgeFieldStrategy) Annotation {
+// WithEdgeInStrategy 设置 Edge 在输入层（Request/Input）的策略
+func WithEdgeInStrategy(strategy types.EdgeStrategy) Annotation {
 	return Annotation{
-		EdgeFieldStrategy: strategy,
+		EdgeInStrategy: strategy,
+	}
+}
+
+// WithEdgeOutStrategy 设置 Edge 在输出层（Response）的策略
+func WithEdgeOutStrategy(strategy types.EdgeStrategy) Annotation {
+	return Annotation{
+		EdgeOutStrategy: strategy,
+	}
+}
+
+// WithFieldInStrategy 设置普通字段在输入层的策略
+func WithFieldInStrategy(strategy types.FieldStrategy) Annotation {
+	return Annotation{
+		FieldInStrategy: strategy,
+	}
+}
+
+// WithFieldOutStrategy 设置普通字段在输出层的策略
+func WithFieldOutStrategy(strategy types.FieldStrategy) Annotation {
+	return Annotation{
+		FieldOutStrategy: strategy,
 	}
 }
 
@@ -74,8 +94,17 @@ func MergeAnnotations(opts ...Annotation) Annotation {
 		if opt.EnumValues != nil {
 			merged.EnumValues = opt.EnumValues
 		}
-		if opt.EdgeFieldStrategy != 0 {
-			merged.EdgeFieldStrategy = opt.EdgeFieldStrategy
+		if opt.EdgeInStrategy != 0 {
+			merged.EdgeInStrategy = opt.EdgeInStrategy
+		}
+		if opt.EdgeOutStrategy != 0 {
+			merged.EdgeOutStrategy = opt.EdgeOutStrategy
+		}
+		if opt.FieldInStrategy != 0 {
+			merged.FieldInStrategy = opt.FieldInStrategy
+		}
+		if opt.FieldOutStrategy != 0 {
+			merged.FieldOutStrategy = opt.FieldOutStrategy
 		}
 		if opt.BizName != "" {
 			merged.BizName = opt.BizName

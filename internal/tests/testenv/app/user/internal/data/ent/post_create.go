@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/group"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/post"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/user"
 	"github.com/google/uuid"
@@ -62,6 +63,76 @@ func (_c *PostCreate) SetContent(v string) *PostCreate {
 	return _c
 }
 
+// SetSlug sets the "slug" field.
+func (_c *PostCreate) SetSlug(v string) *PostCreate {
+	_c.mutation.SetSlug(v)
+	return _c
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_c *PostCreate) SetNillableSlug(v *string) *PostCreate {
+	if v != nil {
+		_c.SetSlug(*v)
+	}
+	return _c
+}
+
+// SetInternalCode sets the "internal_code" field.
+func (_c *PostCreate) SetInternalCode(v string) *PostCreate {
+	_c.mutation.SetInternalCode(v)
+	return _c
+}
+
+// SetNillableInternalCode sets the "internal_code" field if the given value is not nil.
+func (_c *PostCreate) SetNillableInternalCode(v *string) *PostCreate {
+	if v != nil {
+		_c.SetInternalCode(*v)
+	}
+	return _c
+}
+
+// SetManagementKey sets the "management_key" field.
+func (_c *PostCreate) SetManagementKey(v string) *PostCreate {
+	_c.mutation.SetManagementKey(v)
+	return _c
+}
+
+// SetNillableManagementKey sets the "management_key" field if the given value is not nil.
+func (_c *PostCreate) SetNillableManagementKey(v *string) *PostCreate {
+	if v != nil {
+		_c.SetManagementKey(*v)
+	}
+	return _c
+}
+
+// SetSummary sets the "summary" field.
+func (_c *PostCreate) SetSummary(v string) *PostCreate {
+	_c.mutation.SetSummary(v)
+	return _c
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_c *PostCreate) SetNillableSummary(v *string) *PostCreate {
+	if v != nil {
+		_c.SetSummary(*v)
+	}
+	return _c
+}
+
+// SetExtraData sets the "extra_data" field.
+func (_c *PostCreate) SetExtraData(v string) *PostCreate {
+	_c.mutation.SetExtraData(v)
+	return _c
+}
+
+// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
+func (_c *PostCreate) SetNillableExtraData(v *string) *PostCreate {
+	if v != nil {
+		_c.SetExtraData(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PostCreate) SetID(v uuid.UUID) *PostCreate {
 	_c.mutation.SetID(v)
@@ -85,6 +156,66 @@ func (_c *PostCreate) SetAuthorID(id uuid.UUID) *PostCreate {
 // SetAuthor sets the "author" edge to the User entity.
 func (_c *PostCreate) SetAuthor(v *User) *PostCreate {
 	return _c.SetAuthorID(v.ID)
+}
+
+// AddCoAuthorIDs adds the "co_authors" edge to the User entity by IDs.
+func (_c *PostCreate) AddCoAuthorIDs(ids ...uuid.UUID) *PostCreate {
+	_c.mutation.AddCoAuthorIDs(ids...)
+	return _c
+}
+
+// AddCoAuthors adds the "co_authors" edges to the User entity.
+func (_c *PostCreate) AddCoAuthors(v ...*User) *PostCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCoAuthorIDs(ids...)
+}
+
+// AddRelevantGroupIDs adds the "relevant_groups" edge to the Group entity by IDs.
+func (_c *PostCreate) AddRelevantGroupIDs(ids ...uuid.UUID) *PostCreate {
+	_c.mutation.AddRelevantGroupIDs(ids...)
+	return _c
+}
+
+// AddRelevantGroups adds the "relevant_groups" edges to the Group entity.
+func (_c *PostCreate) AddRelevantGroups(v ...*Group) *PostCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRelevantGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_c *PostCreate) AddFollowerIDs(ids ...uuid.UUID) *PostCreate {
+	_c.mutation.AddFollowerIDs(ids...)
+	return _c
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_c *PostCreate) AddFollowers(v ...*User) *PostCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_c *PostCreate) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *PostCreate {
+	_c.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _c
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_c *PostCreate) AddCoAuthorsArchive(v ...*User) *PostCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCoAuthorsArchiveIDs(ids...)
 }
 
 // Mutation returns the PostMutation object of the builder.
@@ -209,6 +340,26 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
+	if value, ok := _c.mutation.Slug(); ok {
+		_spec.SetField(post.FieldSlug, field.TypeString, value)
+		_node.Slug = value
+	}
+	if value, ok := _c.mutation.InternalCode(); ok {
+		_spec.SetField(post.FieldInternalCode, field.TypeString, value)
+		_node.InternalCode = value
+	}
+	if value, ok := _c.mutation.ManagementKey(); ok {
+		_spec.SetField(post.FieldManagementKey, field.TypeString, value)
+		_node.ManagementKey = value
+	}
+	if value, ok := _c.mutation.Summary(); ok {
+		_spec.SetField(post.FieldSummary, field.TypeString, value)
+		_node.Summary = value
+	}
+	if value, ok := _c.mutation.ExtraData(); ok {
+		_spec.SetField(post.FieldExtraData, field.TypeString, value)
+		_node.ExtraData = value
+	}
 	if nodes := _c.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -224,6 +375,70 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_posts = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CoAuthorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RelevantGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

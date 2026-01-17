@@ -51,11 +51,20 @@ type User struct {
 	RemoteToken string `json:"remote_token,omitempty"`
 	// 外部用户对象，不存数据库
 	ExtUser any `json:"ext_user,omitempty"`
+	// 仅回包包含
+	LastLoginIP string `json:"last_login_ip,omitempty"`
+	// 仅入参包含
+	VerificationCode string `json:"verification_code,omitempty"`
+	// 内部 ID，两端排除
+	InternalID int64 `json:"internal_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges        UserEdges `json:"edges"`
-	group_admins *uuid.UUID
-	selectValues sql.SelectValues
+	Edges                   UserEdges `json:"edges"`
+	group_admins            *uuid.UUID
+	post_co_authors         *uuid.UUID
+	post_followers          *uuid.UUID
+	post_co_authors_archive *uuid.UUID
+	selectValues            sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
@@ -64,11 +73,15 @@ type UserEdges struct {
 	Posts []*Post `json:"posts,omitempty"`
 	// Groups holds the value of the groups edge.
 	Groups []*Group `json:"groups,omitempty"`
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// CoAuthorsArchive holds the value of the co_authors_archive edge.
+	CoAuthorsArchive []*User `json:"co_authors_archive,omitempty"`
 	// Friends holds the value of the friends edge.
 	Friends []*User `json:"friends,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -89,10 +102,28 @@ func (e UserEdges) GroupsOrErr() ([]*Group, error) {
 	return nil, &NotLoadedError{edge: "groups"}
 }
 
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// CoAuthorsArchiveOrErr returns the CoAuthorsArchive value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CoAuthorsArchiveOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.CoAuthorsArchive, nil
+	}
+	return nil, &NotLoadedError{edge: "co_authors_archive"}
+}
+
 // FriendsOrErr returns the Friends value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FriendsOrErr() ([]*User, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[4] {
 		return e.Friends, nil
 	}
 	return nil, &NotLoadedError{edge: "friends"}
@@ -109,15 +140,21 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case user.FieldIsVerified:
 			values[i] = new(sql.NullBool)
-		case user.FieldAge, user.FieldScore:
+		case user.FieldAge, user.FieldScore, user.FieldInternalID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole, user.FieldRemoteToken:
+		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole, user.FieldRemoteToken, user.FieldLastLoginIP, user.FieldVerificationCode:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID, user.FieldTestUUID:
 			values[i] = new(uuid.UUID)
 		case user.ForeignKeys[0]: // group_admins
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case user.ForeignKeys[1]: // post_co_authors
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case user.ForeignKeys[2]: // post_followers
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case user.ForeignKeys[3]: // post_co_authors_archive
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -235,12 +272,51 @@ func (_m *User) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field ext_user: %w", err)
 				}
 			}
+		case user.FieldLastLoginIP:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_login_ip", values[i])
+			} else if value.Valid {
+				_m.LastLoginIP = value.String
+			}
+		case user.FieldVerificationCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field verification_code", values[i])
+			} else if value.Valid {
+				_m.VerificationCode = value.String
+			}
+		case user.FieldInternalID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field internal_id", values[i])
+			} else if value.Valid {
+				_m.InternalID = value.Int64
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field group_admins", values[i])
 			} else if value.Valid {
 				_m.group_admins = new(uuid.UUID)
 				*_m.group_admins = *value.S.(*uuid.UUID)
+			}
+		case user.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field post_co_authors", values[i])
+			} else if value.Valid {
+				_m.post_co_authors = new(uuid.UUID)
+				*_m.post_co_authors = *value.S.(*uuid.UUID)
+			}
+		case user.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field post_followers", values[i])
+			} else if value.Valid {
+				_m.post_followers = new(uuid.UUID)
+				*_m.post_followers = *value.S.(*uuid.UUID)
+			}
+		case user.ForeignKeys[3]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field post_co_authors_archive", values[i])
+			} else if value.Valid {
+				_m.post_co_authors_archive = new(uuid.UUID)
+				*_m.post_co_authors_archive = *value.S.(*uuid.UUID)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -263,6 +339,16 @@ func (_m *User) QueryPosts() *PostQuery {
 // QueryGroups queries the "groups" edge of the User entity.
 func (_m *User) QueryGroups() *GroupQuery {
 	return NewUserClient(_m.config).QueryGroups(_m)
+}
+
+// QueryFollowers queries the "followers" edge of the User entity.
+func (_m *User) QueryFollowers() *UserQuery {
+	return NewUserClient(_m.config).QueryFollowers(_m)
+}
+
+// QueryCoAuthorsArchive queries the "co_authors_archive" edge of the User entity.
+func (_m *User) QueryCoAuthorsArchive() *UserQuery {
+	return NewUserClient(_m.config).QueryCoAuthorsArchive(_m)
 }
 
 // QueryFriends queries the "friends" edge of the User entity.
@@ -338,6 +424,15 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ext_user=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ExtUser))
+	builder.WriteString(", ")
+	builder.WriteString("last_login_ip=")
+	builder.WriteString(_m.LastLoginIP)
+	builder.WriteString(", ")
+	builder.WriteString("verification_code=")
+	builder.WriteString(_m.VerificationCode)
+	builder.WriteString(", ")
+	builder.WriteString("internal_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.InternalID))
 	builder.WriteByte(')')
 	return builder.String()
 }

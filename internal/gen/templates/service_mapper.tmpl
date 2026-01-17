@@ -16,7 +16,7 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
 	if b == nil {
 		return nil, nil
 	}
-{{- range $f := .Fields }}{{ if isSensitive $f }}{{ continue }}{{ end }}
+{{- range $f := .Fields }}{{ if isFieldProtoExclude $f false }}{{ continue }}{{ end }}
 {{- if and (isSlice $f) (not (isSliceTypeMatch $f)) }}
 	var {{ camel (protoGoName $f) }} []{{ getGoProtoType $f }}
 	for _, item := range b.{{ bizFieldName $f }} {
@@ -25,28 +25,28 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
 {{- end }}
 {{- end }}
 {{- range $e := .Edges }}
-{{- if isProtoExclude $e }}{{ continue }}{{ end }}
-{{- if not (isProtoMessage $e) }}
+{{- if isProtoExclude $e false }}{{ continue }}{{ end }}
+{{- if not (isProtoMessage $e false) }}
     {{/* ID List Handling */}}
     {{- if not $e.Unique }}
-    var {{ camel (protoStructField $e) }} []{{ edgeProtoType $e }}
-    for _, item := range b.{{ bizEdgeName $e }} {
-        {{ camel (protoStructField $e) }} = append({{ camel (protoStructField $e) }}, item)
+    var {{ camel (protoStructField $e false) }} []{{ edgeProtoType $e false }}
+    for _, item := range b.{{ bizEdgeName $e false }} {
+        {{ camel (protoStructField $e false) }} = append({{ camel (protoStructField $e false) }}, item)
     }
     {{- end }}
 {{- end }}
 {{- end }}
 {{- range $e := .Edges }}
-{{- if isProtoExclude $e }}{{ continue }}{{ end }}
-{{- if isProtoMessage $e }}
+{{- if isProtoExclude $e false }}{{ continue }}{{ end }}
+{{- if isProtoMessage $e false }}
 	{{- if $e.Unique }}
-	{{ camel $e.Name }}, err := Biz{{ $e.Type.Name }}ToProto(b.{{ bizEdgeName $e }})
+	{{ camel $e.Name }}, err := Biz{{ $e.Type.Name }}ToProto(b.{{ bizEdgeName $e false }})
 	if err != nil {
 		return nil, err
 	}
 	{{- else }}
 	var {{ camel $e.Name }} []*pb.{{ $e.Type.Name }}
-	for _, item := range b.{{ bizEdgeName $e }} {
+	for _, item := range b.{{ bizEdgeName $e false }} {
 		v, err := Biz{{ $e.Type.Name }}ToProto(item)
 		if err != nil {
 			return nil, err
@@ -61,7 +61,7 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
 		{{ protoGoName .ID }}: {{ convertToProto .ID $node.Name }},
 {{- end }}
 {{- range $f := .Fields }}
-{{- if isSensitive $f }}{{ continue }}{{ end }}
+{{- if isFieldProtoExclude $f false }}{{ continue }}{{ end }}
 {{- if isSlice $f }}
 	{{- if isSliceTypeMatch $f }}
 		{{ protoGoName $f }}: b.{{ bizFieldName $f }},
@@ -72,17 +72,17 @@ func Biz{{ .Name }}ToProto(b *biz.{{ .Name }}) (*pb.{{ .Name }}, error) {
 		{{ protoGoName $f }}: {{ convertToProto $f $node.Name }},
 {{- end }}
 {{- end }}
-{{- range $e := .Edges }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e) }}
+{{- range $e := .Edges }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e false) }}
 	{{- /* ProtoID */ -}}
     {{- if not $e.Unique }}
-        {{ protoStructField $e }}: {{ camel (protoStructField $e) }},
+        {{ protoStructField $e false }}: {{ camel (protoStructField $e false) }},
     {{- else }}
-        {{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) }}
-            {{ protoStructField $e }}: {{ edgeConvertToProto $e }},
+        {{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e false))) }}
+            {{ protoStructField $e false }}: {{ edgeConvertToProto $e }},
         {{- end }}
     {{- end }}
 {{- end }}{{- end }}
-{{- range $e := .Edges }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if isProtoMessage $e }}
+{{- range $e := .Edges }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if isProtoMessage $e false }}
 	{{- if $e.Unique }}
 		{{ $e.Name | pascal }}: {{ camel $e.Name }},
 	{{- else }}
@@ -97,58 +97,45 @@ func Proto{{ .Name }}ToBiz(p *pb.{{ .Name }}) (*biz.{{ .Name }}, error) {
 		return nil, nil
 	}
 {{- range $f := .Fields }}
-{{- if isSensitive $f }}{{ continue }}{{ end }}
+{{- if isFieldProtoExclude $f false }}{{ continue }}{{ end }}
 {{- if requiresErrorCheck $f "ProtoToBiz" }}
 	{{ convertFromProtoSetup $f $node.Name }}
 {{- end }}
 {{- end }}
-{{- range $f := .Fields }}
-{{- if isSensitive $f }}{{ continue }}{{ end }}
-{{- if requiresErrorCheck $f "ProtoToBiz" }}
-	{{ convertFromProtoSetup $f $node.Name }}
-{{- end }}
-{{- end }}
-{{- range $f := .Fields }}
-{{- if isSensitive $f }}{{ continue }}{{ end }}
-{{- if and (isSlice $f) (not (isSliceTypeMatch $f)) }}
-	var {{ camel (protoGoName $f) }} []{{ getSliceElementType $f }}
-	for _, item := range p.{{ protoGoName $f }} {
-        {{- if eq (getSliceElementType $f) "time.Time" }}
-             {{ camel (protoGoName $f) }} = append({{ camel (protoGoName $f) }}, item.AsTime())
-        {{- else }}
-		    {{ camel (protoGoName $f) }} = append({{ camel (protoGoName $f) }}, {{ getSliceElementType $f }}(item))
-        {{- end }}
-	}
-{{- end }}
-{{- end }}
-{{- range $e := .Edges }}{{ if isBizExclude $e }}{{ continue }}{{ end }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e) }}
-{{- if and (isBizIDOnly $e) (not $e.Unique) }}
+{{- range $e := .Edges }}{{ if isBizExclude $e false }}{{ continue }}{{ end }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e false) }}
+{{- if and (isBizIDOnly $e false) (not $e.Unique) }}
 	{{ $targetType := edgeIDType $e }}{{ if eq $targetType "uuid.UUID" }}{{ $targetType = "string" }}{{ end }}
-	{{ $protoType := edgeProtoType $e }}
-    var {{ camel (protoStructField $e) }} []{{ $targetType }}
-    for _, item := range p.{{ protoStructField $e }} {
+	{{ $protoType := edgeProtoType $e false }}
+    var {{ camel (protoStructField $e false) }} []{{ $targetType }}
+    for _, item := range p.{{ protoStructField $e false }} {
 		{{- if eq $targetType $protoType }}
-        {{ camel (protoStructField $e) }} = append({{ camel (protoStructField $e) }}, item)
+        {{ camel (protoStructField $e false) }} = append({{ camel (protoStructField $e false) }}, item)
 		{{- else }}
-        {{ camel (protoStructField $e) }} = append({{ camel (protoStructField $e) }}, {{ $targetType }}(item))
+        {{ camel (protoStructField $e false) }} = append({{ camel (protoStructField $e false) }}, {{ $targetType }}(item))
 		{{- end }}
     }
-    {{- end }}
+{{- end }}
+{{- if and (isBizPointer $e false) (not (isBizIDOnly $e false)) (not $e.Unique) }}
+    var {{ camel (bizEdgeName $e false) }} []*biz.{{ $e.Type.Name }}
+    for _, item := range p.{{ protoStructField $e false }} {
+        {{ camel (bizEdgeName $e false) }} = append({{ camel (bizEdgeName $e false) }}, {{ edgeConvertFromProto $e false }})
+    }
+{{- end }}
 {{- end }}{{- end }}
-{{- range $e := .Edges }}{{ if isBizExclude $e }}{{ continue }}{{ end }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if isProtoMessage $e }}
+{{- range $e := .Edges }}{{ if isBizExclude $e false }}{{ continue }}{{ end }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if isProtoMessage $e false }}
 	{{- if $e.Unique }}
-	{{ camel (bizEdgeName $e) }}, err := Proto{{ $e.Type.Name }}ToBiz(p.{{ protoStructField $e }})
+	{{ camel (bizEdgeName $e false) }}, err := Proto{{ $e.Type.Name }}ToBiz(p.{{ protoStructField $e false }})
 	if err != nil {
 		return nil, err
 	}
 	{{- else }}
-	var {{ camel (bizEdgeName $e) }} []*biz.{{ $e.Type.Name }}
-	for _, item := range p.{{ protoStructField $e }} {
+	var {{ camel (bizEdgeName $e false) }} []*biz.{{ $e.Type.Name }}
+	for _, item := range p.{{ protoStructField $e false }} {
 		v, err := Proto{{ $e.Type.Name }}ToBiz(item)
 		if err != nil {
 			return nil, err
 		}
-		{{ camel (bizEdgeName $e) }} = append({{ camel (bizEdgeName $e) }}, v)
+		{{ camel (bizEdgeName $e false) }} = append({{ camel (bizEdgeName $e false) }}, v)
 	}
 	{{- end }}
 {{- end }}{{- end }}
@@ -158,7 +145,7 @@ func Proto{{ .Name }}ToBiz(p *pb.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{ bizFieldName .ID }}: {{ convertFromProto .ID $node.Name }},
 {{- end }}
 {{- range $f := .Fields }}
-{{- if isSensitive $f }}{{ continue }}{{ end }}
+{{- if isFieldProtoExclude $f false }}{{ continue }}{{ end }}
 {{- if isSlice $f }}
 	{{- if isSliceTypeMatch $f }}
 			{{ bizFieldName $f }}: p.{{ protoGoName $f }},
@@ -169,26 +156,113 @@ func Proto{{ .Name }}ToBiz(p *pb.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{ bizFieldName $f }}: {{ convertFromProtoUsage $f $node.Name }},
 {{- end }}
 {{- end }}
-{{- range $e := .Edges }}{{ if isBizExclude $e }}{{ continue }}{{ end }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}
-{{- /* ID Field (always first if mixed?) No used for ToBiz struct init usually unless explicit */ -}}
-{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e))) (not (isProtoMessage $e)) }}
-			{{ edgeField $e }}: {{ edgeConvertFromProto $e }}, 
+{{- range $e := .Edges }}{{ if isBizExclude $e false }}{{ continue }}{{ end }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}
+{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e false))) (not (isProtoMessage $e false)) }}
+			{{ edgeField $e false }}: {{ edgeConvertFromProto $e false }}, 
 {{- end }}
 {{- end }}
-{{- range $e := .Edges }}{{ if isBizExclude $e }}{{ continue }}{{ end }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e) }}
-{{- if and (isBizIDOnly $e) (not $e.Unique) }}
-			{{ bizEdgeName $e }}: {{ camel (protoStructField $e) }},
+{{- range $e := .Edges }}{{ if isBizExclude $e false }}{{ continue }}{{ end }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e false) }}
+{{- if and (isBizIDOnly $e false) (not $e.Unique) }}
+			{{ bizEdgeName $e false }}: {{ camel (protoStructField $e false) }},
+{{- end }}
+{{- if and (isBizPointer $e false) (not (isBizIDOnly $e false)) (not $e.Unique) }}
+			{{ bizEdgeName $e false }}: {{ camel (bizEdgeName $e false) }},
 {{- end }}
 {{- end }}{{- end }}
-{{- range $e := .Edges }}{{ if isBizExclude $e }}{{ continue }}{{ end }}{{ if isProtoExclude $e }}{{ continue }}{{ end }}{{ if isProtoMessage $e }}
-{{- /* Relationship Field */ -}}
-	{{- if isProtoMessage $e }}
+{{- range $e := .Edges }}{{ if isBizExclude $e false }}{{ continue }}{{ end }}{{ if isProtoExclude $e false }}{{ continue }}{{ end }}{{ if isProtoMessage $e false }}
 		{{- if $e.Unique }}
-			{{ bizEdgeName $e }}: {{ camel (bizEdgeName $e) }},
+			{{ bizEdgeName $e false }}: {{ camel (bizEdgeName $e false) }},
 		{{- else }}
-			{{ bizEdgeName $e }}: {{ camel (bizEdgeName $e) }},
+			{{ bizEdgeName $e false }}: {{ camel (bizEdgeName $e false) }},
 		{{- end }}
+{{- end }}{{- end }}
+		},
+	}, nil
+}
+
+func Proto{{ .Name }}InputToBiz(p *pb.{{ .Name }}Input) (*biz.{{ .Name }}, error) {
+	if p == nil {
+		return nil, nil
+	}
+{{- range $f := .Fields }}
+{{- if isFieldProtoExclude $f true }}{{ continue }}{{ end }}
+{{- if requiresErrorCheck $f "ProtoToBiz" }}
+	{{ convertFromProtoSetup $f $node.Name }}
+{{- end }}
+{{- end }}
+{{- range $e := .Edges }}{{ if isBizExclude $e true }}{{ continue }}{{ end }}{{ if isProtoExclude $e true }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e true) }}
+{{- if and (isBizIDOnly $e true) (not $e.Unique) }}
+	{{ $targetType := edgeIDType $e }}{{ if eq $targetType "uuid.UUID" }}{{ $targetType = "string" }}{{ end }}
+	{{ $protoType := edgeProtoType $e true }}
+    var {{ camel (protoStructField $e true) }} []{{ $targetType }}
+    for _, item := range p.{{ protoStructField $e true }} {
+		{{- if eq $targetType $protoType }}
+        {{ camel (protoStructField $e true) }} = append({{ camel (protoStructField $e true) }}, item)
+		{{- else }}
+        {{ camel (protoStructField $e true) }} = append({{ camel (protoStructField $e true) }}, {{ $targetType }}(item))
+		{{- end }}
+    }
+{{- end }}
+{{- if and (isBizPointer $e true) (not (isBizIDOnly $e true)) (not $e.Unique) }}
+    var {{ camel (bizEdgeName $e true) }} []*biz.{{ $e.Type.Name }}
+    for _, item := range p.{{ protoStructField $e true }} {
+        {{ camel (bizEdgeName $e true) }} = append({{ camel (bizEdgeName $e true) }}, {{ edgeConvertFromProto $e true }})
+    }
+{{- end }}
+{{- end }}{{- end }}
+{{- range $e := .Edges }}{{ if isBizExclude $e true }}{{ continue }}{{ end }}{{ if isProtoExclude $e true }}{{ continue }}{{ end }}{{ if isProtoMessage $e true }}
+	{{- if $e.Unique }}
+	{{ camel (bizEdgeName $e true) }}, err := Proto{{ $e.Type.Name }}InputToBiz(p.{{ protoStructField $e true }})
+	if err != nil {
+		return nil, err
+	}
+	{{- else }}
+	var {{ camel (bizEdgeName $e true) }} []*biz.{{ $e.Type.Name }}
+	for _, item := range p.{{ protoStructField $e true }} {
+		v, err := Proto{{ $e.Type.Name }}InputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		{{ camel (bizEdgeName $e true) }} = append({{ camel (bizEdgeName $e true) }}, v)
+	}
 	{{- end }}
+{{- end }}{{- end }}
+	return &biz.{{ .Name }}{
+		{{ .Name }}Base: biz.{{ .Name }}Base{
+{{- if .ID }}
+			{{ bizFieldName .ID }}: {{ convertFromProto .ID $node.Name }},
+{{- end }}
+{{- range $f := .Fields }}
+{{- if isFieldProtoExclude $f true }}{{ continue }}{{ end }}
+{{- if isSlice $f }}
+	{{- if isSliceTypeMatch $f }}
+			{{ bizFieldName $f }}: p.{{ protoGoName $f }},
+	{{- else }}
+			{{ bizFieldName $f }}: {{ camel (protoGoName $f) }},
+	{{- end }}
+{{- else }}
+			{{ bizFieldName $f }}: {{ convertFromProtoUsage $f $node.Name }},
+{{- end }}
+{{- end }}
+{{- range $e := .Edges }}{{ if isBizExclude $e true }}{{ continue }}{{ end }}{{ if isProtoExclude $e true }}{{ continue }}{{ end }}
+{{- if and (edgeHasFK $e) (not (hasField $node.Fields (edgeField $e true))) (not (isProtoMessage $e true)) }}
+			{{ edgeField $e true }}: {{ edgeConvertFromProto $e true }}, 
+{{- end }}
+{{- end }}
+{{- range $e := .Edges }}{{ if isBizExclude $e true }}{{ continue }}{{ end }}{{ if isProtoExclude $e true }}{{ continue }}{{ end }}{{ if not (isProtoMessage $e true) }}
+{{- if and (isBizIDOnly $e true) (not $e.Unique) }}
+			{{ bizEdgeName $e true }}: {{ camel (protoStructField $e true) }},
+{{- end }}
+{{- if and (isBizPointer $e true) (not (isBizIDOnly $e true)) (not $e.Unique) }}
+			{{ bizEdgeName $e true }}: {{ camel (bizEdgeName $e true) }},
+{{- end }}
+{{- end }}{{- end }}
+{{- range $e := .Edges }}{{ if isBizExclude $e true }}{{ continue }}{{ end }}{{ if isProtoExclude $e true }}{{ continue }}{{ end }}{{ if isProtoMessage $e true }}
+		{{- if $e.Unique }}
+			{{ bizEdgeName $e true }}: {{ camel (bizEdgeName $e true) }},
+		{{- else }}
+			{{ bizEdgeName $e true }}: {{ camel (bizEdgeName $e true) }},
+		{{- end }}
 {{- end }}{{- end }}
 		},
 	}, nil

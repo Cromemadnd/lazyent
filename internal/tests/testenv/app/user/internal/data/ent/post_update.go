@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/group"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/post"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/predicate"
 	"github.com/Cromemadnd/lazyent/internal/tests/testenv/app/user/internal/data/ent/user"
@@ -64,6 +65,106 @@ func (_u *PostUpdate) SetNillableContent(v *string) *PostUpdate {
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *PostUpdate) SetSlug(v string) *PostUpdate {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableSlug(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (_u *PostUpdate) ClearSlug() *PostUpdate {
+	_u.mutation.ClearSlug()
+	return _u
+}
+
+// SetInternalCode sets the "internal_code" field.
+func (_u *PostUpdate) SetInternalCode(v string) *PostUpdate {
+	_u.mutation.SetInternalCode(v)
+	return _u
+}
+
+// SetNillableInternalCode sets the "internal_code" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableInternalCode(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetInternalCode(*v)
+	}
+	return _u
+}
+
+// ClearInternalCode clears the value of the "internal_code" field.
+func (_u *PostUpdate) ClearInternalCode() *PostUpdate {
+	_u.mutation.ClearInternalCode()
+	return _u
+}
+
+// SetManagementKey sets the "management_key" field.
+func (_u *PostUpdate) SetManagementKey(v string) *PostUpdate {
+	_u.mutation.SetManagementKey(v)
+	return _u
+}
+
+// SetNillableManagementKey sets the "management_key" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableManagementKey(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetManagementKey(*v)
+	}
+	return _u
+}
+
+// ClearManagementKey clears the value of the "management_key" field.
+func (_u *PostUpdate) ClearManagementKey() *PostUpdate {
+	_u.mutation.ClearManagementKey()
+	return _u
+}
+
+// SetSummary sets the "summary" field.
+func (_u *PostUpdate) SetSummary(v string) *PostUpdate {
+	_u.mutation.SetSummary(v)
+	return _u
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableSummary(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetSummary(*v)
+	}
+	return _u
+}
+
+// ClearSummary clears the value of the "summary" field.
+func (_u *PostUpdate) ClearSummary() *PostUpdate {
+	_u.mutation.ClearSummary()
+	return _u
+}
+
+// SetExtraData sets the "extra_data" field.
+func (_u *PostUpdate) SetExtraData(v string) *PostUpdate {
+	_u.mutation.SetExtraData(v)
+	return _u
+}
+
+// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableExtraData(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetExtraData(*v)
+	}
+	return _u
+}
+
+// ClearExtraData clears the value of the "extra_data" field.
+func (_u *PostUpdate) ClearExtraData() *PostUpdate {
+	_u.mutation.ClearExtraData()
+	return _u
+}
+
 // SetAuthorID sets the "author" edge to the User entity by ID.
 func (_u *PostUpdate) SetAuthorID(id uuid.UUID) *PostUpdate {
 	_u.mutation.SetAuthorID(id)
@@ -75,6 +176,66 @@ func (_u *PostUpdate) SetAuthor(v *User) *PostUpdate {
 	return _u.SetAuthorID(v.ID)
 }
 
+// AddCoAuthorIDs adds the "co_authors" edge to the User entity by IDs.
+func (_u *PostUpdate) AddCoAuthorIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.AddCoAuthorIDs(ids...)
+	return _u
+}
+
+// AddCoAuthors adds the "co_authors" edges to the User entity.
+func (_u *PostUpdate) AddCoAuthors(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorIDs(ids...)
+}
+
+// AddRelevantGroupIDs adds the "relevant_groups" edge to the Group entity by IDs.
+func (_u *PostUpdate) AddRelevantGroupIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.AddRelevantGroupIDs(ids...)
+	return _u
+}
+
+// AddRelevantGroups adds the "relevant_groups" edges to the Group entity.
+func (_u *PostUpdate) AddRelevantGroups(v ...*Group) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelevantGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_u *PostUpdate) AddFollowerIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.AddFollowerIDs(ids...)
+	return _u
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_u *PostUpdate) AddFollowers(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_u *PostUpdate) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_u *PostUpdate) AddCoAuthorsArchive(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorsArchiveIDs(ids...)
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdate) Mutation() *PostMutation {
 	return _u.mutation
@@ -84,6 +245,90 @@ func (_u *PostUpdate) Mutation() *PostMutation {
 func (_u *PostUpdate) ClearAuthor() *PostUpdate {
 	_u.mutation.ClearAuthor()
 	return _u
+}
+
+// ClearCoAuthors clears all "co_authors" edges to the User entity.
+func (_u *PostUpdate) ClearCoAuthors() *PostUpdate {
+	_u.mutation.ClearCoAuthors()
+	return _u
+}
+
+// RemoveCoAuthorIDs removes the "co_authors" edge to User entities by IDs.
+func (_u *PostUpdate) RemoveCoAuthorIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.RemoveCoAuthorIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthors removes "co_authors" edges to User entities.
+func (_u *PostUpdate) RemoveCoAuthors(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorIDs(ids...)
+}
+
+// ClearRelevantGroups clears all "relevant_groups" edges to the Group entity.
+func (_u *PostUpdate) ClearRelevantGroups() *PostUpdate {
+	_u.mutation.ClearRelevantGroups()
+	return _u
+}
+
+// RemoveRelevantGroupIDs removes the "relevant_groups" edge to Group entities by IDs.
+func (_u *PostUpdate) RemoveRelevantGroupIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.RemoveRelevantGroupIDs(ids...)
+	return _u
+}
+
+// RemoveRelevantGroups removes "relevant_groups" edges to Group entities.
+func (_u *PostUpdate) RemoveRelevantGroups(v ...*Group) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelevantGroupIDs(ids...)
+}
+
+// ClearFollowers clears all "followers" edges to the User entity.
+func (_u *PostUpdate) ClearFollowers() *PostUpdate {
+	_u.mutation.ClearFollowers()
+	return _u
+}
+
+// RemoveFollowerIDs removes the "followers" edge to User entities by IDs.
+func (_u *PostUpdate) RemoveFollowerIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.RemoveFollowerIDs(ids...)
+	return _u
+}
+
+// RemoveFollowers removes "followers" edges to User entities.
+func (_u *PostUpdate) RemoveFollowers(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFollowerIDs(ids...)
+}
+
+// ClearCoAuthorsArchive clears all "co_authors_archive" edges to the User entity.
+func (_u *PostUpdate) ClearCoAuthorsArchive() *PostUpdate {
+	_u.mutation.ClearCoAuthorsArchive()
+	return _u
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to User entities by IDs.
+func (_u *PostUpdate) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) *PostUpdate {
+	_u.mutation.RemoveCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthorsArchive removes "co_authors_archive" edges to User entities.
+func (_u *PostUpdate) RemoveCoAuthorsArchive(v ...*User) *PostUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorsArchiveIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -156,6 +401,36 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(post.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(post.FieldSlug, field.TypeString)
+	}
+	if value, ok := _u.mutation.InternalCode(); ok {
+		_spec.SetField(post.FieldInternalCode, field.TypeString, value)
+	}
+	if _u.mutation.InternalCodeCleared() {
+		_spec.ClearField(post.FieldInternalCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.ManagementKey(); ok {
+		_spec.SetField(post.FieldManagementKey, field.TypeString, value)
+	}
+	if _u.mutation.ManagementKeyCleared() {
+		_spec.ClearField(post.FieldManagementKey, field.TypeString)
+	}
+	if value, ok := _u.mutation.Summary(); ok {
+		_spec.SetField(post.FieldSummary, field.TypeString, value)
+	}
+	if _u.mutation.SummaryCleared() {
+		_spec.ClearField(post.FieldSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExtraData(); ok {
+		_spec.SetField(post.FieldExtraData, field.TypeString, value)
+	}
+	if _u.mutation.ExtraDataCleared() {
+		_spec.ClearField(post.FieldExtraData, field.TypeString)
+	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -175,6 +450,186 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Inverse: true,
 			Table:   post.AuthorTable,
 			Columns: []string{post.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelevantGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelevantGroupsIDs(); len(nodes) > 0 && !_u.mutation.RelevantGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelevantGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !_u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsArchiveIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -239,6 +694,106 @@ func (_u *PostUpdateOne) SetNillableContent(v *string) *PostUpdateOne {
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *PostUpdateOne) SetSlug(v string) *PostUpdateOne {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableSlug(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (_u *PostUpdateOne) ClearSlug() *PostUpdateOne {
+	_u.mutation.ClearSlug()
+	return _u
+}
+
+// SetInternalCode sets the "internal_code" field.
+func (_u *PostUpdateOne) SetInternalCode(v string) *PostUpdateOne {
+	_u.mutation.SetInternalCode(v)
+	return _u
+}
+
+// SetNillableInternalCode sets the "internal_code" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableInternalCode(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetInternalCode(*v)
+	}
+	return _u
+}
+
+// ClearInternalCode clears the value of the "internal_code" field.
+func (_u *PostUpdateOne) ClearInternalCode() *PostUpdateOne {
+	_u.mutation.ClearInternalCode()
+	return _u
+}
+
+// SetManagementKey sets the "management_key" field.
+func (_u *PostUpdateOne) SetManagementKey(v string) *PostUpdateOne {
+	_u.mutation.SetManagementKey(v)
+	return _u
+}
+
+// SetNillableManagementKey sets the "management_key" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableManagementKey(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetManagementKey(*v)
+	}
+	return _u
+}
+
+// ClearManagementKey clears the value of the "management_key" field.
+func (_u *PostUpdateOne) ClearManagementKey() *PostUpdateOne {
+	_u.mutation.ClearManagementKey()
+	return _u
+}
+
+// SetSummary sets the "summary" field.
+func (_u *PostUpdateOne) SetSummary(v string) *PostUpdateOne {
+	_u.mutation.SetSummary(v)
+	return _u
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableSummary(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetSummary(*v)
+	}
+	return _u
+}
+
+// ClearSummary clears the value of the "summary" field.
+func (_u *PostUpdateOne) ClearSummary() *PostUpdateOne {
+	_u.mutation.ClearSummary()
+	return _u
+}
+
+// SetExtraData sets the "extra_data" field.
+func (_u *PostUpdateOne) SetExtraData(v string) *PostUpdateOne {
+	_u.mutation.SetExtraData(v)
+	return _u
+}
+
+// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableExtraData(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetExtraData(*v)
+	}
+	return _u
+}
+
+// ClearExtraData clears the value of the "extra_data" field.
+func (_u *PostUpdateOne) ClearExtraData() *PostUpdateOne {
+	_u.mutation.ClearExtraData()
+	return _u
+}
+
 // SetAuthorID sets the "author" edge to the User entity by ID.
 func (_u *PostUpdateOne) SetAuthorID(id uuid.UUID) *PostUpdateOne {
 	_u.mutation.SetAuthorID(id)
@@ -250,6 +805,66 @@ func (_u *PostUpdateOne) SetAuthor(v *User) *PostUpdateOne {
 	return _u.SetAuthorID(v.ID)
 }
 
+// AddCoAuthorIDs adds the "co_authors" edge to the User entity by IDs.
+func (_u *PostUpdateOne) AddCoAuthorIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.AddCoAuthorIDs(ids...)
+	return _u
+}
+
+// AddCoAuthors adds the "co_authors" edges to the User entity.
+func (_u *PostUpdateOne) AddCoAuthors(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorIDs(ids...)
+}
+
+// AddRelevantGroupIDs adds the "relevant_groups" edge to the Group entity by IDs.
+func (_u *PostUpdateOne) AddRelevantGroupIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.AddRelevantGroupIDs(ids...)
+	return _u
+}
+
+// AddRelevantGroups adds the "relevant_groups" edges to the Group entity.
+func (_u *PostUpdateOne) AddRelevantGroups(v ...*Group) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelevantGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_u *PostUpdateOne) AddFollowerIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.AddFollowerIDs(ids...)
+	return _u
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_u *PostUpdateOne) AddFollowers(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_u *PostUpdateOne) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_u *PostUpdateOne) AddCoAuthorsArchive(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCoAuthorsArchiveIDs(ids...)
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdateOne) Mutation() *PostMutation {
 	return _u.mutation
@@ -259,6 +874,90 @@ func (_u *PostUpdateOne) Mutation() *PostMutation {
 func (_u *PostUpdateOne) ClearAuthor() *PostUpdateOne {
 	_u.mutation.ClearAuthor()
 	return _u
+}
+
+// ClearCoAuthors clears all "co_authors" edges to the User entity.
+func (_u *PostUpdateOne) ClearCoAuthors() *PostUpdateOne {
+	_u.mutation.ClearCoAuthors()
+	return _u
+}
+
+// RemoveCoAuthorIDs removes the "co_authors" edge to User entities by IDs.
+func (_u *PostUpdateOne) RemoveCoAuthorIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.RemoveCoAuthorIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthors removes "co_authors" edges to User entities.
+func (_u *PostUpdateOne) RemoveCoAuthors(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorIDs(ids...)
+}
+
+// ClearRelevantGroups clears all "relevant_groups" edges to the Group entity.
+func (_u *PostUpdateOne) ClearRelevantGroups() *PostUpdateOne {
+	_u.mutation.ClearRelevantGroups()
+	return _u
+}
+
+// RemoveRelevantGroupIDs removes the "relevant_groups" edge to Group entities by IDs.
+func (_u *PostUpdateOne) RemoveRelevantGroupIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.RemoveRelevantGroupIDs(ids...)
+	return _u
+}
+
+// RemoveRelevantGroups removes "relevant_groups" edges to Group entities.
+func (_u *PostUpdateOne) RemoveRelevantGroups(v ...*Group) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelevantGroupIDs(ids...)
+}
+
+// ClearFollowers clears all "followers" edges to the User entity.
+func (_u *PostUpdateOne) ClearFollowers() *PostUpdateOne {
+	_u.mutation.ClearFollowers()
+	return _u
+}
+
+// RemoveFollowerIDs removes the "followers" edge to User entities by IDs.
+func (_u *PostUpdateOne) RemoveFollowerIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.RemoveFollowerIDs(ids...)
+	return _u
+}
+
+// RemoveFollowers removes "followers" edges to User entities.
+func (_u *PostUpdateOne) RemoveFollowers(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFollowerIDs(ids...)
+}
+
+// ClearCoAuthorsArchive clears all "co_authors_archive" edges to the User entity.
+func (_u *PostUpdateOne) ClearCoAuthorsArchive() *PostUpdateOne {
+	_u.mutation.ClearCoAuthorsArchive()
+	return _u
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to User entities by IDs.
+func (_u *PostUpdateOne) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) *PostUpdateOne {
+	_u.mutation.RemoveCoAuthorsArchiveIDs(ids...)
+	return _u
+}
+
+// RemoveCoAuthorsArchive removes "co_authors_archive" edges to User entities.
+func (_u *PostUpdateOne) RemoveCoAuthorsArchive(v ...*User) *PostUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCoAuthorsArchiveIDs(ids...)
 }
 
 // Where appends a list predicates to the PostUpdate builder.
@@ -361,6 +1060,36 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(post.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(post.FieldSlug, field.TypeString)
+	}
+	if value, ok := _u.mutation.InternalCode(); ok {
+		_spec.SetField(post.FieldInternalCode, field.TypeString, value)
+	}
+	if _u.mutation.InternalCodeCleared() {
+		_spec.ClearField(post.FieldInternalCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.ManagementKey(); ok {
+		_spec.SetField(post.FieldManagementKey, field.TypeString, value)
+	}
+	if _u.mutation.ManagementKeyCleared() {
+		_spec.ClearField(post.FieldManagementKey, field.TypeString)
+	}
+	if value, ok := _u.mutation.Summary(); ok {
+		_spec.SetField(post.FieldSummary, field.TypeString, value)
+	}
+	if _u.mutation.SummaryCleared() {
+		_spec.ClearField(post.FieldSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExtraData(); ok {
+		_spec.SetField(post.FieldExtraData, field.TypeString, value)
+	}
+	if _u.mutation.ExtraDataCleared() {
+		_spec.ClearField(post.FieldExtraData, field.TypeString)
+	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -380,6 +1109,186 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 			Inverse: true,
 			Table:   post.AuthorTable,
 			Columns: []string{post.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsTable,
+			Columns: []string{post.CoAuthorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelevantGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelevantGroupsIDs(); len(nodes) > 0 && !_u.mutation.RelevantGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelevantGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.RelevantGroupsTable,
+			Columns: []string{post.RelevantGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !_u.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.FollowersTable,
+			Columns: []string{post.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCoAuthorsArchiveIDs(); len(nodes) > 0 && !_u.mutation.CoAuthorsArchiveCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CoAuthorsArchiveTable,
+			Columns: []string{post.CoAuthorsArchiveColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),

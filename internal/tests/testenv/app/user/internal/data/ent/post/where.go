@@ -76,6 +76,31 @@ func Content(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldContent, v))
 }
 
+// Slug applies equality check predicate on the "slug" field. It's identical to SlugEQ.
+func Slug(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSlug, v))
+}
+
+// InternalCode applies equality check predicate on the "internal_code" field. It's identical to InternalCodeEQ.
+func InternalCode(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldInternalCode, v))
+}
+
+// ManagementKey applies equality check predicate on the "management_key" field. It's identical to ManagementKeyEQ.
+func ManagementKey(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldManagementKey, v))
+}
+
+// Summary applies equality check predicate on the "summary" field. It's identical to SummaryEQ.
+func Summary(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSummary, v))
+}
+
+// ExtraData applies equality check predicate on the "extra_data" field. It's identical to ExtraDataEQ.
+func ExtraData(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldExtraData, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCreatedAt, v))
@@ -286,6 +311,381 @@ func ContentContainsFold(v string) predicate.Post {
 	return predicate.Post(sql.FieldContainsFold(FieldContent, v))
 }
 
+// SlugEQ applies the EQ predicate on the "slug" field.
+func SlugEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSlug, v))
+}
+
+// SlugNEQ applies the NEQ predicate on the "slug" field.
+func SlugNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldSlug, v))
+}
+
+// SlugIn applies the In predicate on the "slug" field.
+func SlugIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldSlug, vs...))
+}
+
+// SlugNotIn applies the NotIn predicate on the "slug" field.
+func SlugNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldSlug, vs...))
+}
+
+// SlugGT applies the GT predicate on the "slug" field.
+func SlugGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldSlug, v))
+}
+
+// SlugGTE applies the GTE predicate on the "slug" field.
+func SlugGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldSlug, v))
+}
+
+// SlugLT applies the LT predicate on the "slug" field.
+func SlugLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldSlug, v))
+}
+
+// SlugLTE applies the LTE predicate on the "slug" field.
+func SlugLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldSlug, v))
+}
+
+// SlugContains applies the Contains predicate on the "slug" field.
+func SlugContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldSlug, v))
+}
+
+// SlugHasPrefix applies the HasPrefix predicate on the "slug" field.
+func SlugHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldSlug, v))
+}
+
+// SlugHasSuffix applies the HasSuffix predicate on the "slug" field.
+func SlugHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldSlug, v))
+}
+
+// SlugIsNil applies the IsNil predicate on the "slug" field.
+func SlugIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldSlug))
+}
+
+// SlugNotNil applies the NotNil predicate on the "slug" field.
+func SlugNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldSlug))
+}
+
+// SlugEqualFold applies the EqualFold predicate on the "slug" field.
+func SlugEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldSlug, v))
+}
+
+// SlugContainsFold applies the ContainsFold predicate on the "slug" field.
+func SlugContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldSlug, v))
+}
+
+// InternalCodeEQ applies the EQ predicate on the "internal_code" field.
+func InternalCodeEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldInternalCode, v))
+}
+
+// InternalCodeNEQ applies the NEQ predicate on the "internal_code" field.
+func InternalCodeNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldInternalCode, v))
+}
+
+// InternalCodeIn applies the In predicate on the "internal_code" field.
+func InternalCodeIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldInternalCode, vs...))
+}
+
+// InternalCodeNotIn applies the NotIn predicate on the "internal_code" field.
+func InternalCodeNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldInternalCode, vs...))
+}
+
+// InternalCodeGT applies the GT predicate on the "internal_code" field.
+func InternalCodeGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldInternalCode, v))
+}
+
+// InternalCodeGTE applies the GTE predicate on the "internal_code" field.
+func InternalCodeGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldInternalCode, v))
+}
+
+// InternalCodeLT applies the LT predicate on the "internal_code" field.
+func InternalCodeLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldInternalCode, v))
+}
+
+// InternalCodeLTE applies the LTE predicate on the "internal_code" field.
+func InternalCodeLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldInternalCode, v))
+}
+
+// InternalCodeContains applies the Contains predicate on the "internal_code" field.
+func InternalCodeContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldInternalCode, v))
+}
+
+// InternalCodeHasPrefix applies the HasPrefix predicate on the "internal_code" field.
+func InternalCodeHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldInternalCode, v))
+}
+
+// InternalCodeHasSuffix applies the HasSuffix predicate on the "internal_code" field.
+func InternalCodeHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldInternalCode, v))
+}
+
+// InternalCodeIsNil applies the IsNil predicate on the "internal_code" field.
+func InternalCodeIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldInternalCode))
+}
+
+// InternalCodeNotNil applies the NotNil predicate on the "internal_code" field.
+func InternalCodeNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldInternalCode))
+}
+
+// InternalCodeEqualFold applies the EqualFold predicate on the "internal_code" field.
+func InternalCodeEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldInternalCode, v))
+}
+
+// InternalCodeContainsFold applies the ContainsFold predicate on the "internal_code" field.
+func InternalCodeContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldInternalCode, v))
+}
+
+// ManagementKeyEQ applies the EQ predicate on the "management_key" field.
+func ManagementKeyEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldManagementKey, v))
+}
+
+// ManagementKeyNEQ applies the NEQ predicate on the "management_key" field.
+func ManagementKeyNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldManagementKey, v))
+}
+
+// ManagementKeyIn applies the In predicate on the "management_key" field.
+func ManagementKeyIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldManagementKey, vs...))
+}
+
+// ManagementKeyNotIn applies the NotIn predicate on the "management_key" field.
+func ManagementKeyNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldManagementKey, vs...))
+}
+
+// ManagementKeyGT applies the GT predicate on the "management_key" field.
+func ManagementKeyGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldManagementKey, v))
+}
+
+// ManagementKeyGTE applies the GTE predicate on the "management_key" field.
+func ManagementKeyGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldManagementKey, v))
+}
+
+// ManagementKeyLT applies the LT predicate on the "management_key" field.
+func ManagementKeyLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldManagementKey, v))
+}
+
+// ManagementKeyLTE applies the LTE predicate on the "management_key" field.
+func ManagementKeyLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldManagementKey, v))
+}
+
+// ManagementKeyContains applies the Contains predicate on the "management_key" field.
+func ManagementKeyContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldManagementKey, v))
+}
+
+// ManagementKeyHasPrefix applies the HasPrefix predicate on the "management_key" field.
+func ManagementKeyHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldManagementKey, v))
+}
+
+// ManagementKeyHasSuffix applies the HasSuffix predicate on the "management_key" field.
+func ManagementKeyHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldManagementKey, v))
+}
+
+// ManagementKeyIsNil applies the IsNil predicate on the "management_key" field.
+func ManagementKeyIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldManagementKey))
+}
+
+// ManagementKeyNotNil applies the NotNil predicate on the "management_key" field.
+func ManagementKeyNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldManagementKey))
+}
+
+// ManagementKeyEqualFold applies the EqualFold predicate on the "management_key" field.
+func ManagementKeyEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldManagementKey, v))
+}
+
+// ManagementKeyContainsFold applies the ContainsFold predicate on the "management_key" field.
+func ManagementKeyContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldManagementKey, v))
+}
+
+// SummaryEQ applies the EQ predicate on the "summary" field.
+func SummaryEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSummary, v))
+}
+
+// SummaryNEQ applies the NEQ predicate on the "summary" field.
+func SummaryNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldSummary, v))
+}
+
+// SummaryIn applies the In predicate on the "summary" field.
+func SummaryIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldSummary, vs...))
+}
+
+// SummaryNotIn applies the NotIn predicate on the "summary" field.
+func SummaryNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldSummary, vs...))
+}
+
+// SummaryGT applies the GT predicate on the "summary" field.
+func SummaryGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldSummary, v))
+}
+
+// SummaryGTE applies the GTE predicate on the "summary" field.
+func SummaryGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldSummary, v))
+}
+
+// SummaryLT applies the LT predicate on the "summary" field.
+func SummaryLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldSummary, v))
+}
+
+// SummaryLTE applies the LTE predicate on the "summary" field.
+func SummaryLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldSummary, v))
+}
+
+// SummaryContains applies the Contains predicate on the "summary" field.
+func SummaryContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldSummary, v))
+}
+
+// SummaryHasPrefix applies the HasPrefix predicate on the "summary" field.
+func SummaryHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldSummary, v))
+}
+
+// SummaryHasSuffix applies the HasSuffix predicate on the "summary" field.
+func SummaryHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldSummary, v))
+}
+
+// SummaryIsNil applies the IsNil predicate on the "summary" field.
+func SummaryIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldSummary))
+}
+
+// SummaryNotNil applies the NotNil predicate on the "summary" field.
+func SummaryNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldSummary))
+}
+
+// SummaryEqualFold applies the EqualFold predicate on the "summary" field.
+func SummaryEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldSummary, v))
+}
+
+// SummaryContainsFold applies the ContainsFold predicate on the "summary" field.
+func SummaryContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldSummary, v))
+}
+
+// ExtraDataEQ applies the EQ predicate on the "extra_data" field.
+func ExtraDataEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldExtraData, v))
+}
+
+// ExtraDataNEQ applies the NEQ predicate on the "extra_data" field.
+func ExtraDataNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldExtraData, v))
+}
+
+// ExtraDataIn applies the In predicate on the "extra_data" field.
+func ExtraDataIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldExtraData, vs...))
+}
+
+// ExtraDataNotIn applies the NotIn predicate on the "extra_data" field.
+func ExtraDataNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldExtraData, vs...))
+}
+
+// ExtraDataGT applies the GT predicate on the "extra_data" field.
+func ExtraDataGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldExtraData, v))
+}
+
+// ExtraDataGTE applies the GTE predicate on the "extra_data" field.
+func ExtraDataGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldExtraData, v))
+}
+
+// ExtraDataLT applies the LT predicate on the "extra_data" field.
+func ExtraDataLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldExtraData, v))
+}
+
+// ExtraDataLTE applies the LTE predicate on the "extra_data" field.
+func ExtraDataLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldExtraData, v))
+}
+
+// ExtraDataContains applies the Contains predicate on the "extra_data" field.
+func ExtraDataContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldExtraData, v))
+}
+
+// ExtraDataHasPrefix applies the HasPrefix predicate on the "extra_data" field.
+func ExtraDataHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldExtraData, v))
+}
+
+// ExtraDataHasSuffix applies the HasSuffix predicate on the "extra_data" field.
+func ExtraDataHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldExtraData, v))
+}
+
+// ExtraDataIsNil applies the IsNil predicate on the "extra_data" field.
+func ExtraDataIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldExtraData))
+}
+
+// ExtraDataNotNil applies the NotNil predicate on the "extra_data" field.
+func ExtraDataNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldExtraData))
+}
+
+// ExtraDataEqualFold applies the EqualFold predicate on the "extra_data" field.
+func ExtraDataEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldExtraData, v))
+}
+
+// ExtraDataContainsFold applies the ContainsFold predicate on the "extra_data" field.
+func ExtraDataContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldExtraData, v))
+}
+
 // HasAuthor applies the HasEdge predicate on the "author" edge.
 func HasAuthor() predicate.Post {
 	return predicate.Post(func(s *sql.Selector) {
@@ -301,6 +701,98 @@ func HasAuthor() predicate.Post {
 func HasAuthorWith(preds ...predicate.User) predicate.Post {
 	return predicate.Post(func(s *sql.Selector) {
 		step := newAuthorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCoAuthors applies the HasEdge predicate on the "co_authors" edge.
+func HasCoAuthors() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CoAuthorsTable, CoAuthorsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCoAuthorsWith applies the HasEdge predicate on the "co_authors" edge with a given conditions (other predicates).
+func HasCoAuthorsWith(preds ...predicate.User) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := newCoAuthorsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRelevantGroups applies the HasEdge predicate on the "relevant_groups" edge.
+func HasRelevantGroups() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RelevantGroupsTable, RelevantGroupsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRelevantGroupsWith applies the HasEdge predicate on the "relevant_groups" edge with a given conditions (other predicates).
+func HasRelevantGroupsWith(preds ...predicate.Group) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := newRelevantGroupsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFollowers applies the HasEdge predicate on the "followers" edge.
+func HasFollowers() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FollowersTable, FollowersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFollowersWith applies the HasEdge predicate on the "followers" edge with a given conditions (other predicates).
+func HasFollowersWith(preds ...predicate.User) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := newFollowersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCoAuthorsArchive applies the HasEdge predicate on the "co_authors_archive" edge.
+func HasCoAuthorsArchive() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CoAuthorsArchiveTable, CoAuthorsArchiveColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCoAuthorsArchiveWith applies the HasEdge predicate on the "co_authors_archive" edge with a given conditions (other predicates).
+func HasCoAuthorsArchiveWith(preds ...predicate.User) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := newCoAuthorsArchiveStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

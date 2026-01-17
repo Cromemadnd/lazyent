@@ -11,7 +11,7 @@ func convertToProto(f *entgen.Field, nodeName string) string {
 	if f == nil {
 		return ""
 	}
-	if isSensitive(f) {
+	if isFieldProtoExclude(f, false) {
 		return zeroValue(getProtoType(f))
 	}
 	if f.IsEnum() {
@@ -70,7 +70,7 @@ func convertFromProto(f *entgen.Field, nodeName string) string {
 	if f == nil {
 		return ""
 	}
-	if isSensitive(f) {
+	if isFieldProtoExclude(f, true) {
 		return zeroValue(bizFieldType(f))
 	}
 	// For safer generation, we should use convertFromProtoUsage after generating Setup code.
@@ -219,13 +219,13 @@ func convertBizToEnt(f *entgen.Field, nodeName string, expr string) string {
 }
 
 func edgeConvertToProto(e *entgen.Edge) string {
-	if isProtoMessage(e) {
-		if isBizPointer(e) {
-			return fmt.Sprintf("Biz%sToProto(b.%s)", e.Type.Name, bizEdgeName(e))
+	if isProtoMessage(e, false) {
+		if isBizPointer(e, false) {
+			return fmt.Sprintf("Biz%sToProto(b.%s)", e.Type.Name, bizEdgeName(e, false))
 		}
 	} else {
-		if isBizIDOnly(e) {
-			field := bizEdgeName(e)
+		if isBizIDOnly(e, false) {
+			field := bizEdgeName(e, false)
 			typ := e.Type.ID.Type.String()
 			if typ == "uuid.UUID" {
 				return fmt.Sprintf("b.%s", field)
@@ -235,7 +235,7 @@ func edgeConvertToProto(e *entgen.Edge) string {
 			}
 			return "b." + field
 		}
-		access := fmt.Sprintf("b.%s.UUID", bizEdgeName(e))
+		access := fmt.Sprintf("b.%s.UUID", bizEdgeName(e, false))
 		typ := e.Type.ID.Type.String()
 		if typ == "uuid.UUID" {
 			return access
@@ -248,25 +248,29 @@ func edgeConvertToProto(e *entgen.Edge) string {
 	return "nil"
 }
 
-func edgeConvertFromProto(e *entgen.Edge) string {
-	if isProtoMessage(e) {
-		if isBizPointer(e) {
-			return fmt.Sprintf("Proto%sToBiz(p.%s)", e.Type.Name, protoStructField(e))
+func edgeConvertFromProto(e *entgen.Edge, in bool) string {
+	if isProtoMessage(e, in) {
+		if isBizPointer(e, in) {
+			return fmt.Sprintf("Proto%sToBiz(p.%s)", e.Type.Name, protoStructField(e, in))
 		}
 	} else {
-		if isBizPointer(e) && isProtoID(e) {
+		// Case: ProtoID -> BizPointer
+		if isBizPointer(e, in) && isProtoID(e, in) {
+			idField := bizFieldName(e.Type.ID)
 			if e.Unique {
-				idAccess := fmt.Sprintf("p.%s", protoStructField(e))
-				return fmt.Sprintf("&biz.%s{%sBase: biz.%sBase{UUID: %s}}",
-					e.Type.Name, e.Type.Name, e.Type.Name, idAccess)
+				idAccess := fmt.Sprintf("p.%s", protoStructField(e, in))
+				return fmt.Sprintf("&biz.%s{%sBase: biz.%sBase{%s: %s}}",
+					e.Type.Name, e.Type.Name, e.Type.Name, idField, idAccess)
+			} else {
+				// For list element (inside loop, variable is 'item')
+				return fmt.Sprintf("&biz.%s{%sBase: biz.%sBase{%s: item}}",
+					e.Type.Name, e.Type.Name, e.Type.Name, idField)
 			}
-			return "nil"
 		}
 
-		if isBizIDOnly(e) {
+		if isBizIDOnly(e, in) {
 			typ := e.Type.ID.Type.String()
-			fieldName := protoStructField(e)
-
+			fieldName := protoStructField(e, in)
 			if typ == "uuid.UUID" {
 				return fmt.Sprintf("p.%s", fieldName)
 			}
@@ -275,7 +279,6 @@ func edgeConvertFromProto(e *entgen.Edge) string {
 			}
 			return fmt.Sprintf("p.%s", fieldName)
 		}
-		return zeroValue("ptr")
 	}
 	return "nil"
 }
@@ -324,7 +327,7 @@ func requiresErrorCheck(f *entgen.Field, mode string) bool {
 
 // Generates code block for conversion with error check
 func convertFromProtoSetup(f *entgen.Field, nodeName string) string {
-	if isSensitive(f) {
+	if isFieldProtoExclude(f, true) {
 		return ""
 	}
 	if !requiresErrorCheck(f, "ProtoToBiz") {
@@ -340,7 +343,7 @@ func convertFromProtoSetup(f *entgen.Field, nodeName string) string {
 }
 
 func convertFromProtoUsage(f *entgen.Field, nodeName string) string {
-	if isSensitive(f) {
+	if isFieldProtoExclude(f, true) {
 		return zeroValue(bizFieldType(f))
 	}
 	if requiresErrorCheck(f, "ProtoToBiz") {

@@ -14,13 +14,43 @@ message Group {
   repeated User users = 5;
 }
 
+message GroupInput {
+  string uuid = 1; // 数据库主键
+  google.protobuf.Timestamp created_at = 2; // 创建时间
+  google.protobuf.Timestamp updated_at = 3; // 更新时间
+  string name = 4;
+  repeated User users = 5;
+}
+
 message Post {
   string uuid = 1; // 数据库主键
   google.protobuf.Timestamp created_at = 2; // 创建时间
   google.protobuf.Timestamp updated_at = 3; // 更新时间
   string title = 4;
   string content = 5;
-  string author = 6;
+  string slug = 6;
+  string summary = 7;
+  string extra_data = 8;
+  User author = 9;
+  repeated User co_authors = 10;
+  repeated string relevant_groups_id = 11;
+  repeated string followers_id = 12;
+  repeated string co_authors_archive_id = 13;
+}
+
+message PostInput {
+  string uuid = 1; // 数据库主键
+  google.protobuf.Timestamp created_at = 2; // 创建时间
+  google.protobuf.Timestamp updated_at = 3; // 更新时间
+  string title = 4;
+  string content = 5;
+  string slug = 6;
+  string management_key = 7;
+  string extra_data = 8;
+  User author = 9;
+  repeated string co_authors_id = 10;
+  repeated string relevant_groups_id = 11;
+  repeated User co_authors_archive = 12;
 }
 
 enum UserStatus {
@@ -46,6 +76,33 @@ message User {
   string role = 13; // 用户权限组
   string remote_token = 14; // 虚拟令牌，不存数据库
   auth.v1.User ext_user = 15; // 外部用户对象，不存数据库
-  repeated string post_ids = 16;
-  repeated Group groups = 17;
+  string last_login_ip = 16; // 仅回包包含
+  repeated string post_ids = 17;
+  repeated Group groups = 18;
+  repeated string followers_id = 19;
+  repeated string co_authors_archive_id = 20;
+  repeated User friends = 21;
+}
+
+message UserInput {
+  string uuid = 1; // 数据库主键
+  google.protobuf.Timestamp created_at = 3; // 创建时间
+  google.protobuf.Timestamp updated_at = 4; // 更新时间
+  string name = 5;
+  int32 age = 2;
+  string nickname = 6;
+  uint32 user_score = 7;
+  bool is_verified = 8;
+  repeated string tags = 9; // 用户标签
+  string password = 10;
+  string test_uuid = 11; // 测试UUID
+  string test_nillable_uuid = 12; // 测试UUID2
+  UserStatus status = 13;
+  string role = 14; // 用户权限组
+  string remote_token = 15; // 虚拟令牌，不存数据库
+  auth.v1.User ext_user = 16; // 外部用户对象，不存数据库
+  string verification_code = 17; // 仅入参包含
+  repeated string post_ids = 18;
+  repeated Group groups = 19;
+  repeated User co_authors_archive = 20;
 }

@@ -6,18 +6,25 @@ import (
 
 // Exported types & Consts
 type Annotation = types.Annotation
+type EdgeStrategy = types.EdgeStrategy
+type FieldStrategy = types.FieldStrategy
 
 const (
-	// BizPointerWithProtoMessage 使用 Biz 指针和 Proto 消息
-	BizPointerWithProtoMessage = types.BizPointerWithProtoMessage
-	// BizPointerWithProtoID 使用 Biz 指针和 Proto ID
-	BizPointerWithProtoID = types.BizPointerWithProtoID
-	// BizPointerWithProtoExclude 使用 Biz 指针和 Proto 排除
-	BizPointerWithProtoExclude = types.BizPointerWithProtoExclude
-	// BizIDWithProtoID 使用 Biz ID 和 Proto ID
-	BizIDWithProtoID = types.BizIDWithProtoID
-	// BizIDWithProtoExclude 使用 Biz ID 和 Proto 排除
-	BizIDWithProtoExclude = types.BizIDWithProtoExclude
-	// BizExcludeWithProtoExclude 使用 Biz 排除和 Proto 排除
-	BizExcludeWithProtoExclude = types.BizExcludeWithProtoExclude
+	// --- Edge Strategies ---
+	EdgeProtoMessage  = types.EdgeProtoMessage
+	EdgeProtoID       = types.EdgeProtoID
+	EdgeProtoExcluded = types.EdgeProtoExcluded
+
+	EdgeBizPointer  = types.EdgeBizPointer
+	EdgeBizID       = types.EdgeBizID
+	EdgeBizExcluded = types.EdgeBizExcluded
+
+	// --- Field Strategies ---
+	FieldProtoRequired = types.FieldProtoRequired
+	FieldProtoOptional = types.FieldProtoOptional
+	FieldProtoExcluded = types.FieldProtoExcluded
+
+	FieldBizValue    = types.FieldBizValue
+	FieldBizPointer  = types.FieldBizPointer
+	FieldBizExcluded = types.FieldBizExcluded
 )

@@ -3,6 +3,12 @@
 package biz
 
 import (
+{{- if hasTimeNodes .Nodes }}
+	"time"
+{{- end }}
+{{- if hasUUIDNodes .Nodes }}
+	"github.com/google/uuid"
+{{- end }}
 {{- range collectExternalImports .Nodes }}
 	"{{ . }}"
 {{- end }}
@@ -38,30 +44,26 @@ func (e {{ $node.Name }}{{ $f.StructField }}) String() string {
 
 // {{ .Name }}Base 是 {{ .Name }} 的基础结构体，包含自动生成的字段定义
 type {{ .Name }}Base struct {
-	UUID string
-{{- range $f := .Fields }}
-	{{- if not (isSensitive $f) }}
-	{{ bizFieldName $f }} {{ if $f.IsEnum }}{{ if isExternalEnum $f }}{{ getExternalEnumName $f }}{{ else }}{{ $node.Name }}{{ $f.StructField }}{{ end }}{{ else }}{{ bizFieldType $f }}{{ end }}
+{{- if .ID }}
+	{{ bizFieldName .ID }} {{ bizFieldType .ID }}
+{{- end }}
+{{- range $f := .Fields }}{{ if not (shouldGenerateBizField $f) }}{{ continue }}{{ end }}
+	{{ bizFieldName $f }} {{ if and $f.IsEnum (not (isExternalEnum $f)) }}{{ $node.Name }}{{ $f.StructField }}{{ else }}{{ bizFieldType $f }}{{ end }}
+{{- end }}
+{{- range $e := .Edges }}{{ if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
+{{- if shouldBizPointer $e }}
+	{{- if $e.Unique }}
+	{{ bizEdgeName $e true }} *{{ $e.Type.Name }}
+	{{- else }}
+	{{ bizEdgeName $e true }} []*{{ $e.Type.Name }}
+	{{- end }}
+{{- else }}
+	{{- if $e.Unique }}
+	{{ bizEdgeName $e true }} {{ edgeIDType $e }}
+	{{- else }}
+	{{ bizEdgeName $e true }} []{{ edgeIDType $e }}
 	{{- end }}
 {{- end }}
-{{- range $e := .Edges }}
-	{{- if isBizExclude $e }}{{ continue }}{{ end }}
-	{{- /* Generate ID field */ -}}
-	{{- if isBizIDOnly $e }}
-	{{- if not $e.Unique }}
-	{{ bizEdgeName $e }} []string
-	{{- else }}
-	{{ bizEdgeName $e }} {{ edgeIDType $e }}
-	{{- end }}
-	{{- end }}
-	{{- /* Generate Relationship Field based on strategy */ -}}
-	{{- if isBizPointer $e }}
-	{{- if $e.Unique }}
-	{{ bizEdgeName $e }} *{{ $e.Type.Name }}
-	{{- else }}
-	{{ bizEdgeName $e }} []*{{ $e.Type.Name }}
-	{{- end }}
-	{{- end }}
 {{- end }}
 }
 {{- end }}

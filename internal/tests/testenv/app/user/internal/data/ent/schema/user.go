@@ -49,6 +49,20 @@ func (User) Fields() []ent.Field {
 				lazyent.WithProtoType("auth.v1.User"),
 			)).
 			Comment("外部用户对象，不存数据库"),
+
+		// 补全字段策略测试覆盖
+		field.String("last_login_ip").Optional().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithFieldInStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
+			lazyent.WithFieldOutStrategy(lazyent.FieldProtoOptional|lazyent.FieldBizValue),
+		)).Comment("仅回包包含"),
+		field.String("verification_code").Optional().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithFieldInStrategy(lazyent.FieldProtoRequired|lazyent.FieldBizValue),
+			lazyent.WithFieldOutStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
+		)).Comment("仅入参包含"),
+		field.Int64("internal_id").Optional().Annotations(lazyent.MergeAnnotations(
+			lazyent.WithFieldInStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
+			lazyent.WithFieldOutStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
+		)).Comment("内部 ID，两端排除"),
 	}
 }
 
@@ -59,13 +73,28 @@ func (User) Edges() []ent.Edge {
 			Annotations(lazyent.MergeAnnotations(
 				lazyent.WithBizName("PostIDs"),
 				lazyent.WithProtoName("post_ids"),
-				lazyent.WithEdgeFieldStrategy(lazyent.BizIDWithProtoID), // Test BizIDOnly strategy
+				lazyent.WithEdgeInStrategy(lazyent.EdgeProtoID|lazyent.EdgeBizID),
+				lazyent.WithEdgeOutStrategy(lazyent.EdgeProtoID|lazyent.EdgeBizID),
 			)),
 		edge.From("groups", Group.Type).
 			Ref("users"),
+		// 4. 场景：入参隐藏，回包仅返回 ID 列表 (只读关联)
+		edge.To("followers", User.Type).
+			Annotations(lazyent.Annotation{
+				EdgeInStrategy:  lazyent.EdgeProtoExcluded | lazyent.EdgeBizExcluded,
+				EdgeOutStrategy: lazyent.EdgeProtoID | lazyent.EdgeBizPointer,
+			}),
+
+		// 5. 场景：入参传完整 Message，回包仅返回 ID 列表 (存档/引用风格)
+		edge.To("co_authors_archive", User.Type).
+			Annotations(lazyent.Annotation{
+				EdgeInStrategy:  lazyent.EdgeProtoMessage | lazyent.EdgeBizPointer,
+				EdgeOutStrategy: lazyent.EdgeProtoID | lazyent.EdgeBizPointer,
+			}),
 		edge.To("friends", User.Type). // Test Self-Reference
 						Annotations(
-				lazyent.WithEdgeFieldStrategy(lazyent.BizPointerWithProtoExclude), // Test ProtoExclude
+				lazyent.WithEdgeInStrategy(lazyent.EdgeProtoExcluded|lazyent.EdgeBizPointer),
+				lazyent.WithEdgeOutStrategy(lazyent.EdgeProtoExcluded|lazyent.EdgeBizPointer),
 			),
 	}
 }

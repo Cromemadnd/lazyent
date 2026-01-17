@@ -652,19 +652,36 @@ func (m *GroupMutation) ResetEdge(name string) error {
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	title         *string
-	content       *string
-	clearedFields map[string]struct{}
-	author        *uuid.UUID
-	clearedauthor bool
-	done          bool
-	oldValue      func(context.Context) (*Post, error)
-	predicates    []predicate.Post
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	title                     *string
+	content                   *string
+	slug                      *string
+	internal_code             *string
+	management_key            *string
+	summary                   *string
+	extra_data                *string
+	clearedFields             map[string]struct{}
+	author                    *uuid.UUID
+	clearedauthor             bool
+	co_authors                map[uuid.UUID]struct{}
+	removedco_authors         map[uuid.UUID]struct{}
+	clearedco_authors         bool
+	relevant_groups           map[uuid.UUID]struct{}
+	removedrelevant_groups    map[uuid.UUID]struct{}
+	clearedrelevant_groups    bool
+	followers                 map[uuid.UUID]struct{}
+	removedfollowers          map[uuid.UUID]struct{}
+	clearedfollowers          bool
+	co_authors_archive        map[uuid.UUID]struct{}
+	removedco_authors_archive map[uuid.UUID]struct{}
+	clearedco_authors_archive bool
+	done                      bool
+	oldValue                  func(context.Context) (*Post, error)
+	predicates                []predicate.Post
 }
 
 var _ ent.Mutation = (*PostMutation)(nil)
@@ -915,6 +932,251 @@ func (m *PostMutation) ResetContent() {
 	m.content = nil
 }
 
+// SetSlug sets the "slug" field.
+func (m *PostMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *PostMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (m *PostMutation) ClearSlug() {
+	m.slug = nil
+	m.clearedFields[post.FieldSlug] = struct{}{}
+}
+
+// SlugCleared returns if the "slug" field was cleared in this mutation.
+func (m *PostMutation) SlugCleared() bool {
+	_, ok := m.clearedFields[post.FieldSlug]
+	return ok
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *PostMutation) ResetSlug() {
+	m.slug = nil
+	delete(m.clearedFields, post.FieldSlug)
+}
+
+// SetInternalCode sets the "internal_code" field.
+func (m *PostMutation) SetInternalCode(s string) {
+	m.internal_code = &s
+}
+
+// InternalCode returns the value of the "internal_code" field in the mutation.
+func (m *PostMutation) InternalCode() (r string, exists bool) {
+	v := m.internal_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInternalCode returns the old "internal_code" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldInternalCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInternalCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInternalCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInternalCode: %w", err)
+	}
+	return oldValue.InternalCode, nil
+}
+
+// ClearInternalCode clears the value of the "internal_code" field.
+func (m *PostMutation) ClearInternalCode() {
+	m.internal_code = nil
+	m.clearedFields[post.FieldInternalCode] = struct{}{}
+}
+
+// InternalCodeCleared returns if the "internal_code" field was cleared in this mutation.
+func (m *PostMutation) InternalCodeCleared() bool {
+	_, ok := m.clearedFields[post.FieldInternalCode]
+	return ok
+}
+
+// ResetInternalCode resets all changes to the "internal_code" field.
+func (m *PostMutation) ResetInternalCode() {
+	m.internal_code = nil
+	delete(m.clearedFields, post.FieldInternalCode)
+}
+
+// SetManagementKey sets the "management_key" field.
+func (m *PostMutation) SetManagementKey(s string) {
+	m.management_key = &s
+}
+
+// ManagementKey returns the value of the "management_key" field in the mutation.
+func (m *PostMutation) ManagementKey() (r string, exists bool) {
+	v := m.management_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManagementKey returns the old "management_key" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldManagementKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManagementKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManagementKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManagementKey: %w", err)
+	}
+	return oldValue.ManagementKey, nil
+}
+
+// ClearManagementKey clears the value of the "management_key" field.
+func (m *PostMutation) ClearManagementKey() {
+	m.management_key = nil
+	m.clearedFields[post.FieldManagementKey] = struct{}{}
+}
+
+// ManagementKeyCleared returns if the "management_key" field was cleared in this mutation.
+func (m *PostMutation) ManagementKeyCleared() bool {
+	_, ok := m.clearedFields[post.FieldManagementKey]
+	return ok
+}
+
+// ResetManagementKey resets all changes to the "management_key" field.
+func (m *PostMutation) ResetManagementKey() {
+	m.management_key = nil
+	delete(m.clearedFields, post.FieldManagementKey)
+}
+
+// SetSummary sets the "summary" field.
+func (m *PostMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *PostMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ClearSummary clears the value of the "summary" field.
+func (m *PostMutation) ClearSummary() {
+	m.summary = nil
+	m.clearedFields[post.FieldSummary] = struct{}{}
+}
+
+// SummaryCleared returns if the "summary" field was cleared in this mutation.
+func (m *PostMutation) SummaryCleared() bool {
+	_, ok := m.clearedFields[post.FieldSummary]
+	return ok
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *PostMutation) ResetSummary() {
+	m.summary = nil
+	delete(m.clearedFields, post.FieldSummary)
+}
+
+// SetExtraData sets the "extra_data" field.
+func (m *PostMutation) SetExtraData(s string) {
+	m.extra_data = &s
+}
+
+// ExtraData returns the value of the "extra_data" field in the mutation.
+func (m *PostMutation) ExtraData() (r string, exists bool) {
+	v := m.extra_data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExtraData returns the old "extra_data" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldExtraData(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExtraData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExtraData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExtraData: %w", err)
+	}
+	return oldValue.ExtraData, nil
+}
+
+// ClearExtraData clears the value of the "extra_data" field.
+func (m *PostMutation) ClearExtraData() {
+	m.extra_data = nil
+	m.clearedFields[post.FieldExtraData] = struct{}{}
+}
+
+// ExtraDataCleared returns if the "extra_data" field was cleared in this mutation.
+func (m *PostMutation) ExtraDataCleared() bool {
+	_, ok := m.clearedFields[post.FieldExtraData]
+	return ok
+}
+
+// ResetExtraData resets all changes to the "extra_data" field.
+func (m *PostMutation) ResetExtraData() {
+	m.extra_data = nil
+	delete(m.clearedFields, post.FieldExtraData)
+}
+
 // SetAuthorID sets the "author" edge to the User entity by id.
 func (m *PostMutation) SetAuthorID(id uuid.UUID) {
 	m.author = &id
@@ -954,6 +1216,222 @@ func (m *PostMutation) ResetAuthor() {
 	m.clearedauthor = false
 }
 
+// AddCoAuthorIDs adds the "co_authors" edge to the User entity by ids.
+func (m *PostMutation) AddCoAuthorIDs(ids ...uuid.UUID) {
+	if m.co_authors == nil {
+		m.co_authors = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.co_authors[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCoAuthors clears the "co_authors" edge to the User entity.
+func (m *PostMutation) ClearCoAuthors() {
+	m.clearedco_authors = true
+}
+
+// CoAuthorsCleared reports if the "co_authors" edge to the User entity was cleared.
+func (m *PostMutation) CoAuthorsCleared() bool {
+	return m.clearedco_authors
+}
+
+// RemoveCoAuthorIDs removes the "co_authors" edge to the User entity by IDs.
+func (m *PostMutation) RemoveCoAuthorIDs(ids ...uuid.UUID) {
+	if m.removedco_authors == nil {
+		m.removedco_authors = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.co_authors, ids[i])
+		m.removedco_authors[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCoAuthors returns the removed IDs of the "co_authors" edge to the User entity.
+func (m *PostMutation) RemovedCoAuthorsIDs() (ids []uuid.UUID) {
+	for id := range m.removedco_authors {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CoAuthorsIDs returns the "co_authors" edge IDs in the mutation.
+func (m *PostMutation) CoAuthorsIDs() (ids []uuid.UUID) {
+	for id := range m.co_authors {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCoAuthors resets all changes to the "co_authors" edge.
+func (m *PostMutation) ResetCoAuthors() {
+	m.co_authors = nil
+	m.clearedco_authors = false
+	m.removedco_authors = nil
+}
+
+// AddRelevantGroupIDs adds the "relevant_groups" edge to the Group entity by ids.
+func (m *PostMutation) AddRelevantGroupIDs(ids ...uuid.UUID) {
+	if m.relevant_groups == nil {
+		m.relevant_groups = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.relevant_groups[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRelevantGroups clears the "relevant_groups" edge to the Group entity.
+func (m *PostMutation) ClearRelevantGroups() {
+	m.clearedrelevant_groups = true
+}
+
+// RelevantGroupsCleared reports if the "relevant_groups" edge to the Group entity was cleared.
+func (m *PostMutation) RelevantGroupsCleared() bool {
+	return m.clearedrelevant_groups
+}
+
+// RemoveRelevantGroupIDs removes the "relevant_groups" edge to the Group entity by IDs.
+func (m *PostMutation) RemoveRelevantGroupIDs(ids ...uuid.UUID) {
+	if m.removedrelevant_groups == nil {
+		m.removedrelevant_groups = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.relevant_groups, ids[i])
+		m.removedrelevant_groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRelevantGroups returns the removed IDs of the "relevant_groups" edge to the Group entity.
+func (m *PostMutation) RemovedRelevantGroupsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrelevant_groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RelevantGroupsIDs returns the "relevant_groups" edge IDs in the mutation.
+func (m *PostMutation) RelevantGroupsIDs() (ids []uuid.UUID) {
+	for id := range m.relevant_groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRelevantGroups resets all changes to the "relevant_groups" edge.
+func (m *PostMutation) ResetRelevantGroups() {
+	m.relevant_groups = nil
+	m.clearedrelevant_groups = false
+	m.removedrelevant_groups = nil
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by ids.
+func (m *PostMutation) AddFollowerIDs(ids ...uuid.UUID) {
+	if m.followers == nil {
+		m.followers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.followers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowers clears the "followers" edge to the User entity.
+func (m *PostMutation) ClearFollowers() {
+	m.clearedfollowers = true
+}
+
+// FollowersCleared reports if the "followers" edge to the User entity was cleared.
+func (m *PostMutation) FollowersCleared() bool {
+	return m.clearedfollowers
+}
+
+// RemoveFollowerIDs removes the "followers" edge to the User entity by IDs.
+func (m *PostMutation) RemoveFollowerIDs(ids ...uuid.UUID) {
+	if m.removedfollowers == nil {
+		m.removedfollowers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.followers, ids[i])
+		m.removedfollowers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowers returns the removed IDs of the "followers" edge to the User entity.
+func (m *PostMutation) RemovedFollowersIDs() (ids []uuid.UUID) {
+	for id := range m.removedfollowers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowersIDs returns the "followers" edge IDs in the mutation.
+func (m *PostMutation) FollowersIDs() (ids []uuid.UUID) {
+	for id := range m.followers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowers resets all changes to the "followers" edge.
+func (m *PostMutation) ResetFollowers() {
+	m.followers = nil
+	m.clearedfollowers = false
+	m.removedfollowers = nil
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by ids.
+func (m *PostMutation) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) {
+	if m.co_authors_archive == nil {
+		m.co_authors_archive = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.co_authors_archive[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCoAuthorsArchive clears the "co_authors_archive" edge to the User entity.
+func (m *PostMutation) ClearCoAuthorsArchive() {
+	m.clearedco_authors_archive = true
+}
+
+// CoAuthorsArchiveCleared reports if the "co_authors_archive" edge to the User entity was cleared.
+func (m *PostMutation) CoAuthorsArchiveCleared() bool {
+	return m.clearedco_authors_archive
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to the User entity by IDs.
+func (m *PostMutation) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) {
+	if m.removedco_authors_archive == nil {
+		m.removedco_authors_archive = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.co_authors_archive, ids[i])
+		m.removedco_authors_archive[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCoAuthorsArchive returns the removed IDs of the "co_authors_archive" edge to the User entity.
+func (m *PostMutation) RemovedCoAuthorsArchiveIDs() (ids []uuid.UUID) {
+	for id := range m.removedco_authors_archive {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CoAuthorsArchiveIDs returns the "co_authors_archive" edge IDs in the mutation.
+func (m *PostMutation) CoAuthorsArchiveIDs() (ids []uuid.UUID) {
+	for id := range m.co_authors_archive {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCoAuthorsArchive resets all changes to the "co_authors_archive" edge.
+func (m *PostMutation) ResetCoAuthorsArchive() {
+	m.co_authors_archive = nil
+	m.clearedco_authors_archive = false
+	m.removedco_authors_archive = nil
+}
+
 // Where appends a list predicates to the PostMutation builder.
 func (m *PostMutation) Where(ps ...predicate.Post) {
 	m.predicates = append(m.predicates, ps...)
@@ -988,7 +1466,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -1000,6 +1478,21 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.content != nil {
 		fields = append(fields, post.FieldContent)
+	}
+	if m.slug != nil {
+		fields = append(fields, post.FieldSlug)
+	}
+	if m.internal_code != nil {
+		fields = append(fields, post.FieldInternalCode)
+	}
+	if m.management_key != nil {
+		fields = append(fields, post.FieldManagementKey)
+	}
+	if m.summary != nil {
+		fields = append(fields, post.FieldSummary)
+	}
+	if m.extra_data != nil {
+		fields = append(fields, post.FieldExtraData)
 	}
 	return fields
 }
@@ -1017,6 +1510,16 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case post.FieldContent:
 		return m.Content()
+	case post.FieldSlug:
+		return m.Slug()
+	case post.FieldInternalCode:
+		return m.InternalCode()
+	case post.FieldManagementKey:
+		return m.ManagementKey()
+	case post.FieldSummary:
+		return m.Summary()
+	case post.FieldExtraData:
+		return m.ExtraData()
 	}
 	return nil, false
 }
@@ -1034,6 +1537,16 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTitle(ctx)
 	case post.FieldContent:
 		return m.OldContent(ctx)
+	case post.FieldSlug:
+		return m.OldSlug(ctx)
+	case post.FieldInternalCode:
+		return m.OldInternalCode(ctx)
+	case post.FieldManagementKey:
+		return m.OldManagementKey(ctx)
+	case post.FieldSummary:
+		return m.OldSummary(ctx)
+	case post.FieldExtraData:
+		return m.OldExtraData(ctx)
 	}
 	return nil, fmt.Errorf("unknown Post field %s", name)
 }
@@ -1071,6 +1584,41 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetContent(v)
 		return nil
+	case post.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case post.FieldInternalCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInternalCode(v)
+		return nil
+	case post.FieldManagementKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManagementKey(v)
+		return nil
+	case post.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case post.FieldExtraData:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExtraData(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
@@ -1100,7 +1648,23 @@ func (m *PostMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PostMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(post.FieldSlug) {
+		fields = append(fields, post.FieldSlug)
+	}
+	if m.FieldCleared(post.FieldInternalCode) {
+		fields = append(fields, post.FieldInternalCode)
+	}
+	if m.FieldCleared(post.FieldManagementKey) {
+		fields = append(fields, post.FieldManagementKey)
+	}
+	if m.FieldCleared(post.FieldSummary) {
+		fields = append(fields, post.FieldSummary)
+	}
+	if m.FieldCleared(post.FieldExtraData) {
+		fields = append(fields, post.FieldExtraData)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1113,6 +1677,23 @@ func (m *PostMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PostMutation) ClearField(name string) error {
+	switch name {
+	case post.FieldSlug:
+		m.ClearSlug()
+		return nil
+	case post.FieldInternalCode:
+		m.ClearInternalCode()
+		return nil
+	case post.FieldManagementKey:
+		m.ClearManagementKey()
+		return nil
+	case post.FieldSummary:
+		m.ClearSummary()
+		return nil
+	case post.FieldExtraData:
+		m.ClearExtraData()
+		return nil
+	}
 	return fmt.Errorf("unknown Post nullable field %s", name)
 }
 
@@ -1132,15 +1713,42 @@ func (m *PostMutation) ResetField(name string) error {
 	case post.FieldContent:
 		m.ResetContent()
 		return nil
+	case post.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case post.FieldInternalCode:
+		m.ResetInternalCode()
+		return nil
+	case post.FieldManagementKey:
+		m.ResetManagementKey()
+		return nil
+	case post.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case post.FieldExtraData:
+		m.ResetExtraData()
+		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 5)
 	if m.author != nil {
 		edges = append(edges, post.EdgeAuthor)
+	}
+	if m.co_authors != nil {
+		edges = append(edges, post.EdgeCoAuthors)
+	}
+	if m.relevant_groups != nil {
+		edges = append(edges, post.EdgeRelevantGroups)
+	}
+	if m.followers != nil {
+		edges = append(edges, post.EdgeFollowers)
+	}
+	if m.co_authors_archive != nil {
+		edges = append(edges, post.EdgeCoAuthorsArchive)
 	}
 	return edges
 }
@@ -1153,27 +1761,101 @@ func (m *PostMutation) AddedIDs(name string) []ent.Value {
 		if id := m.author; id != nil {
 			return []ent.Value{*id}
 		}
+	case post.EdgeCoAuthors:
+		ids := make([]ent.Value, 0, len(m.co_authors))
+		for id := range m.co_authors {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeRelevantGroups:
+		ids := make([]ent.Value, 0, len(m.relevant_groups))
+		for id := range m.relevant_groups {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.followers))
+		for id := range m.followers {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeCoAuthorsArchive:
+		ids := make([]ent.Value, 0, len(m.co_authors_archive))
+		for id := range m.co_authors_archive {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 5)
+	if m.removedco_authors != nil {
+		edges = append(edges, post.EdgeCoAuthors)
+	}
+	if m.removedrelevant_groups != nil {
+		edges = append(edges, post.EdgeRelevantGroups)
+	}
+	if m.removedfollowers != nil {
+		edges = append(edges, post.EdgeFollowers)
+	}
+	if m.removedco_authors_archive != nil {
+		edges = append(edges, post.EdgeCoAuthorsArchive)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *PostMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case post.EdgeCoAuthors:
+		ids := make([]ent.Value, 0, len(m.removedco_authors))
+		for id := range m.removedco_authors {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeRelevantGroups:
+		ids := make([]ent.Value, 0, len(m.removedrelevant_groups))
+		for id := range m.removedrelevant_groups {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.removedfollowers))
+		for id := range m.removedfollowers {
+			ids = append(ids, id)
+		}
+		return ids
+	case post.EdgeCoAuthorsArchive:
+		ids := make([]ent.Value, 0, len(m.removedco_authors_archive))
+		for id := range m.removedco_authors_archive {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 5)
 	if m.clearedauthor {
 		edges = append(edges, post.EdgeAuthor)
+	}
+	if m.clearedco_authors {
+		edges = append(edges, post.EdgeCoAuthors)
+	}
+	if m.clearedrelevant_groups {
+		edges = append(edges, post.EdgeRelevantGroups)
+	}
+	if m.clearedfollowers {
+		edges = append(edges, post.EdgeFollowers)
+	}
+	if m.clearedco_authors_archive {
+		edges = append(edges, post.EdgeCoAuthorsArchive)
 	}
 	return edges
 }
@@ -1184,6 +1866,14 @@ func (m *PostMutation) EdgeCleared(name string) bool {
 	switch name {
 	case post.EdgeAuthor:
 		return m.clearedauthor
+	case post.EdgeCoAuthors:
+		return m.clearedco_authors
+	case post.EdgeRelevantGroups:
+		return m.clearedrelevant_groups
+	case post.EdgeFollowers:
+		return m.clearedfollowers
+	case post.EdgeCoAuthorsArchive:
+		return m.clearedco_authors_archive
 	}
 	return false
 }
@@ -1206,6 +1896,18 @@ func (m *PostMutation) ResetEdge(name string) error {
 	case post.EdgeAuthor:
 		m.ResetAuthor()
 		return nil
+	case post.EdgeCoAuthors:
+		m.ResetCoAuthors()
+		return nil
+	case post.EdgeRelevantGroups:
+		m.ResetRelevantGroups()
+		return nil
+	case post.EdgeFollowers:
+		m.ResetFollowers()
+		return nil
+	case post.EdgeCoAuthorsArchive:
+		m.ResetCoAuthorsArchive()
+		return nil
 	}
 	return fmt.Errorf("unknown Post edge %s", name)
 }
@@ -1213,40 +1915,50 @@ func (m *PostMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	name               *string
-	age                *int
-	addage             *int
-	nickname           *string
-	score              *int
-	addscore           *int
-	is_verified        *bool
-	tags               *[]string
-	appendtags         []string
-	password           *string
-	test_uuid          *uuid.UUID
-	test_nillable_uuid *uuid.UUID
-	status             *user.Status
-	role               *auth.UserRole
-	remote_token       *string
-	ext_user           *any
-	clearedFields      map[string]struct{}
-	posts              map[uuid.UUID]struct{}
-	removedposts       map[uuid.UUID]struct{}
-	clearedposts       bool
-	groups             map[uuid.UUID]struct{}
-	removedgroups      map[uuid.UUID]struct{}
-	clearedgroups      bool
-	friends            map[uuid.UUID]struct{}
-	removedfriends     map[uuid.UUID]struct{}
-	clearedfriends     bool
-	done               bool
-	oldValue           func(context.Context) (*User, error)
-	predicates         []predicate.User
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	name                      *string
+	age                       *int
+	addage                    *int
+	nickname                  *string
+	score                     *int
+	addscore                  *int
+	is_verified               *bool
+	tags                      *[]string
+	appendtags                []string
+	password                  *string
+	test_uuid                 *uuid.UUID
+	test_nillable_uuid        *uuid.UUID
+	status                    *user.Status
+	role                      *auth.UserRole
+	remote_token              *string
+	ext_user                  *any
+	last_login_ip             *string
+	verification_code         *string
+	internal_id               *int64
+	addinternal_id            *int64
+	clearedFields             map[string]struct{}
+	posts                     map[uuid.UUID]struct{}
+	removedposts              map[uuid.UUID]struct{}
+	clearedposts              bool
+	groups                    map[uuid.UUID]struct{}
+	removedgroups             map[uuid.UUID]struct{}
+	clearedgroups             bool
+	followers                 map[uuid.UUID]struct{}
+	removedfollowers          map[uuid.UUID]struct{}
+	clearedfollowers          bool
+	co_authors_archive        map[uuid.UUID]struct{}
+	removedco_authors_archive map[uuid.UUID]struct{}
+	clearedco_authors_archive bool
+	friends                   map[uuid.UUID]struct{}
+	removedfriends            map[uuid.UUID]struct{}
+	clearedfriends            bool
+	done                      bool
+	oldValue                  func(context.Context) (*User, error)
+	predicates                []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2002,6 +2714,174 @@ func (m *UserMutation) ResetExtUser() {
 	m.ext_user = nil
 }
 
+// SetLastLoginIP sets the "last_login_ip" field.
+func (m *UserMutation) SetLastLoginIP(s string) {
+	m.last_login_ip = &s
+}
+
+// LastLoginIP returns the value of the "last_login_ip" field in the mutation.
+func (m *UserMutation) LastLoginIP() (r string, exists bool) {
+	v := m.last_login_ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastLoginIP returns the old "last_login_ip" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLastLoginIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastLoginIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastLoginIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastLoginIP: %w", err)
+	}
+	return oldValue.LastLoginIP, nil
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (m *UserMutation) ClearLastLoginIP() {
+	m.last_login_ip = nil
+	m.clearedFields[user.FieldLastLoginIP] = struct{}{}
+}
+
+// LastLoginIPCleared returns if the "last_login_ip" field was cleared in this mutation.
+func (m *UserMutation) LastLoginIPCleared() bool {
+	_, ok := m.clearedFields[user.FieldLastLoginIP]
+	return ok
+}
+
+// ResetLastLoginIP resets all changes to the "last_login_ip" field.
+func (m *UserMutation) ResetLastLoginIP() {
+	m.last_login_ip = nil
+	delete(m.clearedFields, user.FieldLastLoginIP)
+}
+
+// SetVerificationCode sets the "verification_code" field.
+func (m *UserMutation) SetVerificationCode(s string) {
+	m.verification_code = &s
+}
+
+// VerificationCode returns the value of the "verification_code" field in the mutation.
+func (m *UserMutation) VerificationCode() (r string, exists bool) {
+	v := m.verification_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationCode returns the old "verification_code" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldVerificationCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerificationCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerificationCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationCode: %w", err)
+	}
+	return oldValue.VerificationCode, nil
+}
+
+// ClearVerificationCode clears the value of the "verification_code" field.
+func (m *UserMutation) ClearVerificationCode() {
+	m.verification_code = nil
+	m.clearedFields[user.FieldVerificationCode] = struct{}{}
+}
+
+// VerificationCodeCleared returns if the "verification_code" field was cleared in this mutation.
+func (m *UserMutation) VerificationCodeCleared() bool {
+	_, ok := m.clearedFields[user.FieldVerificationCode]
+	return ok
+}
+
+// ResetVerificationCode resets all changes to the "verification_code" field.
+func (m *UserMutation) ResetVerificationCode() {
+	m.verification_code = nil
+	delete(m.clearedFields, user.FieldVerificationCode)
+}
+
+// SetInternalID sets the "internal_id" field.
+func (m *UserMutation) SetInternalID(i int64) {
+	m.internal_id = &i
+	m.addinternal_id = nil
+}
+
+// InternalID returns the value of the "internal_id" field in the mutation.
+func (m *UserMutation) InternalID() (r int64, exists bool) {
+	v := m.internal_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInternalID returns the old "internal_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldInternalID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInternalID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInternalID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInternalID: %w", err)
+	}
+	return oldValue.InternalID, nil
+}
+
+// AddInternalID adds i to the "internal_id" field.
+func (m *UserMutation) AddInternalID(i int64) {
+	if m.addinternal_id != nil {
+		*m.addinternal_id += i
+	} else {
+		m.addinternal_id = &i
+	}
+}
+
+// AddedInternalID returns the value that was added to the "internal_id" field in this mutation.
+func (m *UserMutation) AddedInternalID() (r int64, exists bool) {
+	v := m.addinternal_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearInternalID clears the value of the "internal_id" field.
+func (m *UserMutation) ClearInternalID() {
+	m.internal_id = nil
+	m.addinternal_id = nil
+	m.clearedFields[user.FieldInternalID] = struct{}{}
+}
+
+// InternalIDCleared returns if the "internal_id" field was cleared in this mutation.
+func (m *UserMutation) InternalIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldInternalID]
+	return ok
+}
+
+// ResetInternalID resets all changes to the "internal_id" field.
+func (m *UserMutation) ResetInternalID() {
+	m.internal_id = nil
+	m.addinternal_id = nil
+	delete(m.clearedFields, user.FieldInternalID)
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by ids.
 func (m *UserMutation) AddPostIDs(ids ...uuid.UUID) {
 	if m.posts == nil {
@@ -2110,6 +2990,114 @@ func (m *UserMutation) ResetGroups() {
 	m.removedgroups = nil
 }
 
+// AddFollowerIDs adds the "followers" edge to the User entity by ids.
+func (m *UserMutation) AddFollowerIDs(ids ...uuid.UUID) {
+	if m.followers == nil {
+		m.followers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.followers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowers clears the "followers" edge to the User entity.
+func (m *UserMutation) ClearFollowers() {
+	m.clearedfollowers = true
+}
+
+// FollowersCleared reports if the "followers" edge to the User entity was cleared.
+func (m *UserMutation) FollowersCleared() bool {
+	return m.clearedfollowers
+}
+
+// RemoveFollowerIDs removes the "followers" edge to the User entity by IDs.
+func (m *UserMutation) RemoveFollowerIDs(ids ...uuid.UUID) {
+	if m.removedfollowers == nil {
+		m.removedfollowers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.followers, ids[i])
+		m.removedfollowers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowers returns the removed IDs of the "followers" edge to the User entity.
+func (m *UserMutation) RemovedFollowersIDs() (ids []uuid.UUID) {
+	for id := range m.removedfollowers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowersIDs returns the "followers" edge IDs in the mutation.
+func (m *UserMutation) FollowersIDs() (ids []uuid.UUID) {
+	for id := range m.followers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowers resets all changes to the "followers" edge.
+func (m *UserMutation) ResetFollowers() {
+	m.followers = nil
+	m.clearedfollowers = false
+	m.removedfollowers = nil
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by ids.
+func (m *UserMutation) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) {
+	if m.co_authors_archive == nil {
+		m.co_authors_archive = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.co_authors_archive[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCoAuthorsArchive clears the "co_authors_archive" edge to the User entity.
+func (m *UserMutation) ClearCoAuthorsArchive() {
+	m.clearedco_authors_archive = true
+}
+
+// CoAuthorsArchiveCleared reports if the "co_authors_archive" edge to the User entity was cleared.
+func (m *UserMutation) CoAuthorsArchiveCleared() bool {
+	return m.clearedco_authors_archive
+}
+
+// RemoveCoAuthorsArchiveIDs removes the "co_authors_archive" edge to the User entity by IDs.
+func (m *UserMutation) RemoveCoAuthorsArchiveIDs(ids ...uuid.UUID) {
+	if m.removedco_authors_archive == nil {
+		m.removedco_authors_archive = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.co_authors_archive, ids[i])
+		m.removedco_authors_archive[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCoAuthorsArchive returns the removed IDs of the "co_authors_archive" edge to the User entity.
+func (m *UserMutation) RemovedCoAuthorsArchiveIDs() (ids []uuid.UUID) {
+	for id := range m.removedco_authors_archive {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CoAuthorsArchiveIDs returns the "co_authors_archive" edge IDs in the mutation.
+func (m *UserMutation) CoAuthorsArchiveIDs() (ids []uuid.UUID) {
+	for id := range m.co_authors_archive {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCoAuthorsArchive resets all changes to the "co_authors_archive" edge.
+func (m *UserMutation) ResetCoAuthorsArchive() {
+	m.co_authors_archive = nil
+	m.clearedco_authors_archive = false
+	m.removedco_authors_archive = nil
+}
+
 // AddFriendIDs adds the "friends" edge to the User entity by ids.
 func (m *UserMutation) AddFriendIDs(ids ...uuid.UUID) {
 	if m.friends == nil {
@@ -2198,7 +3186,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -2244,6 +3232,15 @@ func (m *UserMutation) Fields() []string {
 	if m.ext_user != nil {
 		fields = append(fields, user.FieldExtUser)
 	}
+	if m.last_login_ip != nil {
+		fields = append(fields, user.FieldLastLoginIP)
+	}
+	if m.verification_code != nil {
+		fields = append(fields, user.FieldVerificationCode)
+	}
+	if m.internal_id != nil {
+		fields = append(fields, user.FieldInternalID)
+	}
 	return fields
 }
 
@@ -2282,6 +3279,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.RemoteToken()
 	case user.FieldExtUser:
 		return m.ExtUser()
+	case user.FieldLastLoginIP:
+		return m.LastLoginIP()
+	case user.FieldVerificationCode:
+		return m.VerificationCode()
+	case user.FieldInternalID:
+		return m.InternalID()
 	}
 	return nil, false
 }
@@ -2321,6 +3324,12 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRemoteToken(ctx)
 	case user.FieldExtUser:
 		return m.OldExtUser(ctx)
+	case user.FieldLastLoginIP:
+		return m.OldLastLoginIP(ctx)
+	case user.FieldVerificationCode:
+		return m.OldVerificationCode(ctx)
+	case user.FieldInternalID:
+		return m.OldInternalID(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2435,6 +3444,27 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExtUser(v)
 		return nil
+	case user.FieldLastLoginIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastLoginIP(v)
+		return nil
+	case user.FieldVerificationCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationCode(v)
+		return nil
+	case user.FieldInternalID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInternalID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -2449,6 +3479,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addscore != nil {
 		fields = append(fields, user.FieldScore)
 	}
+	if m.addinternal_id != nil {
+		fields = append(fields, user.FieldInternalID)
+	}
 	return fields
 }
 
@@ -2461,6 +3494,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedAge()
 	case user.FieldScore:
 		return m.AddedScore()
+	case user.FieldInternalID:
+		return m.AddedInternalID()
 	}
 	return nil, false
 }
@@ -2484,6 +3519,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddScore(v)
 		return nil
+	case user.FieldInternalID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInternalID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -2503,6 +3545,15 @@ func (m *UserMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(user.FieldPassword) {
 		fields = append(fields, user.FieldPassword)
+	}
+	if m.FieldCleared(user.FieldLastLoginIP) {
+		fields = append(fields, user.FieldLastLoginIP)
+	}
+	if m.FieldCleared(user.FieldVerificationCode) {
+		fields = append(fields, user.FieldVerificationCode)
+	}
+	if m.FieldCleared(user.FieldInternalID) {
+		fields = append(fields, user.FieldInternalID)
 	}
 	return fields
 }
@@ -2529,6 +3580,15 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ClearPassword()
+		return nil
+	case user.FieldLastLoginIP:
+		m.ClearLastLoginIP()
+		return nil
+	case user.FieldVerificationCode:
+		m.ClearVerificationCode()
+		return nil
+	case user.FieldInternalID:
+		m.ClearInternalID()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -2583,18 +3643,33 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldExtUser:
 		m.ResetExtUser()
 		return nil
+	case user.FieldLastLoginIP:
+		m.ResetLastLoginIP()
+		return nil
+	case user.FieldVerificationCode:
+		m.ResetVerificationCode()
+		return nil
+	case user.FieldInternalID:
+		m.ResetInternalID()
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.posts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
 	if m.groups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.followers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.co_authors_archive != nil {
+		edges = append(edges, user.EdgeCoAuthorsArchive)
 	}
 	if m.friends != nil {
 		edges = append(edges, user.EdgeFriends)
@@ -2618,6 +3693,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.followers))
+		for id := range m.followers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCoAuthorsArchive:
+		ids := make([]ent.Value, 0, len(m.co_authors_archive))
+		for id := range m.co_authors_archive {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeFriends:
 		ids := make([]ent.Value, 0, len(m.friends))
 		for id := range m.friends {
@@ -2630,12 +3717,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
 	if m.removedgroups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.removedfollowers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.removedco_authors_archive != nil {
+		edges = append(edges, user.EdgeCoAuthorsArchive)
 	}
 	if m.removedfriends != nil {
 		edges = append(edges, user.EdgeFriends)
@@ -2659,6 +3752,18 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.removedfollowers))
+		for id := range m.removedfollowers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCoAuthorsArchive:
+		ids := make([]ent.Value, 0, len(m.removedco_authors_archive))
+		for id := range m.removedco_authors_archive {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeFriends:
 		ids := make([]ent.Value, 0, len(m.removedfriends))
 		for id := range m.removedfriends {
@@ -2671,12 +3776,18 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.clearedposts {
 		edges = append(edges, user.EdgePosts)
 	}
 	if m.clearedgroups {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.clearedfollowers {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.clearedco_authors_archive {
+		edges = append(edges, user.EdgeCoAuthorsArchive)
 	}
 	if m.clearedfriends {
 		edges = append(edges, user.EdgeFriends)
@@ -2692,6 +3803,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedposts
 	case user.EdgeGroups:
 		return m.clearedgroups
+	case user.EdgeFollowers:
+		return m.clearedfollowers
+	case user.EdgeCoAuthorsArchive:
+		return m.clearedco_authors_archive
 	case user.EdgeFriends:
 		return m.clearedfriends
 	}
@@ -2715,6 +3830,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeGroups:
 		m.ResetGroups()
+		return nil
+	case user.EdgeFollowers:
+		m.ResetFollowers()
+		return nil
+	case user.EdgeCoAuthorsArchive:
+		m.ResetCoAuthorsArchive()
 		return nil
 	case user.EdgeFriends:
 		m.ResetFriends()

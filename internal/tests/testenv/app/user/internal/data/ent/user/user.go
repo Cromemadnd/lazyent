@@ -47,10 +47,20 @@ const (
 	FieldRemoteToken = "remote_token"
 	// FieldExtUser holds the string denoting the ext_user field in the database.
 	FieldExtUser = "ext_user"
+	// FieldLastLoginIP holds the string denoting the last_login_ip field in the database.
+	FieldLastLoginIP = "last_login_ip"
+	// FieldVerificationCode holds the string denoting the verification_code field in the database.
+	FieldVerificationCode = "verification_code"
+	// FieldInternalID holds the string denoting the internal_id field in the database.
+	FieldInternalID = "internal_id"
 	// EdgePosts holds the string denoting the posts edge name in mutations.
 	EdgePosts = "posts"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeCoAuthorsArchive holds the string denoting the co_authors_archive edge name in mutations.
+	EdgeCoAuthorsArchive = "co_authors_archive"
 	// EdgeFriends holds the string denoting the friends edge name in mutations.
 	EdgeFriends = "friends"
 	// Table holds the table name of the user in the database.
@@ -67,6 +77,10 @@ const (
 	// GroupsInverseTable is the table name for the Group entity.
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupsInverseTable = "groups"
+	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
+	FollowersTable = "user_followers"
+	// CoAuthorsArchiveTable is the table that holds the co_authors_archive relation/edge. The primary key declared below.
+	CoAuthorsArchiveTable = "user_co_authors_archive"
 	// FriendsTable is the table that holds the friends relation/edge. The primary key declared below.
 	FriendsTable = "user_friends"
 )
@@ -89,18 +103,30 @@ var Columns = []string{
 	FieldRole,
 	FieldRemoteToken,
 	FieldExtUser,
+	FieldLastLoginIP,
+	FieldVerificationCode,
+	FieldInternalID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"group_admins",
+	"post_co_authors",
+	"post_followers",
+	"post_co_authors_archive",
 }
 
 var (
 	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
 	// primary key for the groups relation (M2M).
 	GroupsPrimaryKey = []string{"group_id", "user_id"}
+	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
+	// primary key for the followers relation (M2M).
+	FollowersPrimaryKey = []string{"user_id", "follower_id"}
+	// CoAuthorsArchivePrimaryKey and CoAuthorsArchiveColumn2 are the table columns denoting the
+	// primary key for the co_authors_archive relation (M2M).
+	CoAuthorsArchivePrimaryKey = []string{"user_id", "co_authors_archive_id"}
 	// FriendsPrimaryKey and FriendsColumn2 are the table columns denoting the
 	// primary key for the friends relation (M2M).
 	FriendsPrimaryKey = []string{"user_id", "friend_id"}
@@ -252,6 +278,21 @@ func ByRemoteToken(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemoteToken, opts...).ToFunc()
 }
 
+// ByLastLoginIP orders the results by the last_login_ip field.
+func ByLastLoginIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastLoginIP, opts...).ToFunc()
+}
+
+// ByVerificationCode orders the results by the verification_code field.
+func ByVerificationCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVerificationCode, opts...).ToFunc()
+}
+
+// ByInternalID orders the results by the internal_id field.
+func ByInternalID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInternalID, opts...).ToFunc()
+}
+
 // ByPostsCount orders the results by posts count.
 func ByPostsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -280,6 +321,34 @@ func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByFollowersCount orders the results by followers count.
+func ByFollowersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowersStep(), opts...)
+	}
+}
+
+// ByFollowers orders the results by followers terms.
+func ByFollowers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCoAuthorsArchiveCount orders the results by co_authors_archive count.
+func ByCoAuthorsArchiveCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCoAuthorsArchiveStep(), opts...)
+	}
+}
+
+// ByCoAuthorsArchive orders the results by co_authors_archive terms.
+func ByCoAuthorsArchive(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCoAuthorsArchiveStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFriendsCount orders the results by friends count.
 func ByFriendsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -305,6 +374,20 @@ func newGroupsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GroupsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
+	)
+}
+func newFollowersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, FollowersTable, FollowersPrimaryKey...),
+	)
+}
+func newCoAuthorsArchiveStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, CoAuthorsArchiveTable, CoAuthorsArchivePrimaryKey...),
 	)
 }
 func newFriendsStep() *sqlgraph.Step {

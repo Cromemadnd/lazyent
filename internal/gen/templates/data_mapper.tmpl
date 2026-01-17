@@ -15,26 +15,26 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 		return nil, nil
 	}
 {{- range $e := .Edges }}
-{{- if isBizExclude $e }}{{ continue }}{{ end }}
+{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
 {{- if not $e.Unique }}
-	{{- if isBizIDOnly $e }}
-	var {{ camel (bizEdgeName $e) }} []string
+	{{- if isBizIDOnly $e false }}
+	var {{ camel (bizEdgeName $e false) }} []string
 	for _, item := range e.Edges.{{ $e.StructField }} {
-		{{ camel (bizEdgeName $e) }} = append({{ camel (bizEdgeName $e) }}, item.ID.String())
+		{{ camel (bizEdgeName $e false) }} = append({{ camel (bizEdgeName $e false) }}, item.ID.String())
 	}
 	{{- else }}
-	var {{ camel (bizEdgeName $e) }} []*biz.{{ $e.Type.Name }}
+	var {{ camel (bizEdgeName $e false) }} []*biz.{{ $e.Type.Name }}
 	for _, item := range e.Edges.{{ $e.StructField }} {
 		v, err := Ent{{ $e.Type.Name }}ToBiz(item)
 		if err != nil {
 			return nil, err
 		}
-		{{ camel (bizEdgeName $e) }} = append({{ camel (bizEdgeName $e) }}, v)
+		{{ camel (bizEdgeName $e false) }} = append({{ camel (bizEdgeName $e false) }}, v)
 	}
 	{{- end }}
 {{- else }}
-	{{- if not (isBizIDOnly $e) }}
-	{{ camel (bizEdgeName $e) }}, err := Ent{{ $e.Type.Name }}ToBiz(e.Edges.{{ $e.StructField }})
+	{{- if not (isBizIDOnly $e false) }}
+	{{ camel (bizEdgeName $e false) }}, err := Ent{{ $e.Type.Name }}ToBiz(e.Edges.{{ $e.StructField }})
 	if err != nil {
 		return nil, err
 	}
@@ -47,16 +47,16 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{ bizFieldName .ID }}: {{ convertEntToBiz .ID $node.Name "e.ID" }},
 			{{- end }}
 			{{- range $f := .Fields }}
-			{{- if and (not (isSensitive $f)) (not (isVirtual $f)) }}
+			{{- if and (shouldGenerateBizField $f) (not (isVirtual $f)) }}
 			{{ bizFieldName $f }}: {{ convertEntToBiz $f $node.Name (printf "e.%s" $f.StructField) }},
 			{{- end }}
 			{{- end }}
 			{{- range $e := .Edges }}
-			{{- if isBizExclude $e }}{{ continue }}{{ end }}
+			{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
 			{{- if $e.Unique }}
 			{{- /* Single Relationship */}}
-			{{- if isBizIDOnly $e }}
-			{{ bizEdgeName $e }}: func() {{ edgeIDType $e }} {
+			{{- if isBizIDOnly $e false }}
+			{{ bizEdgeName $e false }}: func() {{ edgeIDType $e }} {
 				if e.Edges.{{ $e.StructField }} != nil {
 					{{- if eq (edgeIDType $e) "uuid.UUID" }}
 					return e.Edges.{{ $e.StructField }}.ID.String()
@@ -67,11 +67,11 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 				return {{ zeroValue (edgeIDType $e) }}
 			}(),
 			{{- else }}
-			{{ bizEdgeName $e }}: {{ camel (bizEdgeName $e) }},
+			{{ bizEdgeName $e false }}: {{ camel (bizEdgeName $e false) }},
 			{{- end }}
 			{{- else }}
 			{{- /* List Relationship */}}
-			{{ bizEdgeName $e }}: {{ camel (bizEdgeName $e) }},
+			{{ bizEdgeName $e false }}: {{ camel (bizEdgeName $e false) }},
 			{{- end }}
 			{{- end }}
 		},
@@ -83,18 +83,18 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 		return nil, nil
 	}
 {{- range $e := .Edges }}
-{{- if isBizExclude $e }}{{ continue }}{{ end }}
+{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
 {{- if $e.Unique }}
-	{{- if not (isBizIDOnly $e) }}
-	{{ camel (bizEdgeName $e) }}, err := Biz{{ $e.Type.Name }}ToEnt(b.{{ bizEdgeName $e }})
+	{{- if not (isBizIDOnly $e false) }}
+	{{ camel (bizEdgeName $e false) }}, err := Biz{{ $e.Type.Name }}ToEnt(b.{{ bizEdgeName $e false }})
 	if err != nil {
 		return nil, err
 	}
 	{{- end }}
 {{- else }}
-	{{- if isBizIDOnly $e }}
+	{{- if isBizIDOnly $e false }}
 	var {{ camel $e.StructField }} []*ent.{{ $e.Type.Name }}
-	for _, item := range b.{{ bizEdgeName $e }} {
+	for _, item := range b.{{ bizEdgeName $e false }} {
 		{{- if eq (edgeIDType $e) "uuid.UUID" }}
 		val, err := uuid.Parse(item)
 		if err != nil {
@@ -111,7 +111,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 	}
 	{{- else }}
 	var {{ camel $e.StructField }} []*ent.{{ $e.Type.Name }}
-	for _, item := range b.{{ bizEdgeName $e }} {
+	for _, item := range b.{{ bizEdgeName $e false }} {
 		v, err := Biz{{ $e.Type.Name }}ToEnt(item)
 		if err != nil {
 			return nil, err
@@ -136,14 +136,14 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 		ID: {{ convertBizToEntUsage .ID $node.Name }},
 {{- end }}
 {{- range $f := .Fields }}
-		{{- if and (not (isSensitive $f)) (not (isVirtual $f)) }}
+		{{- if and (shouldGenerateBizField $f) (not (isVirtual $f)) }}
 		{{ $f.StructField }}: {{ convertBizToEntUsage $f $node.Name }},
 		{{- end }}
 {{- end }}
 {{- if .Edges }}
 		Edges: ent.{{ .Name }}Edges{
 {{- range $e := .Edges }}
-{{- if isBizExclude $e }}{{ continue }}{{ end }}
+{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
 			{{ $e.StructField }}: {{ camel $e.StructField }},
 {{- end }}
 		},

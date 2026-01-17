@@ -23,8 +23,26 @@ const (
 	FieldTitle = "title"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// FieldSlug holds the string denoting the slug field in the database.
+	FieldSlug = "slug"
+	// FieldInternalCode holds the string denoting the internal_code field in the database.
+	FieldInternalCode = "internal_code"
+	// FieldManagementKey holds the string denoting the management_key field in the database.
+	FieldManagementKey = "management_key"
+	// FieldSummary holds the string denoting the summary field in the database.
+	FieldSummary = "summary"
+	// FieldExtraData holds the string denoting the extra_data field in the database.
+	FieldExtraData = "extra_data"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
+	// EdgeCoAuthors holds the string denoting the co_authors edge name in mutations.
+	EdgeCoAuthors = "co_authors"
+	// EdgeRelevantGroups holds the string denoting the relevant_groups edge name in mutations.
+	EdgeRelevantGroups = "relevant_groups"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeCoAuthorsArchive holds the string denoting the co_authors_archive edge name in mutations.
+	EdgeCoAuthorsArchive = "co_authors_archive"
 	// Table holds the table name of the post in the database.
 	Table = "posts"
 	// AuthorTable is the table that holds the author relation/edge.
@@ -34,6 +52,34 @@ const (
 	AuthorInverseTable = "users"
 	// AuthorColumn is the table column denoting the author relation/edge.
 	AuthorColumn = "user_posts"
+	// CoAuthorsTable is the table that holds the co_authors relation/edge.
+	CoAuthorsTable = "users"
+	// CoAuthorsInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CoAuthorsInverseTable = "users"
+	// CoAuthorsColumn is the table column denoting the co_authors relation/edge.
+	CoAuthorsColumn = "post_co_authors"
+	// RelevantGroupsTable is the table that holds the relevant_groups relation/edge.
+	RelevantGroupsTable = "groups"
+	// RelevantGroupsInverseTable is the table name for the Group entity.
+	// It exists in this package in order to avoid circular dependency with the "group" package.
+	RelevantGroupsInverseTable = "groups"
+	// RelevantGroupsColumn is the table column denoting the relevant_groups relation/edge.
+	RelevantGroupsColumn = "post_relevant_groups"
+	// FollowersTable is the table that holds the followers relation/edge.
+	FollowersTable = "users"
+	// FollowersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	FollowersInverseTable = "users"
+	// FollowersColumn is the table column denoting the followers relation/edge.
+	FollowersColumn = "post_followers"
+	// CoAuthorsArchiveTable is the table that holds the co_authors_archive relation/edge.
+	CoAuthorsArchiveTable = "users"
+	// CoAuthorsArchiveInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CoAuthorsArchiveInverseTable = "users"
+	// CoAuthorsArchiveColumn is the table column denoting the co_authors_archive relation/edge.
+	CoAuthorsArchiveColumn = "post_co_authors_archive"
 )
 
 // Columns holds all SQL columns for post fields.
@@ -43,6 +89,11 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldTitle,
 	FieldContent,
+	FieldSlug,
+	FieldInternalCode,
+	FieldManagementKey,
+	FieldSummary,
+	FieldExtraData,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "posts"
@@ -107,10 +158,91 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContent, opts...).ToFunc()
 }
 
+// BySlug orders the results by the slug field.
+func BySlug(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSlug, opts...).ToFunc()
+}
+
+// ByInternalCode orders the results by the internal_code field.
+func ByInternalCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInternalCode, opts...).ToFunc()
+}
+
+// ByManagementKey orders the results by the management_key field.
+func ByManagementKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldManagementKey, opts...).ToFunc()
+}
+
+// BySummary orders the results by the summary field.
+func BySummary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSummary, opts...).ToFunc()
+}
+
+// ByExtraData orders the results by the extra_data field.
+func ByExtraData(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExtraData, opts...).ToFunc()
+}
+
 // ByAuthorField orders the results by author field.
 func ByAuthorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCoAuthorsCount orders the results by co_authors count.
+func ByCoAuthorsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCoAuthorsStep(), opts...)
+	}
+}
+
+// ByCoAuthors orders the results by co_authors terms.
+func ByCoAuthors(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCoAuthorsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRelevantGroupsCount orders the results by relevant_groups count.
+func ByRelevantGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRelevantGroupsStep(), opts...)
+	}
+}
+
+// ByRelevantGroups orders the results by relevant_groups terms.
+func ByRelevantGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRelevantGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFollowersCount orders the results by followers count.
+func ByFollowersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowersStep(), opts...)
+	}
+}
+
+// ByFollowers orders the results by followers terms.
+func ByFollowers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCoAuthorsArchiveCount orders the results by co_authors_archive count.
+func ByCoAuthorsArchiveCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCoAuthorsArchiveStep(), opts...)
+	}
+}
+
+// ByCoAuthorsArchive orders the results by co_authors_archive terms.
+func ByCoAuthorsArchive(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCoAuthorsArchiveStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newAuthorStep() *sqlgraph.Step {
@@ -118,5 +250,33 @@ func newAuthorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AuthorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, AuthorTable, AuthorColumn),
+	)
+}
+func newCoAuthorsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CoAuthorsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CoAuthorsTable, CoAuthorsColumn),
+	)
+}
+func newRelevantGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RelevantGroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RelevantGroupsTable, RelevantGroupsColumn),
+	)
+}
+func newFollowersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FollowersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FollowersTable, FollowersColumn),
+	)
+}
+func newCoAuthorsArchiveStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CoAuthorsArchiveInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CoAuthorsArchiveTable, CoAuthorsArchiveColumn),
 	)
 }

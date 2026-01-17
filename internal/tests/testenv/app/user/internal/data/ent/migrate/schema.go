@@ -14,12 +14,21 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "post_relevant_groups", Type: field.TypeUUID, Nullable: true},
 	}
 	// GroupsTable holds the schema information for the "groups" table.
 	GroupsTable = &schema.Table{
 		Name:       "groups",
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "groups_posts_relevant_groups",
+				Columns:    []*schema.Column{GroupsColumns[4]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "group_created_at",
@@ -35,6 +44,11 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "internal_code", Type: field.TypeString, Nullable: true},
+		{Name: "management_key", Type: field.TypeString, Nullable: true},
+		{Name: "summary", Type: field.TypeString, Nullable: true},
+		{Name: "extra_data", Type: field.TypeString, Nullable: true},
 		{Name: "user_posts", Type: field.TypeUUID},
 	}
 	// PostsTable holds the schema information for the "posts" table.
@@ -45,7 +59,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "posts_users_posts",
-				Columns:    []*schema.Column{PostsColumns[5]},
+				Columns:    []*schema.Column{PostsColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -76,7 +90,13 @@ var (
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"public", "user", "tech", "dev", "leader", "manager"}, Default: "user"},
 		{Name: "remote_token", Type: field.TypeString},
 		{Name: "ext_user", Type: field.TypeJSON},
+		{Name: "last_login_ip", Type: field.TypeString, Nullable: true},
+		{Name: "verification_code", Type: field.TypeString, Nullable: true},
+		{Name: "internal_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "group_admins", Type: field.TypeUUID, Nullable: true},
+		{Name: "post_co_authors", Type: field.TypeUUID, Nullable: true},
+		{Name: "post_followers", Type: field.TypeUUID, Nullable: true},
+		{Name: "post_co_authors_archive", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -86,8 +106,26 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_admins",
-				Columns:    []*schema.Column{UsersColumns[16]},
+				Columns:    []*schema.Column{UsersColumns[19]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_posts_co_authors",
+				Columns:    []*schema.Column{UsersColumns[20]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_posts_followers",
+				Columns:    []*schema.Column{UsersColumns[21]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_posts_co_authors_archive",
+				Columns:    []*schema.Column{UsersColumns[22]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -124,6 +162,56 @@ var (
 			},
 		},
 	}
+	// UserFollowersColumns holds the columns for the "user_followers" table.
+	UserFollowersColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "follower_id", Type: field.TypeUUID},
+	}
+	// UserFollowersTable holds the schema information for the "user_followers" table.
+	UserFollowersTable = &schema.Table{
+		Name:       "user_followers",
+		Columns:    UserFollowersColumns,
+		PrimaryKey: []*schema.Column{UserFollowersColumns[0], UserFollowersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_followers_user_id",
+				Columns:    []*schema.Column{UserFollowersColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_followers_follower_id",
+				Columns:    []*schema.Column{UserFollowersColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserCoAuthorsArchiveColumns holds the columns for the "user_co_authors_archive" table.
+	UserCoAuthorsArchiveColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "co_authors_archive_id", Type: field.TypeUUID},
+	}
+	// UserCoAuthorsArchiveTable holds the schema information for the "user_co_authors_archive" table.
+	UserCoAuthorsArchiveTable = &schema.Table{
+		Name:       "user_co_authors_archive",
+		Columns:    UserCoAuthorsArchiveColumns,
+		PrimaryKey: []*schema.Column{UserCoAuthorsArchiveColumns[0], UserCoAuthorsArchiveColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_co_authors_archive_user_id",
+				Columns:    []*schema.Column{UserCoAuthorsArchiveColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_co_authors_archive_co_authors_archive_id",
+				Columns:    []*schema.Column{UserCoAuthorsArchiveColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UserFriendsColumns holds the columns for the "user_friends" table.
 	UserFriendsColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeUUID},
@@ -155,15 +243,25 @@ var (
 		PostsTable,
 		UsersTable,
 		GroupUsersTable,
+		UserFollowersTable,
+		UserCoAuthorsArchiveTable,
 		UserFriendsTable,
 	}
 )
 
 func init() {
+	GroupsTable.ForeignKeys[0].RefTable = PostsTable
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
+	UsersTable.ForeignKeys[1].RefTable = PostsTable
+	UsersTable.ForeignKeys[2].RefTable = PostsTable
+	UsersTable.ForeignKeys[3].RefTable = PostsTable
 	GroupUsersTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupUsersTable.ForeignKeys[1].RefTable = UsersTable
+	UserFollowersTable.ForeignKeys[0].RefTable = UsersTable
+	UserFollowersTable.ForeignKeys[1].RefTable = UsersTable
+	UserCoAuthorsArchiveTable.ForeignKeys[0].RefTable = UsersTable
+	UserCoAuthorsArchiveTable.ForeignKeys[1].RefTable = UsersTable
 	UserFriendsTable.ForeignKeys[0].RefTable = UsersTable
 	UserFriendsTable.ForeignKeys[1].RefTable = UsersTable
 }

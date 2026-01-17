@@ -186,6 +186,48 @@ func (_c *UserCreate) SetExtUser(v any) *UserCreate {
 	return _c
 }
 
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_c *UserCreate) SetLastLoginIP(v string) *UserCreate {
+	_c.mutation.SetLastLoginIP(v)
+	return _c
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLastLoginIP(v *string) *UserCreate {
+	if v != nil {
+		_c.SetLastLoginIP(*v)
+	}
+	return _c
+}
+
+// SetVerificationCode sets the "verification_code" field.
+func (_c *UserCreate) SetVerificationCode(v string) *UserCreate {
+	_c.mutation.SetVerificationCode(v)
+	return _c
+}
+
+// SetNillableVerificationCode sets the "verification_code" field if the given value is not nil.
+func (_c *UserCreate) SetNillableVerificationCode(v *string) *UserCreate {
+	if v != nil {
+		_c.SetVerificationCode(*v)
+	}
+	return _c
+}
+
+// SetInternalID sets the "internal_id" field.
+func (_c *UserCreate) SetInternalID(v int64) *UserCreate {
+	_c.mutation.SetInternalID(v)
+	return _c
+}
+
+// SetNillableInternalID sets the "internal_id" field if the given value is not nil.
+func (_c *UserCreate) SetNillableInternalID(v *int64) *UserCreate {
+	if v != nil {
+		_c.SetInternalID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v uuid.UUID) *UserCreate {
 	_c.mutation.SetID(v)
@@ -228,6 +270,36 @@ func (_c *UserCreate) AddGroups(v ...*Group) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddGroupIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (_c *UserCreate) AddFollowerIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddFollowerIDs(ids...)
+	return _c
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (_c *UserCreate) AddFollowers(v ...*User) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFollowerIDs(ids...)
+}
+
+// AddCoAuthorsArchiveIDs adds the "co_authors_archive" edge to the User entity by IDs.
+func (_c *UserCreate) AddCoAuthorsArchiveIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCoAuthorsArchiveIDs(ids...)
+	return _c
+}
+
+// AddCoAuthorsArchive adds the "co_authors_archive" edges to the User entity.
+func (_c *UserCreate) AddCoAuthorsArchive(v ...*User) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCoAuthorsArchiveIDs(ids...)
 }
 
 // AddFriendIDs adds the "friends" edge to the User entity by IDs.
@@ -460,6 +532,18 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 		_node.ExtUser = value
 	}
+	if value, ok := _c.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+		_node.LastLoginIP = value
+	}
+	if value, ok := _c.mutation.VerificationCode(); ok {
+		_spec.SetField(user.FieldVerificationCode, field.TypeString, value)
+		_node.VerificationCode = value
+	}
+	if value, ok := _c.mutation.InternalID(); ok {
+		_spec.SetField(user.FieldInternalID, field.TypeInt64, value)
+		_node.InternalID = value
+	}
 	if nodes := _c.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -485,6 +569,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CoAuthorsArchiveIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CoAuthorsArchiveTable,
+			Columns: user.CoAuthorsArchivePrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
