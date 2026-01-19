@@ -29,16 +29,21 @@ func (Post) Fields() []ent.Field {
 		field.String("management_key").Sensitive().Optional().Annotations(lazyent.MergeAnnotations(
 			lazyent.WithFieldInStrategy(lazyent.FieldProtoOptional|lazyent.FieldBizValue),
 			lazyent.WithFieldOutStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
+			lazyent.WithProtoAdditionalImports([]string{"test222.proto"}),
 		)),
 
 		// 场景：入参排除（由服务端逻辑生成），回包包含
 		field.String("summary").Optional().Annotations(lazyent.MergeAnnotations(
 			lazyent.WithFieldInStrategy(lazyent.FieldProtoExcluded|lazyent.FieldBizExcluded),
 			lazyent.WithFieldOutStrategy(lazyent.FieldProtoOptional|lazyent.FieldBizValue),
+			lazyent.WithProtoAdditionalImports([]string{"test.proto"}),
 		)),
 
 		// 场景：Virtual 字段测试
-		field.String("extra_data").Annotations(lazyent.Virtual()).Optional(),
+		field.String("extra_data").Annotations(lazyent.MergeAnnotations(
+			lazyent.Virtual(),
+			lazyent.WithProtoAdditionalImports([]string{"test.proto"}),
+		)).Optional(),
 	}
 }
 

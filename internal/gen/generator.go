@@ -415,7 +415,7 @@ func (e *Generator) buildProtoMessage(n *GenNode, f *PbFile, in bool) *PbMessage
 	allFields = append(allFields, fields...)
 
 	// 2. Edges
-	edges := e.buildProtoEdges(n, in)
+	edges := e.buildProtoEdges(n, f, in)
 	allFields = append(allFields, edges...)
 
 	// 3. Assign Tags
@@ -434,30 +434,22 @@ type fieldInfo struct {
 func (e *Generator) buildProtoFields(n *GenNode, f *PbFile, usedTags map[int]bool, in bool) []fieldInfo {
 	var results []fieldInfo
 
-	// 1. ID (Implicitly handled? ID is not in n.Fields usually, but n.ID)
-	// GenNode doesn't wrap ID as GenField currently in local version of AdaptNode?
-	// models.go: GenNode has *entgen.Type.
-	// We can adapt ID on the fly if needed or just access n.ID and wrap it.
-	// But `buildProtoFields` previously worked on `entgen.Field`.
-	// For ID:
+	// 1. ID
 	if n.ID != nil {
-		// We need to check strategy.
-		// ID doesn't have a wrapper in GenNode struct explicitly, just n.ID.
-		// But helpers expect interface that can be cast to *GenField or *entgen.Field.
-		// adaptField can adapt on fly if we pass it.
-		// But let's look at `isFieldProtoExclude`. It calls `asGenField`.
-		// `asGenField` handles `*entgen.Field`.
-		// So passing `n.ID` (which is `*entgen.Field`) works!
+		gf := asGenField(n.ID)
+		if gf != nil && gf.Annotation != nil {
+			for _, imp := range gf.Annotation.ProtoAdditionalImports {
+				f.AddImport(imp)
+			}
+		}
 
 		if !isFieldProtoExclude(n.ID, in) {
 			pf := &PbField{
-				Name:    protoFieldName(n.ID), // helpers work on *entgen.Field via JIT adaptation
+				Name:    protoFieldName(n.ID),
 				Comment: n.ID.Comment(),
 			}
 
 			// Resolve Type
-			// JIT adaptation for type resolution
-			// We can use protoType helper which does JIT
 			pf.Type = protoType(n.ID, n.Name)
 			// Handle imports:
 			if pf.Type == "google.protobuf.Timestamp" {
@@ -469,13 +461,18 @@ func (e *Generator) buildProtoFields(n *GenNode, f *PbFile, usedTags map[int]boo
 				pf.Tag = t
 				usedTags[t] = true
 			}
-			// fieldInfo expects *GenField. `asGenField` returns *GenField.
-			results = append(results, fieldInfo{isID: true, field: asGenField(n.ID), pf: pf})
+			results = append(results, fieldInfo{isID: true, field: gf, pf: pf})
 		}
 	}
 
 	// 2. Fields
 	for _, fld := range n.Fields { // fld is *GenField
+		if fld.Annotation != nil {
+			for _, imp := range fld.Annotation.ProtoAdditionalImports {
+				f.AddImport(imp)
+			}
+		}
+
 		// Check Strategy
 		if isFieldProtoExclude(fld, in) {
 			continue
@@ -496,9 +493,7 @@ func (e *Generator) buildProtoFields(n *GenNode, f *PbFile, usedTags map[int]boo
 		}
 
 		if in {
-			pf.ValidateRules = getFieldValidateRules(fld.Field) // This expects *entgen.Field usually?
-			// getFieldValidateRules is in validate.go (assumed). I need to check if it's updated.
-			// It probably just reads annotation.
+			pf.ValidateRules = getFieldValidateRules(fld.Field)
 		}
 
 		if strings.HasPrefix(fld.Type.String(), "[]") && fld.Type.String() != "[]byte" {
@@ -515,9 +510,15 @@ func (e *Generator) buildProtoFields(n *GenNode, f *PbFile, usedTags map[int]boo
 	return results
 }
 
-func (e *Generator) buildProtoEdges(n *GenNode, in bool) []fieldInfo {
+func (e *Generator) buildProtoEdges(n *GenNode, f *PbFile, in bool) []fieldInfo {
 	var results []fieldInfo
 	for _, edge := range n.Edges { // edge is *GenEdge
+		if edge.Annotation != nil {
+			for _, imp := range edge.Annotation.ProtoAdditionalImports {
+				f.AddImport(imp)
+			}
+		}
+
 		if isProtoExclude(edge, in) {
 			continue
 		}

@@ -127,8 +127,18 @@ func MergeAnnotations(opts ...Annotation) Annotation {
 		if opt.ProtoValidation != "" {
 			merged.ProtoValidation = opt.ProtoValidation
 		}
+		if len(opt.ProtoAdditionalImports) > 0 {
+			merged.ProtoAdditionalImports = append(merged.ProtoAdditionalImports, opt.ProtoAdditionalImports...)
+		}
 	}
 	return merged
+}
+
+// WithProtoAdditionalImports 引入额外的 Proto Imports
+func WithProtoAdditionalImports(imports []string) Annotation {
+	return Annotation{
+		ProtoAdditionalImports: imports,
+	}
 }
 
 // WithProtoValidation 自定义 Proto 字段验证规则 (Buf Validate)

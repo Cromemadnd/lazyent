@@ -33,14 +33,15 @@ const (
 
 // Annotation 定义 LazyEnt 的配置注解
 type Annotation struct {
-	EnumValues      map[string]int32 `json:"enum_values"`      // EnumValues 定义枚举数值映射: "ENUM_VAL": 1 (仅 Enum Fields有效)
-	BizName         string           `json:"biz_name"`         // Biz Field 名称
-	BizType         string           `json:"biz_type"`         // Biz Field 自定义类型
-	ProtoName       string           `json:"proto_name"`       // Proto Field 名称
-	ProtoType       string           `json:"proto_type"`       // Proto Field 自定义类型
-	ProtoFieldID    int32            `json:"proto_field_id"`   // ProtoFieldID 指定 Proto 字段 ID
-	Virtual         bool             `json:"virtual"`          // 是否为虚拟字段 (不存入数据库)
-	ProtoValidation string           `json:"proto_validation"` // Buf validate rules, e.g. "min_len: 1"
+	EnumValues             map[string]int32 `json:"enum_values"`              // EnumValues 定义枚举数值映射: "ENUM_VAL": 1 (仅 Enum Fields有效)
+	BizName                string           `json:"biz_name"`                 // Biz Field 名称
+	BizType                string           `json:"biz_type"`                 // Biz Field 自定义类型
+	ProtoName              string           `json:"proto_name"`               // Proto Field 名称
+	ProtoType              string           `json:"proto_type"`               // Proto Field 自定义类型
+	ProtoFieldID           int32            `json:"proto_field_id"`           // ProtoFieldID 指定 Proto 字段 ID
+	Virtual                bool             `json:"virtual"`                  // 是否为虚拟字段 (不存入数据库)
+	ProtoValidation        string           `json:"proto_validation"`         // Buf validate rules, e.g. "min_len: 1"
+	ProtoAdditionalImports []string         `json:"proto_additional_imports"` // 额外的 Proto Imports
 
 	// 新的四大策略
 	EdgeInStrategy   EdgeStrategy  `json:"edge_in_strategy"`   // 关联输入策略

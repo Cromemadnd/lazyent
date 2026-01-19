@@ -5,7 +5,10 @@ package user.v1;
 
 option go_package = "lazyent-test-app/user/v1;v1";
 import "google/protobuf/timestamp.proto";
+import "test.proto";
+import "test222.proto";
 import "buf/validate/validate.proto";
+
 
 message Group {
   string uuid = 1; // 数据库主键
