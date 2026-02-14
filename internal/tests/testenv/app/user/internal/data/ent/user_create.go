@@ -174,18 +174,6 @@ func (_c *UserCreate) SetNillableRole(v *auth.UserRole) *UserCreate {
 	return _c
 }
 
-// SetRemoteToken sets the "remote_token" field.
-func (_c *UserCreate) SetRemoteToken(v string) *UserCreate {
-	_c.mutation.SetRemoteToken(v)
-	return _c
-}
-
-// SetExtUser sets the "ext_user" field.
-func (_c *UserCreate) SetExtUser(v any) *UserCreate {
-	_c.mutation.SetExtUser(v)
-	return _c
-}
-
 // SetTestTime sets the "test_time" field.
 func (_c *UserCreate) SetTestTime(v time.Time) *UserCreate {
 	_c.mutation.SetTestTime(v)
@@ -445,12 +433,6 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.RemoteToken(); !ok {
-		return &ValidationError{Name: "remote_token", err: errors.New(`ent: missing required field "User.remote_token"`)}
-	}
-	if _, ok := _c.mutation.ExtUser(); !ok {
-		return &ValidationError{Name: "ext_user", err: errors.New(`ent: missing required field "User.ext_user"`)}
-	}
 	return nil
 }
 
@@ -537,14 +519,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 		_node.Role = value
-	}
-	if value, ok := _c.mutation.RemoteToken(); ok {
-		_spec.SetField(user.FieldRemoteToken, field.TypeString, value)
-		_node.RemoteToken = value
-	}
-	if value, ok := _c.mutation.ExtUser(); ok {
-		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
-		_node.ExtUser = value
 	}
 	if value, ok := _c.mutation.TestTime(); ok {
 		_spec.SetField(user.FieldTestTime, field.TypeTime, value)

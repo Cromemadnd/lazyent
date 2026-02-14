@@ -229,26 +229,6 @@ func (_u *UserUpdate) SetNillableRole(v *auth.UserRole) *UserUpdate {
 	return _u
 }
 
-// SetRemoteToken sets the "remote_token" field.
-func (_u *UserUpdate) SetRemoteToken(v string) *UserUpdate {
-	_u.mutation.SetRemoteToken(v)
-	return _u
-}
-
-// SetNillableRemoteToken sets the "remote_token" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableRemoteToken(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetRemoteToken(*v)
-	}
-	return _u
-}
-
-// SetExtUser sets the "ext_user" field.
-func (_u *UserUpdate) SetExtUser(v any) *UserUpdate {
-	_u.mutation.SetExtUser(v)
-	return _u
-}
-
 // SetTestTime sets the "test_time" field.
 func (_u *UserUpdate) SetTestTime(v time.Time) *UserUpdate {
 	_u.mutation.SetTestTime(v)
@@ -652,12 +632,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.RemoteToken(); ok {
-		_spec.SetField(user.FieldRemoteToken, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.ExtUser(); ok {
-		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 	}
 	if value, ok := _u.mutation.TestTime(); ok {
 		_spec.SetField(user.FieldTestTime, field.TypeTime, value)
@@ -1127,26 +1101,6 @@ func (_u *UserUpdateOne) SetNillableRole(v *auth.UserRole) *UserUpdateOne {
 	return _u
 }
 
-// SetRemoteToken sets the "remote_token" field.
-func (_u *UserUpdateOne) SetRemoteToken(v string) *UserUpdateOne {
-	_u.mutation.SetRemoteToken(v)
-	return _u
-}
-
-// SetNillableRemoteToken sets the "remote_token" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableRemoteToken(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetRemoteToken(*v)
-	}
-	return _u
-}
-
-// SetExtUser sets the "ext_user" field.
-func (_u *UserUpdateOne) SetExtUser(v any) *UserUpdateOne {
-	_u.mutation.SetExtUser(v)
-	return _u
-}
-
 // SetTestTime sets the "test_time" field.
 func (_u *UserUpdateOne) SetTestTime(v time.Time) *UserUpdateOne {
 	_u.mutation.SetTestTime(v)
@@ -1580,12 +1534,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.RemoteToken(); ok {
-		_spec.SetField(user.FieldRemoteToken, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.ExtUser(); ok {
-		_spec.SetField(user.FieldExtUser, field.TypeJSON, value)
 	}
 	if value, ok := _u.mutation.TestTime(); ok {
 		_spec.SetField(user.FieldTestTime, field.TypeTime, value)

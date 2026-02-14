@@ -213,12 +213,12 @@ func (e *Generator) generate(g *entgen.Graph) error {
 			}
 
 			// 3. Service Mapper
-			if err := e.render(nil, "templates/mapper.tmpl", filepath.Join(moduleRoot, e.conf.ServiceOut, lName+"_mapper.go"), data); err != nil {
+			if err := e.render(nil, "templates/service_mapper.tmpl", filepath.Join(moduleRoot, e.conf.ServiceOut, lName+"_mapper.go"), data); err != nil {
 				return err
 			}
 
 			// 4. Data Mapper
-			if err := e.render(nil, "templates/data.tmpl", filepath.Join(moduleRoot, e.conf.DataOut, lName+"_ent.go"), data); err != nil {
+			if err := e.render(nil, "templates/data_mapper.tmpl", filepath.Join(moduleRoot, e.conf.DataOut, lName+"_ent.go"), data); err != nil {
 				return err
 			}
 		}

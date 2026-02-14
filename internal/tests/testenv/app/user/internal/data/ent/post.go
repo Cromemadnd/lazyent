@@ -36,8 +36,6 @@ type Post struct {
 	ManagementKey string `json:"-"`
 	// Summary holds the value of the "summary" field.
 	Summary string `json:"summary,omitempty"`
-	// ExtraData holds the value of the "extra_data" field.
-	ExtraData string `json:"extra_data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PostQuery when eager-loading is set.
 	Edges        PostEdges `json:"edges"`
@@ -114,7 +112,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case post.FieldTitle, post.FieldContent, post.FieldSlug, post.FieldInternalCode, post.FieldManagementKey, post.FieldSummary, post.FieldExtraData:
+		case post.FieldTitle, post.FieldContent, post.FieldSlug, post.FieldInternalCode, post.FieldManagementKey, post.FieldSummary:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -190,12 +188,6 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field summary", values[i])
 			} else if value.Valid {
 				_m.Summary = value.String
-			}
-		case post.FieldExtraData:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field extra_data", values[i])
-			} else if value.Valid {
-				_m.ExtraData = value.String
 			}
 		case post.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -287,9 +279,6 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("summary=")
 	builder.WriteString(_m.Summary)
-	builder.WriteString(", ")
-	builder.WriteString("extra_data=")
-	builder.WriteString(_m.ExtraData)
 	builder.WriteByte(')')
 	return builder.String()
 }

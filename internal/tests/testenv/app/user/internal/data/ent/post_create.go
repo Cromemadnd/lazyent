@@ -119,20 +119,6 @@ func (_c *PostCreate) SetNillableSummary(v *string) *PostCreate {
 	return _c
 }
 
-// SetExtraData sets the "extra_data" field.
-func (_c *PostCreate) SetExtraData(v string) *PostCreate {
-	_c.mutation.SetExtraData(v)
-	return _c
-}
-
-// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
-func (_c *PostCreate) SetNillableExtraData(v *string) *PostCreate {
-	if v != nil {
-		_c.SetExtraData(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *PostCreate) SetID(v uuid.UUID) *PostCreate {
 	_c.mutation.SetID(v)
@@ -355,10 +341,6 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Summary(); ok {
 		_spec.SetField(post.FieldSummary, field.TypeString, value)
 		_node.Summary = value
-	}
-	if value, ok := _c.mutation.ExtraData(); ok {
-		_spec.SetField(post.FieldExtraData, field.TypeString, value)
-		_node.ExtraData = value
 	}
 	if nodes := _c.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

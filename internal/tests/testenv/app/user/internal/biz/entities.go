@@ -15,3 +15,8 @@ type Post struct {
 type User struct {
 	UserBase
 }
+
+// VirtualUser 是业务实体，嵌入了生成的 Base 结构体。
+type VirtualUser struct {
+	VirtualUserBase
+}

@@ -1,6 +1,23 @@
 package lazyent
 
-import "github.com/Cromemadnd/lazyent/internal/types"
+import (
+	"entgo.io/ent"
+	"github.com/Cromemadnd/lazyent/internal/types"
+)
+
+// VirtualEdge 标记 Edge 为虚拟 Edge
+// 虚拟 Edge 不会映射到数据库，仅在 Biz 和 Proto 层存在
+func VirtualEdge[T ent.Edge](e T) T {
+	e.Descriptor().Annotations = append(e.Descriptor().Annotations, Virtual())
+	return e
+}
+
+// VirtualField 标记 Field 为虚拟 Field
+// 虚拟 Field 不会映射到数据库，仅在 Biz 和 Proto 层存在
+func VirtualField[T ent.Field](f T) T {
+	f.Descriptor().Annotations = append(f.Descriptor().Annotations, Virtual())
+	return f
+}
 
 // Convenience aliases
 

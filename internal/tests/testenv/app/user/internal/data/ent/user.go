@@ -47,10 +47,6 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// 用户权限组
 	Role auth.UserRole `json:"role,omitempty"`
-	// 虚拟令牌，不存数据库
-	RemoteToken string `json:"remote_token,omitempty"`
-	// 外部用户对象，不存数据库
-	ExtUser any `json:"ext_user,omitempty"`
 	// TestTime holds the value of the "test_time" field.
 	TestTime time.Time `json:"test_time,omitempty"`
 	// 仅回包包含
@@ -138,13 +134,13 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldTestNillableUUID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case user.FieldTags, user.FieldExtUser:
+		case user.FieldTags:
 			values[i] = new([]byte)
 		case user.FieldIsVerified:
 			values[i] = new(sql.NullBool)
 		case user.FieldAge, user.FieldScore, user.FieldInternalID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole, user.FieldRemoteToken, user.FieldLastLoginIP, user.FieldVerificationCode:
+		case user.FieldName, user.FieldNickname, user.FieldPassword, user.FieldStatus, user.FieldRole, user.FieldLastLoginIP, user.FieldVerificationCode:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldTestTime:
 			values[i] = new(sql.NullTime)
@@ -259,20 +255,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				_m.Role = auth.UserRole(value.String)
-			}
-		case user.FieldRemoteToken:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field remote_token", values[i])
-			} else if value.Valid {
-				_m.RemoteToken = value.String
-			}
-		case user.FieldExtUser:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field ext_user", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.ExtUser); err != nil {
-					return fmt.Errorf("unmarshal field ext_user: %w", err)
-				}
 			}
 		case user.FieldTestTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -426,12 +408,6 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))
-	builder.WriteString(", ")
-	builder.WriteString("remote_token=")
-	builder.WriteString(_m.RemoteToken)
-	builder.WriteString(", ")
-	builder.WriteString("ext_user=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ExtUser))
 	builder.WriteString(", ")
 	builder.WriteString("test_time=")
 	builder.WriteString(_m.TestTime.Format(time.ANSIC))

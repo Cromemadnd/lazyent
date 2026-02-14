@@ -33,12 +33,11 @@ message Post {
   string content = 5;
   string slug = 6;
   string summary = 7;
-  string extra_data = 8;
-  User author = 9;
-  repeated User co_authors = 10;
-  repeated string relevant_groups_id = 11;
-  repeated string followers_id = 12;
-  repeated string co_authors_archive_id = 13;
+  User author = 8;
+  repeated User co_authors = 9;
+  repeated string relevant_groups_id = 10;
+  repeated string followers_id = 11;
+  repeated string co_authors_archive_id = 12;
 }
 
 message PostInput {
@@ -49,11 +48,10 @@ message PostInput {
   string content = 5;
   string slug = 6;
   string management_key = 7;
-  string extra_data = 8;
-  UserInput author = 9;
-  repeated string co_authors_id = 10;
-  repeated string relevant_groups_id = 11;
-  repeated UserInput co_authors_archive = 12;
+  UserInput author = 8;
+  repeated string co_authors_id = 9;
+  repeated string relevant_groups_id = 10;
+  repeated UserInput co_authors_archive = 11;
 }
 
 enum UserStatus {
@@ -78,14 +76,15 @@ message User {
   UserStatus status = 12;
   string role = 13; // 用户权限组
   string remote_token = 14; // 虚拟令牌，不存数据库
-  auth.v1.User ext_user = 15; // 外部用户对象，不存数据库
-  int64 test_time = 16;
-  string last_login_ip = 17; // 仅回包包含
-  repeated string post_ids = 18;
-  repeated Group groups = 19;
-  repeated string followers_test = 20;
-  repeated string co_authors_archive_test = 21;
-  repeated User friends = 22;
+  int64 test_time = 15;
+  string last_login_ip = 16; // 仅回包包含
+  repeated string post_ids = 17;
+  repeated Group groups = 18;
+  repeated string followers_test = 19;
+  repeated string co_authors_archive_test = 20;
+  repeated User friends = 21;
+  repeated User friends_virtual = 22;
+  repeated VirtualUser friends_virtual_user = 23;
 }
 
 message UserInput {
@@ -104,10 +103,55 @@ message UserInput {
   UserStatus status = 13;
   string role = 14; // 用户权限组
   string remote_token = 15; // 虚拟令牌，不存数据库
-  auth.v1.User ext_user = 16; // 外部用户对象，不存数据库
-  int64 test_time = 17;
-  string verification_code = 18; // 仅入参包含
-  repeated string post_ids = 19;
-  repeated GroupInput groups = 20;
-  repeated UserInput co_authors_archive_test = 21;
+  int64 test_time = 16;
+  string verification_code = 17; // 仅入参包含
+  repeated string post_ids = 18;
+  repeated GroupInput groups = 19;
+  repeated UserInput co_authors_archive_test = 20;
+  repeated UserInput friends_virtual = 21;
+  repeated VirtualUserInput friends_virtual_user = 22;
+}
+
+message VirtualUser {
+  string uuid = 1; // 数据库主键
+  string id_auth = 2; // 统一身份认证号
+  string id_student = 3; // 学工号
+  string info_name = 4; // 姓名
+  int32 info_campus = 5; // 校区
+  string info_qq = 6; // QQ
+  string info_wechat = 7; // 微信
+  string info_email = 8; // 邮箱
+  string info_phone = 9; // 电话
+  string info_custom = 10; // 默认特殊信息
+  int32 info_gender = 11; // 性别
+  bool lanker_valid = 12; // 是否为蓝客
+  bool lanker_trainee = 13; // 是否为见习
+  int32 lanker_sheets_completed = 14; // 完成单数
+  double lanker_score = 15; // 积分
+  string lanker_avatar_url = 16; // 头像
+  string lanker_brief = 17; // 个人简介
+  int32 lanker_department = 18; // 所在部门
+  int32 lanker_spot = 19; // 职位
+}
+
+message VirtualUserInput {
+  string uuid = 1; // 数据库主键
+  string id_auth = 2; // 统一身份认证号
+  string id_student = 3; // 学工号
+  string info_name = 4; // 姓名
+  int32 info_campus = 5; // 校区
+  string info_qq = 6; // QQ
+  string info_wechat = 7; // 微信
+  string info_email = 8; // 邮箱
+  string info_phone = 9; // 电话
+  string info_custom = 10; // 默认特殊信息
+  int32 info_gender = 11; // 性别
+  bool lanker_valid = 12; // 是否为蓝客
+  bool lanker_trainee = 13; // 是否为见习
+  int32 lanker_sheets_completed = 14; // 完成单数
+  double lanker_score = 15; // 积分
+  string lanker_avatar_url = 16; // 头像
+  string lanker_brief = 17; // 个人简介
+  int32 lanker_department = 18; // 所在部门
+  int32 lanker_spot = 19; // 职位
 }

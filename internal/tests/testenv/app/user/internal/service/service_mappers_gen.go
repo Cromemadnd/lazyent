@@ -116,7 +116,6 @@ func BizPostToProto(b *biz.Post) (*pb.Post, error) {
 		Content:            b.Content,
 		Slug:               b.Slug,
 		Summary:            b.Summary,
-		ExtraData:          b.ExtraData,
 		RelevantGroupsID:   relevantGroupsID,
 		FollowersID:        followersID,
 		CoAuthorsArchiveID: coAuthorsArchiveID,
@@ -163,7 +162,6 @@ func ProtoPostToBiz(p *pb.Post) (*biz.Post, error) {
 			Content:          p.Content,
 			Slug:             p.Slug,
 			Summary:          "",
-			ExtraData:        p.ExtraData,
 			RelevantGroupsID: relevantGroupsID,
 			Followers:        followers,
 			CoAuthorsArchive: coAuthorsArchive,
@@ -207,7 +205,6 @@ func ProtoPostInputToBiz(p *pb.PostInput) (*biz.Post, error) {
 			Content:          p.Content,
 			Slug:             p.Slug,
 			ManagementKey:    p.ManagementKey,
-			ExtraData:        p.ExtraData,
 			CoAuthors:        coAuthors,
 			RelevantGroupsID: relevantGroupsID,
 			Author:           author,
@@ -251,6 +248,22 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		}
 		friends = append(friends, v)
 	}
+	var friends_virtual []*pb.User
+	for _, item := range b.FriendsVirtual {
+		v, err := BizUserToProto(item)
+		if err != nil {
+			return nil, err
+		}
+		friends_virtual = append(friends_virtual, v)
+	}
+	var friends_virtual_user []*pb.VirtualUser
+	for _, item := range b.FriendsVirtualUser {
+		v, err := BizVirtualUserToProto(item)
+		if err != nil {
+			return nil, err
+		}
+		friends_virtual_user = append(friends_virtual_user, v)
+	}
 	return &pb.User{
 		Uuid:                 b.UUID,
 		CreatedAt:            timestamppb.New(b.CreatedAt),
@@ -266,7 +279,6 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		Status:               BizUserStatusToProto(b.Status),
 		Role:                 string(b.Role),
 		RemoteToken:          b.RemoteToken,
-		ExtUser:              b.ExtUser,
 		TestTime:             b.TestTime.UnixMilli(),
 		LastLoginIp:          b.LastLoginIP,
 		PostIds:              postIds,
@@ -274,6 +286,8 @@ func BizUserToProto(b *biz.User) (*pb.User, error) {
 		CoAuthorsArchiveTest: coAuthorsArchiveTest,
 		Groups:               groups,
 		Friends:              friends,
+		FriendsVirtual:       friends_virtual,
+		FriendsVirtualUser:   friends_virtual_user,
 	}, nil
 }
 
@@ -310,30 +324,47 @@ func ProtoUserToBiz(p *pb.User) (*biz.User, error) {
 		}
 		friends = append(friends, v)
 	}
+	var friendsVirtual []*biz.User
+	for _, item := range p.FriendsVirtual {
+		v, err := ProtoUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		friendsVirtual = append(friendsVirtual, v)
+	}
+	var friendsVirtualUser []*biz.VirtualUser
+	for _, item := range p.FriendsVirtualUser {
+		v, err := ProtoVirtualUserToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		friendsVirtualUser = append(friendsVirtualUser, v)
+	}
 	return &biz.User{
 		UserBase: biz.UserBase{
-			UUID:             p.Uuid,
-			CreatedAt:        p.CreatedAt.AsTime(),
-			UpdatedAt:        p.UpdatedAt.AsTime(),
-			Name:             p.Name,
-			Age:              int(p.Age),
-			Nickname:         p.Nickname,
-			UserScore:        uint8(p.UserScore),
-			IsVerified:       p.IsVerified,
-			Tags:             p.Tags,
-			TestUUID:         p.TestUuid,
-			TestNillableUUID: p.TestNillableUuid,
-			Status:           ProtoUserStatusToBiz(p.Status),
-			Role:             auth.UserRole(p.Role),
-			RemoteToken:      p.RemoteToken,
-			ExtUser:          p.ExtUser,
-			TestTime:         time.UnixMilli(int64(p.TestTime)),
-			LastLoginIP:      "",
-			PostIDs:          postIds,
-			Followers:        followers,
-			CoAuthorsArchive: coAuthorsArchive,
-			Groups:           groups,
-			Friends:          friends,
+			UUID:               p.Uuid,
+			CreatedAt:          p.CreatedAt.AsTime(),
+			UpdatedAt:          p.UpdatedAt.AsTime(),
+			Name:               p.Name,
+			Age:                int(p.Age),
+			Nickname:           p.Nickname,
+			UserScore:          uint8(p.UserScore),
+			IsVerified:         p.IsVerified,
+			Tags:               p.Tags,
+			TestUUID:           p.TestUuid,
+			TestNillableUUID:   p.TestNillableUuid,
+			Status:             ProtoUserStatusToBiz(p.Status),
+			Role:               auth.UserRole(p.Role),
+			RemoteToken:        p.RemoteToken,
+			TestTime:           time.UnixMilli(int64(p.TestTime)),
+			LastLoginIP:        "",
+			PostIDs:            postIds,
+			Followers:          followers,
+			CoAuthorsArchive:   coAuthorsArchive,
+			Groups:             groups,
+			Friends:            friends,
+			FriendsVirtual:     friendsVirtual,
+			FriendsVirtualUser: friendsVirtualUser,
 		},
 	}, nil
 }
@@ -363,29 +394,131 @@ func ProtoUserInputToBiz(p *pb.UserInput) (*biz.User, error) {
 		}
 		coAuthorsArchive = append(coAuthorsArchive, v)
 	}
+	var friendsVirtual []*biz.User
+	for _, item := range p.FriendsVirtual {
+		v, err := ProtoUserInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		friendsVirtual = append(friendsVirtual, v)
+	}
+	var friendsVirtualUser []*biz.VirtualUser
+	for _, item := range p.FriendsVirtualUser {
+		v, err := ProtoVirtualUserInputToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		friendsVirtualUser = append(friendsVirtualUser, v)
+	}
 	return &biz.User{
 		UserBase: biz.UserBase{
-			UUID:             p.Uuid,
-			CreatedAt:        p.CreatedAt.AsTime(),
-			UpdatedAt:        p.UpdatedAt.AsTime(),
-			Name:             p.Name,
-			Age:              int(p.Age),
-			Nickname:         p.Nickname,
-			UserScore:        uint8(p.UserScore),
-			IsVerified:       p.IsVerified,
-			Tags:             p.Tags,
-			Password:         p.Password,
-			TestUUID:         p.TestUuid,
-			TestNillableUUID: p.TestNillableUuid,
-			Status:           ProtoUserStatusToBiz(p.Status),
-			Role:             auth.UserRole(p.Role),
-			RemoteToken:      p.RemoteToken,
-			ExtUser:          p.ExtUser,
-			TestTime:         time.UnixMilli(int64(p.TestTime)),
-			VerificationCode: p.VerificationCode,
-			PostIDs:          postIds,
-			Groups:           groups,
-			CoAuthorsArchive: coAuthorsArchive,
+			UUID:               p.Uuid,
+			CreatedAt:          p.CreatedAt.AsTime(),
+			UpdatedAt:          p.UpdatedAt.AsTime(),
+			Name:               p.Name,
+			Age:                int(p.Age),
+			Nickname:           p.Nickname,
+			UserScore:          uint8(p.UserScore),
+			IsVerified:         p.IsVerified,
+			Tags:               p.Tags,
+			Password:           p.Password,
+			TestUUID:           p.TestUuid,
+			TestNillableUUID:   p.TestNillableUuid,
+			Status:             ProtoUserStatusToBiz(p.Status),
+			Role:               auth.UserRole(p.Role),
+			RemoteToken:        p.RemoteToken,
+			TestTime:           time.UnixMilli(int64(p.TestTime)),
+			VerificationCode:   p.VerificationCode,
+			PostIDs:            postIds,
+			Groups:             groups,
+			CoAuthorsArchive:   coAuthorsArchive,
+			FriendsVirtual:     friendsVirtual,
+			FriendsVirtualUser: friendsVirtualUser,
+		},
+	}, nil
+}
+
+func BizVirtualUserToProto(b *biz.VirtualUser) (*pb.VirtualUser, error) {
+	if b == nil {
+		return nil, nil
+	}
+	return &pb.VirtualUser{
+		Uuid:                  b.UUID,
+		IdAuth:                b.IDAuth,
+		IdStudent:             b.IDStudent,
+		InfoName:              b.InfoName,
+		InfoCampus:            int32(b.InfoCampus),
+		InfoQq:                b.InfoQq,
+		InfoWechat:            b.InfoWechat,
+		InfoEmail:             b.InfoEmail,
+		InfoPhone:             b.InfoPhone,
+		InfoCustom:            b.InfoCustom,
+		InfoGender:            int32(b.InfoGender),
+		LankerValid:           b.LankerValid,
+		LankerTrainee:         b.LankerTrainee,
+		LankerSheetsCompleted: int32(b.LankerSheetsCompleted),
+		LankerScore:           float64(b.LankerScore),
+		LankerAvatarUrl:       b.LankerAvatarURL,
+		LankerBrief:           b.LankerBrief,
+		LankerDepartment:      int32(b.LankerDepartment),
+		LankerSpot:            int32(b.LankerSpot),
+	}, nil
+}
+
+func ProtoVirtualUserToBiz(p *pb.VirtualUser) (*biz.VirtualUser, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return &biz.VirtualUser{
+		VirtualUserBase: biz.VirtualUserBase{
+			UUID:                  p.Uuid,
+			IDAuth:                p.IdAuth,
+			IDStudent:             p.IdStudent,
+			InfoName:              p.InfoName,
+			InfoCampus:            int32(p.InfoCampus),
+			InfoQq:                p.InfoQq,
+			InfoWechat:            p.InfoWechat,
+			InfoEmail:             p.InfoEmail,
+			InfoPhone:             p.InfoPhone,
+			InfoCustom:            p.InfoCustom,
+			InfoGender:            int32(p.InfoGender),
+			LankerValid:           p.LankerValid,
+			LankerTrainee:         p.LankerTrainee,
+			LankerSheetsCompleted: int32(p.LankerSheetsCompleted),
+			LankerScore:           float64(p.LankerScore),
+			LankerAvatarURL:       p.LankerAvatarUrl,
+			LankerBrief:           p.LankerBrief,
+			LankerDepartment:      int32(p.LankerDepartment),
+			LankerSpot:            int32(p.LankerSpot),
+		},
+	}, nil
+}
+
+func ProtoVirtualUserInputToBiz(p *pb.VirtualUserInput) (*biz.VirtualUser, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return &biz.VirtualUser{
+		VirtualUserBase: biz.VirtualUserBase{
+			UUID:                  p.Uuid,
+			IDAuth:                p.IdAuth,
+			IDStudent:             p.IdStudent,
+			InfoName:              p.InfoName,
+			InfoCampus:            int32(p.InfoCampus),
+			InfoQq:                p.InfoQq,
+			InfoWechat:            p.InfoWechat,
+			InfoEmail:             p.InfoEmail,
+			InfoPhone:             p.InfoPhone,
+			InfoCustom:            p.InfoCustom,
+			InfoGender:            int32(p.InfoGender),
+			LankerValid:           p.LankerValid,
+			LankerTrainee:         p.LankerTrainee,
+			LankerSheetsCompleted: int32(p.LankerSheetsCompleted),
+			LankerScore:           float64(p.LankerScore),
+			LankerAvatarURL:       p.LankerAvatarUrl,
+			LankerBrief:           p.LankerBrief,
+			LankerDepartment:      int32(p.LankerDepartment),
+			LankerSpot:            int32(p.LankerSpot),
 		},
 	}, nil
 }

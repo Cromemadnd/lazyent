@@ -96,11 +96,6 @@ func Summary(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldSummary, v))
 }
 
-// ExtraData applies equality check predicate on the "extra_data" field. It's identical to ExtraDataEQ.
-func ExtraData(v string) predicate.Post {
-	return predicate.Post(sql.FieldEQ(FieldExtraData, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCreatedAt, v))
@@ -609,81 +604,6 @@ func SummaryEqualFold(v string) predicate.Post {
 // SummaryContainsFold applies the ContainsFold predicate on the "summary" field.
 func SummaryContainsFold(v string) predicate.Post {
 	return predicate.Post(sql.FieldContainsFold(FieldSummary, v))
-}
-
-// ExtraDataEQ applies the EQ predicate on the "extra_data" field.
-func ExtraDataEQ(v string) predicate.Post {
-	return predicate.Post(sql.FieldEQ(FieldExtraData, v))
-}
-
-// ExtraDataNEQ applies the NEQ predicate on the "extra_data" field.
-func ExtraDataNEQ(v string) predicate.Post {
-	return predicate.Post(sql.FieldNEQ(FieldExtraData, v))
-}
-
-// ExtraDataIn applies the In predicate on the "extra_data" field.
-func ExtraDataIn(vs ...string) predicate.Post {
-	return predicate.Post(sql.FieldIn(FieldExtraData, vs...))
-}
-
-// ExtraDataNotIn applies the NotIn predicate on the "extra_data" field.
-func ExtraDataNotIn(vs ...string) predicate.Post {
-	return predicate.Post(sql.FieldNotIn(FieldExtraData, vs...))
-}
-
-// ExtraDataGT applies the GT predicate on the "extra_data" field.
-func ExtraDataGT(v string) predicate.Post {
-	return predicate.Post(sql.FieldGT(FieldExtraData, v))
-}
-
-// ExtraDataGTE applies the GTE predicate on the "extra_data" field.
-func ExtraDataGTE(v string) predicate.Post {
-	return predicate.Post(sql.FieldGTE(FieldExtraData, v))
-}
-
-// ExtraDataLT applies the LT predicate on the "extra_data" field.
-func ExtraDataLT(v string) predicate.Post {
-	return predicate.Post(sql.FieldLT(FieldExtraData, v))
-}
-
-// ExtraDataLTE applies the LTE predicate on the "extra_data" field.
-func ExtraDataLTE(v string) predicate.Post {
-	return predicate.Post(sql.FieldLTE(FieldExtraData, v))
-}
-
-// ExtraDataContains applies the Contains predicate on the "extra_data" field.
-func ExtraDataContains(v string) predicate.Post {
-	return predicate.Post(sql.FieldContains(FieldExtraData, v))
-}
-
-// ExtraDataHasPrefix applies the HasPrefix predicate on the "extra_data" field.
-func ExtraDataHasPrefix(v string) predicate.Post {
-	return predicate.Post(sql.FieldHasPrefix(FieldExtraData, v))
-}
-
-// ExtraDataHasSuffix applies the HasSuffix predicate on the "extra_data" field.
-func ExtraDataHasSuffix(v string) predicate.Post {
-	return predicate.Post(sql.FieldHasSuffix(FieldExtraData, v))
-}
-
-// ExtraDataIsNil applies the IsNil predicate on the "extra_data" field.
-func ExtraDataIsNil() predicate.Post {
-	return predicate.Post(sql.FieldIsNull(FieldExtraData))
-}
-
-// ExtraDataNotNil applies the NotNil predicate on the "extra_data" field.
-func ExtraDataNotNil() predicate.Post {
-	return predicate.Post(sql.FieldNotNull(FieldExtraData))
-}
-
-// ExtraDataEqualFold applies the EqualFold predicate on the "extra_data" field.
-func ExtraDataEqualFold(v string) predicate.Post {
-	return predicate.Post(sql.FieldEqualFold(FieldExtraData, v))
-}
-
-// ExtraDataContainsFold applies the ContainsFold predicate on the "extra_data" field.
-func ExtraDataContainsFold(v string) predicate.Post {
-	return predicate.Post(sql.FieldContainsFold(FieldExtraData, v))
 }
 
 // HasAuthor applies the HasEdge predicate on the "author" edge.

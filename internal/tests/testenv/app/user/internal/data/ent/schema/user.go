@@ -39,16 +39,8 @@ func (User) Fields() []ent.Field {
 			GoType(auth.UserRole("")).
 			Default(string(auth.RoleUser)).
 			Comment("用户权限组"), // Custom Type Enum
-		field.String("remote_token").
-			Annotations(lazyent.Virtual()).
+		lazyent.VirtualField(field.String("remote_token")).
 			Comment("虚拟令牌，不存数据库"),
-		field.Any("ext_user").
-			Annotations(lazyent.MergeAnnotations(
-				lazyent.Virtual(),
-				lazyent.WithBizType("*auth.User"),
-				lazyent.WithProtoType("auth.v1.User"),
-			)).
-			Comment("外部用户对象，不存数据库"),
 
 		field.Time("test_time").Optional().Annotations(lazyent.MergeAnnotations(
 			lazyent.WithBizType("time.Time"),
@@ -103,6 +95,8 @@ func (User) Edges() []ent.Edge {
 				lazyent.WithEdgeInStrategy(lazyent.EdgeProtoExcluded|lazyent.EdgeBizPointer),
 				lazyent.WithEdgeOutStrategy(lazyent.EdgeProtoExcluded|lazyent.EdgeBizPointer),
 			),
+		lazyent.VirtualEdge(edge.To("friends_virtual", User.Type)),
+		lazyent.VirtualEdge(edge.To("friends_virtual_user", VirtualUser.Type)),
 	}
 }
 

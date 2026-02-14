@@ -10,12 +10,13 @@ import (
 
 {{- range .Nodes }}
 {{- $node := . }}
+{{- if isVirtualNode . }}{{ continue }}{{ end }}
 func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 	if e == nil {
 		return nil, nil
 	}
 {{- range $e := .Edges }}
-{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
+{{- if or (not (shouldGenerateBizEdge $e)) (isVirtual $e) (isVirtualNode $e.Type) }}{{ continue }}{{ end }}
 {{- if not $e.Unique }}
 	{{- if isBizIDOnly $e false }}
 	var {{ camel (bizEdgeName $e false) }} []string
@@ -52,7 +53,7 @@ func Ent{{ .Name }}ToBiz(e *ent.{{ .Name }}) (*biz.{{ .Name }}, error) {
 			{{- end }}
 			{{- end }}
 			{{- range $e := .Edges }}
-			{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
+			{{- if or (not (shouldGenerateBizEdge $e)) (isVirtual $e) (isVirtualNode $e.Type) }}{{ continue }}{{ end }}
 			{{- if $e.Unique }}
 			{{- /* Single Relationship */}}
 			{{- if isBizIDOnly $e false }}
@@ -83,7 +84,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 		return nil, nil
 	}
 {{- range $e := .Edges }}
-{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
+{{- if or (not (shouldGenerateBizEdge $e)) (isVirtual $e) (isVirtualNode $e.Type) }}{{ continue }}{{ end }}
 {{- if $e.Unique }}
 	{{- if not (isBizIDOnly $e false) }}
 	{{ camel (bizEdgeName $e false) }}, err := Biz{{ $e.Type.Name }}ToEnt(b.{{ bizEdgeName $e false }})
@@ -143,7 +144,7 @@ func Biz{{ .Name }}ToEnt(b *biz.{{ .Name }}) (*ent.{{ .Name }}, error) {
 {{- if .Edges }}
 		Edges: ent.{{ .Name }}Edges{
 {{- range $e := .Edges }}
-{{- if not (shouldGenerateBizEdge $e) }}{{ continue }}{{ end }}
+{{- if or (not (shouldGenerateBizEdge $e)) (isVirtual $e) (isVirtualNode $e.Type) }}{{ continue }}{{ end }}
 			{{ $e.StructField }}: {{ camel $e.StructField }},
 {{- end }}
 		},

@@ -43,10 +43,6 @@ const (
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
-	// FieldRemoteToken holds the string denoting the remote_token field in the database.
-	FieldRemoteToken = "remote_token"
-	// FieldExtUser holds the string denoting the ext_user field in the database.
-	FieldExtUser = "ext_user"
 	// FieldTestTime holds the string denoting the test_time field in the database.
 	FieldTestTime = "test_time"
 	// FieldLastLoginIP holds the string denoting the last_login_ip field in the database.
@@ -103,8 +99,6 @@ var Columns = []string{
 	FieldTestNillableUUID,
 	FieldStatus,
 	FieldRole,
-	FieldRemoteToken,
-	FieldExtUser,
 	FieldTestTime,
 	FieldLastLoginIP,
 	FieldVerificationCode,
@@ -274,11 +268,6 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
-}
-
-// ByRemoteToken orders the results by the remote_token field.
-func ByRemoteToken(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRemoteToken, opts...).ToFunc()
 }
 
 // ByTestTime orders the results by the test_time field.

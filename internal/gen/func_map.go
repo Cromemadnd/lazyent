@@ -40,7 +40,8 @@ var funcMap = template.FuncMap{
 	"shouldGenerateBizEdge":  shouldGenerateBizEdge,
 	"shouldBizPointer":       shouldBizPointer,
 	"isSensitive":            isSensitive,
-	"isVirtual":              isVirtual,
+	"isVirtual":              IsVirtual,
+	"isVirtualNode":          IsVirtualNode,
 
 	"isProtoID":              isProtoID,
 	"isProtoMessage":         isProtoMessage,

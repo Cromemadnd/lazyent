@@ -145,26 +145,6 @@ func (_u *PostUpdate) ClearSummary() *PostUpdate {
 	return _u
 }
 
-// SetExtraData sets the "extra_data" field.
-func (_u *PostUpdate) SetExtraData(v string) *PostUpdate {
-	_u.mutation.SetExtraData(v)
-	return _u
-}
-
-// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
-func (_u *PostUpdate) SetNillableExtraData(v *string) *PostUpdate {
-	if v != nil {
-		_u.SetExtraData(*v)
-	}
-	return _u
-}
-
-// ClearExtraData clears the value of the "extra_data" field.
-func (_u *PostUpdate) ClearExtraData() *PostUpdate {
-	_u.mutation.ClearExtraData()
-	return _u
-}
-
 // SetAuthorID sets the "author" edge to the User entity by ID.
 func (_u *PostUpdate) SetAuthorID(id uuid.UUID) *PostUpdate {
 	_u.mutation.SetAuthorID(id)
@@ -424,12 +404,6 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.SummaryCleared() {
 		_spec.ClearField(post.FieldSummary, field.TypeString)
-	}
-	if value, ok := _u.mutation.ExtraData(); ok {
-		_spec.SetField(post.FieldExtraData, field.TypeString, value)
-	}
-	if _u.mutation.ExtraDataCleared() {
-		_spec.ClearField(post.FieldExtraData, field.TypeString)
 	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -774,26 +748,6 @@ func (_u *PostUpdateOne) ClearSummary() *PostUpdateOne {
 	return _u
 }
 
-// SetExtraData sets the "extra_data" field.
-func (_u *PostUpdateOne) SetExtraData(v string) *PostUpdateOne {
-	_u.mutation.SetExtraData(v)
-	return _u
-}
-
-// SetNillableExtraData sets the "extra_data" field if the given value is not nil.
-func (_u *PostUpdateOne) SetNillableExtraData(v *string) *PostUpdateOne {
-	if v != nil {
-		_u.SetExtraData(*v)
-	}
-	return _u
-}
-
-// ClearExtraData clears the value of the "extra_data" field.
-func (_u *PostUpdateOne) ClearExtraData() *PostUpdateOne {
-	_u.mutation.ClearExtraData()
-	return _u
-}
-
 // SetAuthorID sets the "author" edge to the User entity by ID.
 func (_u *PostUpdateOne) SetAuthorID(id uuid.UUID) *PostUpdateOne {
 	_u.mutation.SetAuthorID(id)
@@ -1083,12 +1037,6 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if _u.mutation.SummaryCleared() {
 		_spec.ClearField(post.FieldSummary, field.TypeString)
-	}
-	if value, ok := _u.mutation.ExtraData(); ok {
-		_spec.SetField(post.FieldExtraData, field.TypeString, value)
-	}
-	if _u.mutation.ExtraDataCleared() {
-		_spec.ClearField(post.FieldExtraData, field.TypeString)
 	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -38,12 +38,6 @@ func (Post) Fields() []ent.Field {
 			lazyent.WithFieldOutStrategy(lazyent.FieldProtoOptional|lazyent.FieldBizValue),
 			lazyent.WithProtoAdditionalImports([]string{"test.proto"}),
 		)),
-
-		// 场景：Virtual 字段测试
-		field.String("extra_data").Annotations(lazyent.MergeAnnotations(
-			lazyent.Virtual(),
-			lazyent.WithProtoAdditionalImports([]string{"test.proto"}),
-		)).Optional(),
 	}
 }
 

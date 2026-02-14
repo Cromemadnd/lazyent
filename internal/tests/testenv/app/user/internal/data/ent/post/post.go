@@ -31,8 +31,6 @@ const (
 	FieldManagementKey = "management_key"
 	// FieldSummary holds the string denoting the summary field in the database.
 	FieldSummary = "summary"
-	// FieldExtraData holds the string denoting the extra_data field in the database.
-	FieldExtraData = "extra_data"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
 	// EdgeCoAuthors holds the string denoting the co_authors edge name in mutations.
@@ -93,7 +91,6 @@ var Columns = []string{
 	FieldInternalCode,
 	FieldManagementKey,
 	FieldSummary,
-	FieldExtraData,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "posts"
@@ -176,11 +173,6 @@ func ByManagementKey(opts ...sql.OrderTermOption) OrderOption {
 // BySummary orders the results by the summary field.
 func BySummary(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSummary, opts...).ToFunc()
-}
-
-// ByExtraData orders the results by the extra_data field.
-func ByExtraData(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExtraData, opts...).ToFunc()
 }
 
 // ByAuthorField orders the results by author field.

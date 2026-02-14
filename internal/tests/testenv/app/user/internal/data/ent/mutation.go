@@ -663,7 +663,6 @@ type PostMutation struct {
 	internal_code             *string
 	management_key            *string
 	summary                   *string
-	extra_data                *string
 	clearedFields             map[string]struct{}
 	author                    *uuid.UUID
 	clearedauthor             bool
@@ -1128,55 +1127,6 @@ func (m *PostMutation) ResetSummary() {
 	delete(m.clearedFields, post.FieldSummary)
 }
 
-// SetExtraData sets the "extra_data" field.
-func (m *PostMutation) SetExtraData(s string) {
-	m.extra_data = &s
-}
-
-// ExtraData returns the value of the "extra_data" field in the mutation.
-func (m *PostMutation) ExtraData() (r string, exists bool) {
-	v := m.extra_data
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExtraData returns the old "extra_data" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldExtraData(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExtraData is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExtraData requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExtraData: %w", err)
-	}
-	return oldValue.ExtraData, nil
-}
-
-// ClearExtraData clears the value of the "extra_data" field.
-func (m *PostMutation) ClearExtraData() {
-	m.extra_data = nil
-	m.clearedFields[post.FieldExtraData] = struct{}{}
-}
-
-// ExtraDataCleared returns if the "extra_data" field was cleared in this mutation.
-func (m *PostMutation) ExtraDataCleared() bool {
-	_, ok := m.clearedFields[post.FieldExtraData]
-	return ok
-}
-
-// ResetExtraData resets all changes to the "extra_data" field.
-func (m *PostMutation) ResetExtraData() {
-	m.extra_data = nil
-	delete(m.clearedFields, post.FieldExtraData)
-}
-
 // SetAuthorID sets the "author" edge to the User entity by id.
 func (m *PostMutation) SetAuthorID(id uuid.UUID) {
 	m.author = &id
@@ -1466,7 +1416,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -1490,9 +1440,6 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.summary != nil {
 		fields = append(fields, post.FieldSummary)
-	}
-	if m.extra_data != nil {
-		fields = append(fields, post.FieldExtraData)
 	}
 	return fields
 }
@@ -1518,8 +1465,6 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.ManagementKey()
 	case post.FieldSummary:
 		return m.Summary()
-	case post.FieldExtraData:
-		return m.ExtraData()
 	}
 	return nil, false
 }
@@ -1545,8 +1490,6 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldManagementKey(ctx)
 	case post.FieldSummary:
 		return m.OldSummary(ctx)
-	case post.FieldExtraData:
-		return m.OldExtraData(ctx)
 	}
 	return nil, fmt.Errorf("unknown Post field %s", name)
 }
@@ -1612,13 +1555,6 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSummary(v)
 		return nil
-	case post.FieldExtraData:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExtraData(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
@@ -1661,9 +1597,6 @@ func (m *PostMutation) ClearedFields() []string {
 	if m.FieldCleared(post.FieldSummary) {
 		fields = append(fields, post.FieldSummary)
 	}
-	if m.FieldCleared(post.FieldExtraData) {
-		fields = append(fields, post.FieldExtraData)
-	}
 	return fields
 }
 
@@ -1689,9 +1622,6 @@ func (m *PostMutation) ClearField(name string) error {
 		return nil
 	case post.FieldSummary:
 		m.ClearSummary()
-		return nil
-	case post.FieldExtraData:
-		m.ClearExtraData()
 		return nil
 	}
 	return fmt.Errorf("unknown Post nullable field %s", name)
@@ -1724,9 +1654,6 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldSummary:
 		m.ResetSummary()
-		return nil
-	case post.FieldExtraData:
-		m.ResetExtraData()
 		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
@@ -1934,8 +1861,6 @@ type UserMutation struct {
 	test_nillable_uuid        *uuid.UUID
 	status                    *user.Status
 	role                      *auth.UserRole
-	remote_token              *string
-	ext_user                  *any
 	test_time                 *time.Time
 	last_login_ip             *string
 	verification_code         *string
@@ -2643,78 +2568,6 @@ func (m *UserMutation) ResetRole() {
 	m.role = nil
 }
 
-// SetRemoteToken sets the "remote_token" field.
-func (m *UserMutation) SetRemoteToken(s string) {
-	m.remote_token = &s
-}
-
-// RemoteToken returns the value of the "remote_token" field in the mutation.
-func (m *UserMutation) RemoteToken() (r string, exists bool) {
-	v := m.remote_token
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRemoteToken returns the old "remote_token" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldRemoteToken(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRemoteToken is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRemoteToken requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRemoteToken: %w", err)
-	}
-	return oldValue.RemoteToken, nil
-}
-
-// ResetRemoteToken resets all changes to the "remote_token" field.
-func (m *UserMutation) ResetRemoteToken() {
-	m.remote_token = nil
-}
-
-// SetExtUser sets the "ext_user" field.
-func (m *UserMutation) SetExtUser(a any) {
-	m.ext_user = &a
-}
-
-// ExtUser returns the value of the "ext_user" field in the mutation.
-func (m *UserMutation) ExtUser() (r any, exists bool) {
-	v := m.ext_user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExtUser returns the old "ext_user" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldExtUser(ctx context.Context) (v any, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExtUser is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExtUser requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExtUser: %w", err)
-	}
-	return oldValue.ExtUser, nil
-}
-
-// ResetExtUser resets all changes to the "ext_user" field.
-func (m *UserMutation) ResetExtUser() {
-	m.ext_user = nil
-}
-
 // SetTestTime sets the "test_time" field.
 func (m *UserMutation) SetTestTime(t time.Time) {
 	m.test_time = &t
@@ -3236,7 +3089,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -3275,12 +3128,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, user.FieldRole)
-	}
-	if m.remote_token != nil {
-		fields = append(fields, user.FieldRemoteToken)
-	}
-	if m.ext_user != nil {
-		fields = append(fields, user.FieldExtUser)
 	}
 	if m.test_time != nil {
 		fields = append(fields, user.FieldTestTime)
@@ -3328,10 +3175,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case user.FieldRole:
 		return m.Role()
-	case user.FieldRemoteToken:
-		return m.RemoteToken()
-	case user.FieldExtUser:
-		return m.ExtUser()
 	case user.FieldTestTime:
 		return m.TestTime()
 	case user.FieldLastLoginIP:
@@ -3375,10 +3218,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStatus(ctx)
 	case user.FieldRole:
 		return m.OldRole(ctx)
-	case user.FieldRemoteToken:
-		return m.OldRemoteToken(ctx)
-	case user.FieldExtUser:
-		return m.OldExtUser(ctx)
 	case user.FieldTestTime:
 		return m.OldTestTime(ctx)
 	case user.FieldLastLoginIP:
@@ -3486,20 +3325,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
-		return nil
-	case user.FieldRemoteToken:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRemoteToken(v)
-		return nil
-	case user.FieldExtUser:
-		v, ok := value.(any)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExtUser(v)
 		return nil
 	case user.FieldTestTime:
 		v, ok := value.(time.Time)
@@ -3706,12 +3531,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRole:
 		m.ResetRole()
-		return nil
-	case user.FieldRemoteToken:
-		m.ResetRemoteToken()
-		return nil
-	case user.FieldExtUser:
-		m.ResetExtUser()
 		return nil
 	case user.FieldTestTime:
 		m.ResetTestTime()

@@ -371,9 +371,14 @@ func isSensitive(v interface{}) bool {
 	return f != nil && f.Sensitive()
 }
 
-func isVirtual(v interface{}) bool {
-	f := asGenField(v)
-	return f != nil && f.Annotation != nil && f.Annotation.Virtual
+func IsVirtual(v interface{}) bool {
+	if f := asGenField(v); f != nil {
+		return f.Annotation != nil && f.Annotation.Virtual
+	}
+	if e := asGenEdge(v); e != nil {
+		return e.Annotation != nil && e.Annotation.Virtual
+	}
+	return false
 }
 
 func isProtoID(v interface{}, in bool) bool {
@@ -656,4 +661,23 @@ func getExternalEnumName(v interface{}) string {
 		return f.Type.String()
 	}
 	return ""
+}
+
+func IsVirtualNode(v interface{}) bool {
+	var n *GenNode
+	if gn, ok := v.(*GenNode); ok {
+		n = gn
+	}
+	if n == nil {
+		return false
+	}
+
+	if ant, ok := n.Annotations["EntSQL"]; ok {
+		if m, ok := ant.(map[string]interface{}); ok {
+			if skip, ok := m["skip"].(bool); ok && skip {
+				return true
+			}
+		}
+	}
+	return false
 }

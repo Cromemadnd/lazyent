@@ -107,11 +107,6 @@ func TestNillableUUID(v uuid.UUID) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldTestNillableUUID, v))
 }
 
-// RemoteToken applies equality check predicate on the "remote_token" field. It's identical to RemoteTokenEQ.
-func RemoteToken(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRemoteToken, v))
-}
-
 // TestTime applies equality check predicate on the "test_time" field. It's identical to TestTimeEQ.
 func TestTime(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldTestTime, v))
@@ -665,71 +660,6 @@ func RoleNotIn(vs ...auth.UserRole) predicate.User {
 		v[i] = vs[i]
 	}
 	return predicate.User(sql.FieldNotIn(FieldRole, v...))
-}
-
-// RemoteTokenEQ applies the EQ predicate on the "remote_token" field.
-func RemoteTokenEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRemoteToken, v))
-}
-
-// RemoteTokenNEQ applies the NEQ predicate on the "remote_token" field.
-func RemoteTokenNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldRemoteToken, v))
-}
-
-// RemoteTokenIn applies the In predicate on the "remote_token" field.
-func RemoteTokenIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldRemoteToken, vs...))
-}
-
-// RemoteTokenNotIn applies the NotIn predicate on the "remote_token" field.
-func RemoteTokenNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldRemoteToken, vs...))
-}
-
-// RemoteTokenGT applies the GT predicate on the "remote_token" field.
-func RemoteTokenGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldRemoteToken, v))
-}
-
-// RemoteTokenGTE applies the GTE predicate on the "remote_token" field.
-func RemoteTokenGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldRemoteToken, v))
-}
-
-// RemoteTokenLT applies the LT predicate on the "remote_token" field.
-func RemoteTokenLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldRemoteToken, v))
-}
-
-// RemoteTokenLTE applies the LTE predicate on the "remote_token" field.
-func RemoteTokenLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldRemoteToken, v))
-}
-
-// RemoteTokenContains applies the Contains predicate on the "remote_token" field.
-func RemoteTokenContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldRemoteToken, v))
-}
-
-// RemoteTokenHasPrefix applies the HasPrefix predicate on the "remote_token" field.
-func RemoteTokenHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldRemoteToken, v))
-}
-
-// RemoteTokenHasSuffix applies the HasSuffix predicate on the "remote_token" field.
-func RemoteTokenHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldRemoteToken, v))
-}
-
-// RemoteTokenEqualFold applies the EqualFold predicate on the "remote_token" field.
-func RemoteTokenEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldRemoteToken, v))
-}
-
-// RemoteTokenContainsFold applies the ContainsFold predicate on the "remote_token" field.
-func RemoteTokenContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldRemoteToken, v))
 }
 
 // TestTimeEQ applies the EQ predicate on the "test_time" field.

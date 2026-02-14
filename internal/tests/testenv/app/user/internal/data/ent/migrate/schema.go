@@ -48,7 +48,6 @@ var (
 		{Name: "internal_code", Type: field.TypeString, Nullable: true},
 		{Name: "management_key", Type: field.TypeString, Nullable: true},
 		{Name: "summary", Type: field.TypeString, Nullable: true},
-		{Name: "extra_data", Type: field.TypeString, Nullable: true},
 		{Name: "user_posts", Type: field.TypeUUID},
 	}
 	// PostsTable holds the schema information for the "posts" table.
@@ -59,7 +58,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "posts_users_posts",
-				Columns:    []*schema.Column{PostsColumns[10]},
+				Columns:    []*schema.Column{PostsColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -88,8 +87,6 @@ var (
 		{Name: "test_nillable_uuid", Type: field.TypeUUID},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNSPECIFIED", "ACTIVE", "INACTIVE", "BANNED"}},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"public", "user", "tech", "dev", "leader", "manager"}, Default: "user"},
-		{Name: "remote_token", Type: field.TypeString},
-		{Name: "ext_user", Type: field.TypeJSON},
 		{Name: "test_time", Type: field.TypeTime, Nullable: true},
 		{Name: "last_login_ip", Type: field.TypeString, Nullable: true},
 		{Name: "verification_code", Type: field.TypeString, Nullable: true},
@@ -107,25 +104,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_admins",
-				Columns:    []*schema.Column{UsersColumns[20]},
+				Columns:    []*schema.Column{UsersColumns[18]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_posts_co_authors",
-				Columns:    []*schema.Column{UsersColumns[21]},
+				Columns:    []*schema.Column{UsersColumns[19]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_posts_followers",
-				Columns:    []*schema.Column{UsersColumns[22]},
+				Columns:    []*schema.Column{UsersColumns[20]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_posts_co_authors_archive",
-				Columns:    []*schema.Column{UsersColumns[23]},
+				Columns:    []*schema.Column{UsersColumns[21]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
